@@ -1,0 +1,31 @@
+{
+  "summary": {
+    "tags_total": 5,
+    "resolved": 5,
+    "needs_review": 0,
+    "rejected": 0,
+    "auto_pct": 80.0,
+    "llm_pct": 20.0,
+    "human_pct": 0.0
+  },
+  "missing_in_drawing": [
+    {
+      "io_tag": "FT-310",
+      "description": "Secondary flow sensor"
+    }
+  ],
+  "missing_in_io_list": [
+    {
+      "tag": "HV-77",
+      "tag_id": "tag_0031"
+    }
+  ],
+  "type_mismatches": [
+    {
+      "tag": "PT-101",
+      "drawing_type": "PT",
+      "io_signal": "4-20mA AI"
+    }
+  ],
+  "graph_warnings": []
+}

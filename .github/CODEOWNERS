@@ -1,0 +1,10 @@
+# Monorepo ownership rules as defined in UNTANGLE Engineering Plan (Section 2)
+# Any change to a directory requires approval from the directory owner.
+
+* @Aalok
+apps/web/ @Yash
+services/api/ @Indra
+services/perception/ @Aalok
+infra/ @Aalok
+docs/ @Aalok
+contracts/ @Aalok @Indra @Yash

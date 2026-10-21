@@ -1,0 +1,125 @@
+{
+  "job_id": "3f2a9c1e-5b7d-4e8a-9c21-7d4e5f6a8b90",
+  "items": [
+    {
+      "id": "tag_0001",
+      "page": 1,
+      "raw_text": "TK-101",
+      "normalized_tag": "TK-101",
+      "type": "Storage Tank",
+      "category": "equipment",
+      "bbox": [210, 190, 290, 215],
+      "confidence": 0.98,
+      "conf_breakdown": {
+        "ocr": 0.99,
+        "symbol": 0.96,
+        "io_match": 1.0,
+        "grammar": 1.0,
+        "llm": 0.98
+      },
+      "status": "resolved",
+      "io_match": {
+        "matched": true,
+        "io_tag": "TK-101",
+        "score": 100
+      },
+      "reasoning": "Exact match in drawing and IO list."
+    },
+    {
+      "id": "tag_0002",
+      "page": 1,
+      "raw_text": "P-101A",
+      "normalized_tag": "P-101A",
+      "type": "Feed Pump",
+      "category": "equipment",
+      "bbox": [580, 480, 660, 505],
+      "confidence": 0.97,
+      "conf_breakdown": {
+        "ocr": 0.98,
+        "symbol": 0.95,
+        "io_match": 1.0,
+        "grammar": 1.0,
+        "llm": 0.97
+      },
+      "status": "resolved",
+      "io_match": {
+        "matched": true,
+        "io_tag": "P-101A",
+        "score": 100
+      },
+      "reasoning": "Standard centrifugal pump symbol, verified against IO list."
+    },
+    {
+      "id": "tag_0003",
+      "page": 1,
+      "raw_text": "PT10l",
+      "normalized_tag": "PT-101",
+      "type": "Pressure Transmitter",
+      "category": "instrument",
+      "bbox": [320, 140, 390, 165],
+      "confidence": 0.93,
+      "conf_breakdown": {
+        "ocr": 0.72,
+        "symbol": 0.92,
+        "io_match": 1.0,
+        "grammar": 1.0,
+        "llm": 0.93
+      },
+      "status": "resolved",
+      "io_match": {
+        "matched": true,
+        "io_tag": "PT-101",
+        "score": 95
+      },
+      "reasoning": "Trailing 'l' corrected to '1'; matched PT-101 in IO list."
+    },
+    {
+      "id": "tag_0004",
+      "page": 1,
+      "raw_text": "FT-101",
+      "normalized_tag": "FT-101",
+      "type": "Flow Transmitter",
+      "category": "instrument",
+      "bbox": [780, 430, 850, 455],
+      "confidence": 0.96,
+      "conf_breakdown": {
+        "ocr": 0.96,
+        "symbol": 0.94,
+        "io_match": 1.0,
+        "grammar": 1.0,
+        "llm": 0.96
+      },
+      "status": "resolved",
+      "io_match": {
+        "matched": true,
+        "io_tag": "FT-101",
+        "score": 100
+      },
+      "reasoning": "Valid ISA-5.1 tag matched in IO list."
+    },
+    {
+      "id": "tag_0005",
+      "page": 1,
+      "raw_text": "CV-101",
+      "normalized_tag": "CV-101",
+      "type": "Control Valve",
+      "category": "valve",
+      "bbox": [950, 480, 1020, 505],
+      "confidence": 0.94,
+      "conf_breakdown": {
+        "ocr": 0.95,
+        "symbol": 0.93,
+        "io_match": 1.0,
+        "grammar": 1.0,
+        "llm": 0.94
+      },
+      "status": "resolved",
+      "io_match": {
+        "matched": true,
+        "io_tag": "CV-101",
+        "score": 100
+      },
+      "reasoning": "Control valve on main transfer line."
+    }
+  ]
+}

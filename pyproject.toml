@@ -1,0 +1,30 @@
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["services/perception/tests"]
+addopts = "-v"
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+exclude = [
+    ".git",
+    ".venv",
+    "__pycache__",
+    "data",
+    "apps/web"
+]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = false
+ignore_missing_imports = true
+warn_unused_ignores = true
+exclude = [
+    "^data/",
+    "^apps/web/",
+    "^\\.venv/"
+]

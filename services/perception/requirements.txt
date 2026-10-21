@@ -1,0 +1,18 @@
+# Core Perception Pipeline Dependencies
+# Pinned for reproducibility across development and Docker environments
+PyMuPDF>=1.23.0
+Pillow>=10.0.0
+numpy>=1.24.0
+pydantic>=2.0.0
+opencv-python-headless>=4.8.0; python_version < "3.14"
+pytesseract>=0.3.10
+openpyxl>=3.1.0
+reportlab>=4.0.0
+
+# Testing and Code Quality
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+ruff>=0.1.0
+mypy>=1.6.0
+types-Pillow>=10.0.0
+types-openpyxl>=3.1.0

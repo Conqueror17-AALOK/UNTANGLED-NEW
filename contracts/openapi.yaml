@@ -1,0 +1,438 @@
+openapi: 3.0.3
+info:
+  title: UNTANGLE API
+  version: 1.0.0
+  description: API for UNTANGLE P&ID untangling, cross-validation, and operator sketch generation.
+servers:
+  - url: /api/v1
+paths:
+  /jobs:
+    post:
+      summary: Upload P&ID PDF and IO List XLSX, start processing pipeline
+      operationId: createJob
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - pid_pdf
+                - io_list_xlsx
+              properties:
+                pid_pdf:
+                  type: string
+                  format: binary
+                  description: P&ID PDF file (max 50MB, max 30 pages)
+                io_list_xlsx:
+                  type: string
+                  format: binary
+                  description: IO List Excel file (max 10MB)
+      responses:
+        '202':
+          description: Job created and queued
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [job_id, status]
+                properties:
+                  job_id: { type: string, format: uuid }
+                  status: { type: string, enum: [queued] }
+        '400':
+          $ref: '#/components/responses/ErrorResponse'
+        '413':
+          $ref: '#/components/responses/ErrorResponse'
+        '415':
+          $ref: '#/components/responses/ErrorResponse'
+
+  /jobs/{job_id}:
+    get:
+      summary: Get current job status, pipeline stage and progress
+      operationId: getJob
+      parameters:
+        - name: job_id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Current job status
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [job_id, status, stage, progress]
+                properties:
+                  job_id: { type: string, format: uuid }
+                  status: { type: string, enum: [queued, running, done, failed] }
+                  stage:
+                    type: string
+                    enum: [perception, io_parse, cleanup, llm_resolve, validate, graph, simplify, layout, report]
+                  progress: { type: number, minimum: 0, maximum: 1 }
+                  pages: { type: integer }
+                  summary:
+                    type: object
+                    properties:
+                      resolved: { type: integer }
+                      needs_review: { type: integer }
+                      rejected: { type: integer }
+                  error:
+                    type: object
+                    nullable: true
+        '404':
+          $ref: '#/components/responses/ErrorResponse'
+
+  /jobs/{job_id}/tags:
+    get:
+      summary: List extracted and resolved tags with confidence breakdown
+      operationId: getJobTags
+      parameters:
+        - name: job_id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+        - name: status
+          in: query
+          required: false
+          schema: { type: string, enum: [resolved, needs_review, rejected] }
+        - name: page
+          in: query
+          required: false
+          schema: { type: integer, default: 1 }
+      responses:
+        '200':
+          description: List of tags
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Tag'
+        '404':
+          $ref: '#/components/responses/ErrorResponse'
+
+  /jobs/{job_id}/tags/{tag_id}:
+    patch:
+      summary: Human correction of a tag
+      operationId: updateTag
+      parameters:
+        - name: job_id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+        - name: tag_id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [normalized_tag]
+              properties:
+                normalized_tag:
+                  type: string
+                  pattern: '^[A-Z]{1,4}-?[0-9]{1,5}[A-Z]?$'
+                type:
+                  type: string
+      responses:
+        '200':
+          description: Tag updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tag'
+        '400':
+          $ref: '#/components/responses/ErrorResponse'
+        '404':
+          $ref: '#/components/responses/ErrorResponse'
+
+  /jobs/{job_id}/rebuild:
+    post:
+      summary: Rerun graph stages (stages 6-9) after corrections
+      operationId: rebuildGraph
+      parameters:
+        - name: job_id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '202':
+          description: Rebuild started
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [job_id, status]
+                properties:
+                  job_id: { type: string, format: uuid }
+                  status: { type: string, enum: [running] }
+        '409':
+          $ref: '#/components/responses/ErrorResponse'
+
+  /jobs/{job_id}/graph:
+    get:
+      summary: Get simplified graph with positions and connections
+      operationId: getGraph
+      parameters:
+        - name: job_id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Graph structure
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Graph'
+
+  /jobs/{job_id}/sketch:
+    get:
+      summary: Get generated SVG process sketch
+      operationId: getSketch
+      parameters:
+        - name: job_id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: SVG image
+          content:
+            image/svg+xml:
+              schema:
+                type: string
+
+  /jobs/{job_id}/source/{page}/crop:
+    get:
+      summary: Get PNG crop of original drawing for visual traceability
+      operationId: getSourceCrop
+      parameters:
+        - name: job_id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+        - name: page
+          in: path
+          required: true
+          schema: { type: integer }
+        - name: bbox
+          in: query
+          required: true
+          schema: { type: string, example: "1204,556,1290,580" }
+      responses:
+        '200':
+          description: PNG crop
+          content:
+            image/png:
+              schema:
+                type: string
+                format: binary
+
+  /jobs/{job_id}/report:
+    get:
+      summary: Get validation report between drawing and IO list
+      operationId: getReport
+      parameters:
+        - name: job_id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+        - name: lang
+          in: query
+          required: false
+          schema: { type: string, enum: [en, hi, mr], default: en }
+      responses:
+        '200':
+          description: Validation report
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Report'
+
+  /jobs/{job_id}/export:
+    get:
+      summary: Export results as json, svg or pdf
+      operationId: exportJob
+      parameters:
+        - name: job_id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+        - name: format
+          in: query
+          required: true
+          schema: { type: string, enum: [json, svg, pdf] }
+      responses:
+        '200':
+          description: Export payload
+
+  /health:
+    get:
+      summary: Service liveness check
+      operationId: healthCheck
+      responses:
+        '200':
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status]
+                properties:
+                  status: { type: string, example: "ok" }
+                  version: { type: string }
+
+components:
+  schemas:
+    Tag:
+      type: object
+      required: [id, page, raw_text, normalized_tag, type, category, bbox, confidence, conf_breakdown, status, io_match]
+      properties:
+        id: { type: string }
+        page: { type: integer }
+        raw_text: { type: string }
+        normalized_tag: { type: string }
+        type: { type: string }
+        category: { type: string }
+        bbox:
+          type: array
+          items: { type: number }
+          minItems: 4
+          maxItems: 4
+        confidence: { type: number }
+        conf_breakdown:
+          type: object
+          properties:
+            ocr: { type: number }
+            symbol: { type: number }
+            io_match: { type: number }
+            grammar: { type: number }
+            llm: { type: number }
+        status: { type: string, enum: [resolved, needs_review, rejected] }
+        io_match:
+          type: object
+          properties:
+            matched: { type: boolean }
+            io_tag: { type: string }
+        reasoning: { type: string }
+
+    Graph:
+      type: object
+      required: [version, nodes, edges, warnings]
+      properties:
+        version: { type: integer }
+        nodes:
+          type: array
+          items:
+            type: object
+            required: [id, type, category, x, y, confidence]
+            properties:
+              id: { type: string }
+              type: { type: string }
+              category: { type: string }
+              x: { type: number }
+              y: { type: number }
+              confidence: { type: number }
+              tag_id: { type: string }
+              warnings: { type: array, items: { type: string } }
+        edges:
+          type: array
+          items:
+            type: object
+            required: [id, source, target, line_type, directed]
+            properties:
+              id: { type: string }
+              source: { type: string }
+              target: { type: string }
+              line_type: { type: string }
+              directed: { type: boolean }
+        warnings:
+          type: array
+          items:
+            type: object
+            required: [node, code, message]
+            properties:
+              node: { type: string }
+              code: { type: string }
+              message: { type: string }
+
+    Report:
+      type: object
+      required: [summary, missing_in_drawing, missing_in_io_list, type_mismatches, graph_warnings]
+      properties:
+        summary:
+          type: object
+          required: [tags_total, resolved, needs_review, rejected, auto_pct, llm_pct, human_pct]
+          properties:
+            tags_total: { type: integer }
+            resolved: { type: integer }
+            needs_review: { type: integer }
+            rejected: { type: integer }
+            auto_pct: { type: number }
+            llm_pct: { type: number }
+            human_pct: { type: number }
+        missing_in_drawing:
+          type: array
+          items:
+            type: object
+            properties:
+              io_tag: { type: string }
+        missing_in_io_list:
+          type: array
+          items:
+            type: object
+            properties:
+              tag: { type: string }
+              tag_id: { type: string }
+        type_mismatches:
+          type: array
+          items:
+            type: object
+            properties:
+              tag: { type: string }
+              drawing_type: { type: string }
+              io_signal: { type: string }
+        graph_warnings:
+          type: array
+          items: { type: object }
+
+    ErrorEnvelope:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+              enum:
+                - INVALID_FILE_TYPE
+                - FILE_TOO_LARGE
+                - IO_COLUMN_NOT_FOUND
+                - JOB_NOT_FOUND
+                - TAG_NOT_FOUND
+                - JOB_STATE_CONFLICT
+                - VALIDATION_ERROR
+                - UNAUTHORIZED
+                - PIPELINE_FAILED
+                - LLM_UNAVAILABLE
+                - INTERNAL
+            message: { type: string }
+            details:
+              type: array
+              items: { type: object }
+            request_id: { type: string }
+
+  responses:
+    ErrorResponse:
+      description: Error envelope response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'

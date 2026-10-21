@@ -1,0 +1,80 @@
+# ==========================================
+# UNTANGLE Monorepo .gitignore
+# ==========================================
+
+# OS & IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Environment & Secrets (NEVER COMMIT)
+.env
+.env.local
+.env.*.local
+*.key
+*.pem
+
+# Python artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Testing & Typechecking
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.nox/
+.tox/
+
+# Node & Frontend
+node_modules/
+.pnp
+.pnp.js
+apps/web/dist/
+apps/web/.next/
+apps/web/build/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.eslintcache
+
+# Runtime Job & Cache Storage (Local)
+data/*
+!data/.gitkeep
+!data/README.md
+*.sqlite
+*.sqlite3
+*.db
+
+# Temporary artifacts & debug overlays
+tmp/
+temp/
+debug_output/
+*.out

@@ -1,0 +1,97 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  perception-lint-test:
+    name: Perception Pipeline (Lint, Types, Unit & E2E Tests)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install System Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y tesseract-ocr tesseract-ocr-eng libgl1 libglib2.0-0
+
+      - name: Install Python Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r services/perception/requirements.txt jsonschema
+
+      - name: Lint with Ruff
+        run: |
+          ruff check services/perception/
+
+      - name: Type Check with Mypy
+        run: |
+          mypy --explicit-package-bases services/perception
+
+      - name: Run Pytest Suite
+        run: |
+          pytest services/perception/tests/ -v
+
+  contract-schema-validation:
+    name: Validate Contracts & Samples
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install JSON Schema Validator
+        run: pip install jsonschema
+
+      - name: Validate Sample Payloads Against Schemas
+        run: |
+          python - << 'PY'
+          import json, os, jsonschema
+
+          schemas = {
+              "contracts/schemas/perception.schema.json": "contracts/samples/perception.sample.json",
+              "contracts/schemas/resolved_items.schema.json": "contracts/samples/resolved_items.sample.json",
+              "contracts/schemas/graph.schema.json": "contracts/samples/graph.sample.json",
+              "contracts/schemas/report.schema.json": "contracts/samples/report.sample.json"
+          }
+
+          for s_path, d_path in schemas.items():
+              print(f"Validating {d_path} against {s_path}...")
+              with open(s_path, 'r') as sf, open(d_path, 'r') as df:
+                  schema = json.load(sf)
+                  data = json.load(df)
+                  jsonschema.validate(instance=data, schema=schema)
+          print("All contracts and samples strictly validated!")
+          PY
+
+  docker-build-check:
+    name: Docker Build Validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build API Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: infra/Dockerfile.api
+          push: false
+          tags: untangle-api:ci-test

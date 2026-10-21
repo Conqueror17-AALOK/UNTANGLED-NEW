@@ -1,0 +1,66 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ReportOutput",
+  "type": "object",
+  "required": ["summary", "missing_in_drawing", "missing_in_io_list", "type_mismatches", "graph_warnings"],
+  "properties": {
+    "summary": {
+      "type": "object",
+      "required": ["tags_total", "resolved", "needs_review", "rejected", "auto_pct", "llm_pct", "human_pct"],
+      "properties": {
+        "tags_total": { "type": "integer" },
+        "resolved": { "type": "integer" },
+        "needs_review": { "type": "integer" },
+        "rejected": { "type": "integer" },
+        "auto_pct": { "type": "number" },
+        "llm_pct": { "type": "number" },
+        "human_pct": { "type": "number" }
+      }
+    },
+    "missing_in_drawing": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["io_tag"],
+        "properties": {
+          "io_tag": { "type": "string" },
+          "description": { "type": "string" }
+        }
+      }
+    },
+    "missing_in_io_list": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["tag", "tag_id"],
+        "properties": {
+          "tag": { "type": "string" },
+          "tag_id": { "type": "string" }
+        }
+      }
+    },
+    "type_mismatches": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["tag", "drawing_type", "io_signal"],
+        "properties": {
+          "tag": { "type": "string" },
+          "drawing_type": { "type": "string" },
+          "io_signal": { "type": "string" }
+        }
+      }
+    },
+    "graph_warnings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "node": { "type": "string" },
+          "code": { "type": "string" },
+          "message": { "type": "string" }
+        }
+      }
+    }
+  }
+}

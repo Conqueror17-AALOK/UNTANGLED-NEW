@@ -1,0 +1,86 @@
+{
+  "version": 1,
+  "nodes": [
+    {
+      "id": "TK-101",
+      "type": "Tank",
+      "category": "equipment",
+      "x": 250,
+      "y": 380,
+      "confidence": 0.98,
+      "tag_id": "tag_0001",
+      "warnings": []
+    },
+    {
+      "id": "P-101A",
+      "type": "Pump",
+      "category": "equipment",
+      "x": 610,
+      "y": 500,
+      "confidence": 0.97,
+      "tag_id": "tag_0002",
+      "warnings": []
+    },
+    {
+      "id": "PT-101",
+      "type": "Pressure Transmitter",
+      "category": "instrument",
+      "x": 355,
+      "y": 150,
+      "confidence": 0.93,
+      "tag_id": "tag_0003",
+      "warnings": []
+    },
+    {
+      "id": "FT-101",
+      "type": "Flow Transmitter",
+      "category": "instrument",
+      "x": 815,
+      "y": 440,
+      "confidence": 0.96,
+      "tag_id": "tag_0004",
+      "warnings": []
+    },
+    {
+      "id": "CV-101",
+      "type": "Control Valve",
+      "category": "valve",
+      "x": 990,
+      "y": 500,
+      "confidence": 0.94,
+      "tag_id": "tag_0005",
+      "warnings": []
+    }
+  ],
+  "edges": [
+    {
+      "id": "e_01",
+      "source": "TK-101",
+      "target": "P-101A",
+      "line_type": "process",
+      "directed": true
+    },
+    {
+      "id": "e_02",
+      "source": "P-101A",
+      "target": "CV-101",
+      "line_type": "process",
+      "directed": true
+    },
+    {
+      "id": "e_03",
+      "source": "TK-101",
+      "target": "PT-101",
+      "line_type": "electrical",
+      "directed": false
+    },
+    {
+      "id": "e_04",
+      "source": "FT-101",
+      "target": "CV-101",
+      "line_type": "signal",
+      "directed": true
+    }
+  ],
+  "warnings": []
+}

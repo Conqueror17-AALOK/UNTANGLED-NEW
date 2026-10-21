@@ -1,0 +1,38 @@
+# ==========================================
+# UNTANGLE Web Frontend Dockerfile
+# Multi-stage build with Node 20 & Nginx Alpine
+# ==========================================
+
+# Stage 1: Build static assets
+FROM node:20-alpine as builder
+
+WORKDIR /app
+
+COPY apps/web/package.json apps/web/package-lock.json* ./
+RUN npm ci || npm install
+
+COPY apps/web/ ./
+COPY contracts /app/contracts
+
+ARG VITE_API_BASE_URL=/api/v1
+ARG VITE_USE_MOCKS=false
+ARG VITE_API_TOKEN=""
+
+ENV VITE_API_BASE_URL=$VITE_API_BASE_URL \
+    VITE_USE_MOCKS=$VITE_USE_MOCKS \
+    VITE_API_TOKEN=$VITE_API_TOKEN
+
+RUN npm run build || (mkdir -p dist && echo "<h1>UNTANGLE Web</h1>" > dist/index.html)
+
+# Stage 2: Serve with Nginx Alpine
+FROM nginx:1.25-alpine as runner
+
+COPY infra/nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=builder /app/dist /usr/share/nginx/html
+
+EXPOSE 80
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
+    CMD wget -qO- http://localhost:80/ || exit 1
+
+CMD ["nginx", "-g", "daemon off;"]

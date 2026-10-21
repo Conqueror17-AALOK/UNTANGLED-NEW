@@ -1,0 +1,176 @@
+{
+  "job_id": "3f2a9c1e-5b7d-4e8a-9c21-7d4e5f6a8b90",
+  "source_file": "contracts/samples/sample_p_and_id_01.pdf",
+  "total_pages": 1,
+  "pages": [
+    {
+      "page_number": 1,
+      "width": 1920,
+      "height": 1080,
+      "is_vector": true,
+      "text_items": [
+        {
+          "id": "txt_001",
+          "text": "TK-101",
+          "bbox": [210, 190, 290, 215],
+          "ocr_confidence": 0.99,
+          "rotation": 0,
+          "source": "vector"
+        },
+        {
+          "id": "txt_002",
+          "text": "P-101A",
+          "bbox": [580, 480, 660, 505],
+          "ocr_confidence": 0.98,
+          "rotation": 0,
+          "source": "vector"
+        },
+        {
+          "id": "txt_003",
+          "text": "PT10l",
+          "bbox": [320, 140, 390, 165],
+          "ocr_confidence": 0.72,
+          "rotation": 0,
+          "source": "ocr"
+        },
+        {
+          "id": "txt_004",
+          "text": "FT-101",
+          "bbox": [780, 430, 850, 455],
+          "ocr_confidence": 0.96,
+          "rotation": 0,
+          "source": "vector"
+        },
+        {
+          "id": "txt_005",
+          "text": "CV-101",
+          "bbox": [950, 480, 1020, 505],
+          "ocr_confidence": 0.95,
+          "rotation": 0,
+          "source": "vector"
+        },
+        {
+          "id": "txt_006",
+          "text": "TO UNIT 200",
+          "bbox": [1280, 490, 1380, 510],
+          "ocr_confidence": 0.94,
+          "rotation": 0,
+          "source": "ocr"
+        }
+      ],
+      "symbols": [
+        {
+          "id": "sym_001",
+          "class": "tank",
+          "bbox": [160, 220, 340, 540],
+          "confidence": 0.96,
+          "ports": [
+            [250, 220],
+            [340, 490]
+          ],
+          "metadata": {
+            "has_line": false
+          }
+        },
+        {
+          "id": "sym_002",
+          "class": "pump",
+          "bbox": [570, 460, 650, 540],
+          "confidence": 0.95,
+          "ports": [
+            [570, 500],
+            [650, 500]
+          ],
+          "metadata": {}
+        },
+        {
+          "id": "sym_003",
+          "class": "instrument_bubble",
+          "bbox": [325, 120, 385, 180],
+          "confidence": 0.92,
+          "ports": [
+            [355, 180]
+          ],
+          "metadata": {
+            "bubble_shape": "circle",
+            "has_line": true,
+            "text_inside": "PT10l"
+          }
+        },
+        {
+          "id": "sym_004",
+          "class": "instrument_bubble",
+          "bbox": [785, 410, 845, 470],
+          "confidence": 0.94,
+          "ports": [
+            [815, 470]
+          ],
+          "metadata": {
+            "bubble_shape": "circle",
+            "has_line": true,
+            "text_inside": "FT-101"
+          }
+        },
+        {
+          "id": "sym_005",
+          "class": "valve_control",
+          "bbox": [960, 470, 1020, 530],
+          "confidence": 0.93,
+          "ports": [
+            [960, 500],
+            [1020, 500],
+            [990, 470]
+          ],
+          "metadata": {}
+        }
+      ],
+      "line_segments": [
+        {
+          "id": "line_001",
+          "points": [[340, 490], [570, 490]],
+          "line_type": "process",
+          "arrow_direction": "forward"
+        },
+        {
+          "id": "line_002",
+          "points": [[650, 500], [960, 500]],
+          "line_type": "process",
+          "arrow_direction": "forward"
+        },
+        {
+          "id": "line_003",
+          "points": [[1020, 500], [1280, 500]],
+          "line_type": "process",
+          "arrow_direction": "forward"
+        },
+        {
+          "id": "line_004",
+          "points": [[355, 180], [355, 220]],
+          "line_type": "electrical",
+          "arrow_direction": "none"
+        },
+        {
+          "id": "line_005",
+          "points": [[815, 470], [815, 500]],
+          "line_type": "electrical",
+          "arrow_direction": "none"
+        }
+      ],
+      "crossings": [
+        {
+          "point": [815, 500],
+          "is_junction": true,
+          "intersecting_lines": ["line_002", "line_005"]
+        }
+      ],
+      "off_page_connectors": [
+        {
+          "id": "opc_001",
+          "bbox": [1280, 480, 1390, 520],
+          "label": "TO UNIT 200",
+          "target_sheet": "P-200"
+        }
+      ]
+    }
+  ]
+}

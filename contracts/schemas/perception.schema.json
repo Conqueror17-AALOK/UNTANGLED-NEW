@@ -1,0 +1,198 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "PerceptionOutput",
+  "type": "object",
+  "required": ["job_id", "total_pages", "pages"],
+  "properties": {
+    "job_id": {
+      "type": "string"
+    },
+    "source_file": {
+      "type": "string"
+    },
+    "total_pages": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "pages": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["page_number", "width", "height", "text_items", "symbols", "line_segments", "crossings", "off_page_connectors"],
+        "properties": {
+          "page_number": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "width": {
+            "type": "number",
+            "minimum": 1
+          },
+          "height": {
+            "type": "number",
+            "minimum": 1
+          },
+          "is_vector": {
+            "type": "boolean"
+          },
+          "text_items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["id", "text", "bbox", "ocr_confidence", "rotation", "source"],
+              "properties": {
+                "id": { "type": "string" },
+                "text": { "type": "string" },
+                "bbox": {
+                  "type": "array",
+                  "items": { "type": "number" },
+                  "minItems": 4,
+                  "maxItems": 4,
+                  "description": "[x1, y1, x2, y2]"
+                },
+                "ocr_confidence": {
+                  "type": "number",
+                  "minimum": 0.0,
+                  "maximum": 1.0
+                },
+                "rotation": {
+                  "type": "number",
+                  "enum": [0, 90, 180, 270]
+                },
+                "source": {
+                  "type": "string",
+                  "enum": ["vector", "ocr"]
+                }
+              }
+            }
+          },
+          "symbols": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["id", "class", "bbox", "confidence", "ports"],
+              "properties": {
+                "id": { "type": "string" },
+                "class": {
+                  "type": "string",
+                  "enum": [
+                    "pump",
+                    "tank",
+                    "valve_manual",
+                    "valve_control",
+                    "instrument_bubble",
+                    "heat_exchanger",
+                    "filter",
+                    "compressor",
+                    "check_valve",
+                    "safety_valve"
+                  ]
+                },
+                "bbox": {
+                  "type": "array",
+                  "items": { "type": "number" },
+                  "minItems": 4,
+                  "maxItems": 4,
+                  "description": "[x1, y1, x2, y2]"
+                },
+                "confidence": {
+                  "type": "number",
+                  "minimum": 0.0,
+                  "maximum": 1.0
+                },
+                "ports": {
+                  "type": "array",
+                  "items": {
+                    "type": "array",
+                    "items": { "type": "number" },
+                    "minItems": 2,
+                    "maxItems": 2,
+                    "description": "[x, y]"
+                  }
+                },
+                "metadata": {
+                  "type": "object",
+                  "properties": {
+                    "bubble_shape": { "type": "string" },
+                    "has_line": { "type": "boolean" },
+                    "text_inside": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "line_segments": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["id", "points", "line_type", "arrow_direction"],
+              "properties": {
+                "id": { "type": "string" },
+                "points": {
+                  "type": "array",
+                  "items": {
+                    "type": "array",
+                    "items": { "type": "number" },
+                    "minItems": 2,
+                    "maxItems": 2
+                  },
+                  "minItems": 2
+                },
+                "line_type": {
+                  "type": "string",
+                  "enum": ["process", "signal", "pneumatic", "electrical"]
+                },
+                "arrow_direction": {
+                  "type": "string",
+                  "enum": ["forward", "backward", "none"]
+                }
+              }
+            }
+          },
+          "crossings": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["point", "is_junction", "intersecting_lines"],
+              "properties": {
+                "point": {
+                  "type": "array",
+                  "items": { "type": "number" },
+                  "minItems": 2,
+                  "maxItems": 2
+                },
+                "is_junction": {
+                  "type": "boolean"
+                },
+                "intersecting_lines": {
+                  "type": "array",
+                  "items": { "type": "string" }
+                }
+              }
+            }
+          },
+          "off_page_connectors": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["id", "bbox", "label"],
+              "properties": {
+                "id": { "type": "string" },
+                "bbox": {
+                  "type": "array",
+                  "items": { "type": "number" },
+                  "minItems": 4,
+                  "maxItems": 4
+                },
+                "label": { "type": "string" },
+                "target_sheet": {
+                  "type": ["string", "null"]
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

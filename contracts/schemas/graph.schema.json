@@ -1,0 +1,55 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "GraphOutput",
+  "type": "object",
+  "required": ["version", "nodes", "edges", "warnings"],
+  "properties": {
+    "version": { "type": "integer" },
+    "nodes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "type", "category", "x", "y", "confidence"],
+        "properties": {
+          "id": { "type": "string" },
+          "type": { "type": "string" },
+          "category": { "type": "string" },
+          "x": { "type": "number" },
+          "y": { "type": "number" },
+          "confidence": { "type": "number" },
+          "tag_id": { "type": "string" },
+          "warnings": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      }
+    },
+    "edges": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "source", "target", "line_type", "directed"],
+        "properties": {
+          "id": { "type": "string" },
+          "source": { "type": "string" },
+          "target": { "type": "string" },
+          "line_type": { "type": "string" },
+          "directed": { "type": "boolean" }
+        }
+      }
+    },
+    "warnings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["node", "code", "message"],
+        "properties": {
+          "node": { "type": "string" },
+          "code": { "type": "string" },
+          "message": { "type": "string" }
+        }
+      }
+    }
+  }
+}
