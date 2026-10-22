@@ -1,6 +1,6 @@
 [tool.pytest.ini_options]
 pythonpath = ["."]
-testpaths = ["services/perception/tests"]
+testpaths = ["services/perception/tests", "services/api/tests"]
 addopts = "-v"
 
 [tool.ruff]

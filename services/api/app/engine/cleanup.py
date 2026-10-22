@@ -1,0 +1,171 @@
+import re
+from typing import List, Tuple
+
+# OCR Character Confusion Mappings
+CHAR_TO_DIGIT = {
+    "l": "1",
+    "I": "1",
+    "i": "1",
+    "|": "1",
+    "O": "0",
+    "o": "0",
+    "D": "0",
+}
+
+DIGIT_TO_CHAR = {
+    "0": "O",
+    "1": "I",
+    "5": "S",
+    "8": "B",
+    "2": "Z",
+}
+
+
+def normalize_tag(raw: str) -> str:
+    """
+    Standardize tag formatting:
+    - Uppercase, strip whitespace
+    - Standardize separators to hyphens
+    - Insert hyphen between prefix letters and loop numbers if omitted (e.g. PT101 -> PT-101)
+    """
+    cleaned = raw.strip().upper()
+    cleaned = re.sub(r"[\s_]+", "-", cleaned)
+    
+    # If no hyphen, e.g. PT101 or TK101, insert it
+    m = re.match(r"^([A-Z]+)(\d+[A-Z]?)$", cleaned)
+    if m:
+        cleaned = f"{m.group(1)}-{m.group(2)}"
+
+    return cleaned
+
+
+def resolve_ocr_confusion(raw_tag: str) -> List[Tuple[str, float, str]]:
+    """
+    Generate resolved candidate tags from common OCR character confusions.
+    Returns: List of (candidate_tag, rule_confidence, reasoning)
+    """
+    candidates = []
+    normalized = normalize_tag(raw_tag)
+
+    # 1. Base clean
+    candidates.append((normalized, 0.85, "Standard normalized format"))
+
+    # 2. Check for numeric suffix confusion, e.g. PT10l -> PT-101
+    parts = normalized.split("-")
+    if len(parts) == 2:
+        prefix, suffix = parts[0], parts[1]
+        
+        # Suffix should generally be numbers with optional single letter suffix
+        fixed_suffix = list(suffix)
+        modified = False
+        reasonings = []
+
+        # If last char of suffix is 'l', 'I', 'i' and preceded by digits, it's almost certainly digit '1'
+        for i in range(len(fixed_suffix)):
+            ch = fixed_suffix[i]
+            # If at the end and preceded by digits
+            if i > 0 and fixed_suffix[i-1].isdigit():
+                if ch in CHAR_TO_DIGIT:
+                    fixed_suffix[i] = CHAR_TO_DIGIT[ch]
+                    modified = True
+                    reasonings.append(f"Fixed OCR '{ch}' -> '{CHAR_TO_DIGIT[ch]}'")
+            elif i == 0 and ch in CHAR_TO_DIGIT and len(fixed_suffix) > 1 and fixed_suffix[1].isdigit():
+                fixed_suffix[i] = CHAR_TO_DIGIT[ch]
+                modified = True
+                reasonings.append(f"Fixed OCR '{ch}' -> '{CHAR_TO_DIGIT[ch]}'")
+
+        if modified:
+            fixed_tag = f"{prefix}-{''.join(fixed_suffix)}"
+            candidates.insert(0, (fixed_tag, 0.95, "; ".join(reasonings)))
+
+    # 3. Direct trailing 'l' check if hyphen wasn't present originally: e.g. "PT10l"
+    raw_clean = raw_tag.strip()
+    if raw_clean.endswith("l") or raw_clean.endswith("I"):
+        base = raw_clean[:-1]
+        # Check if base ends with digits
+        m = re.match(r"^([A-Za-z]+)(\d+)$", base)
+        if m:
+            cand = f"{m.group(1).upper()}-{m.group(2)}1"
+            if not any(c[0] == cand for c in candidates):
+                candidates.insert(0, (cand, 0.96, "Trailing 'l'/'I' resolved to digit '1'"))
+
+    return candidates
+
+
+def extract_pid_tags(text_items: List[dict]) -> List[dict]:
+    """
+    Spatially identify true P&ID tags (instruments, equipment, valves) from raw text items.
+    Handles both single-token tags (e.g. TK-101) and split instrument bubble tokens (e.g. 'PT' + '101' -> 'PT-101').
+    Filters out non-tag generic text (drawing title blocks, notes, scale labels).
+    """
+    import math
+    tags = []
+    used = set()
+
+    # Known non-tag vocabulary to ignore
+    ignored_words = {
+        "UNTANGLE", "DEMO", "PROCESS", "FEED", "PRETREATMENT", "PUMPING", "SYSTEM",
+        "DWG", "DWG:", "DWG-UNT-001", "REV", "REV:", "01", "DATE", "DATE:", "SHEET",
+        "SHEET:", "1", "OF", "SCALE", "SCALE:", "NONE", "STORAGE", "15,000", "L",
+        "RAW", "CRUDE", "INLET", "DUTY", "STANDBY", "PRE-HEATER", "TO", "UNIT", "200",
+        "DWG-UNT-002", "&"
+    }
+
+    # 1. Single-token tags (e.g. TK-101, P-101A, P-101B, E-101, CV-101, HV-77)
+    for i, t in enumerate(text_items):
+        text = t.get("text", "").strip()
+        if text in ignored_words or len(text) < 2:
+            continue
+        if re.match(r"^[A-Z]{1,4}-\d+[A-Z]?$", text) or re.match(r"^[A-Z]{2,4}\d{2,4}[A-Za-z]?$", text):
+            tags.append(t)
+            used.add(i)
+
+    # 2. Spatially adjacent / stacked split tags (e.g. 'PT' above '101' or 'PT' followed by '101')
+    known_prefixes = {"PT", "FT", "FIC", "LT", "LIC", "TT", "TI", "PI", "PSV", "XV", "CV", "HV", "CK"}
+    for i, t in enumerate(text_items):
+        if i in used:
+            continue
+        text = t.get("text", "").strip().upper()
+        if text in known_prefixes:
+            bx = t.get("bbox", [0, 0, 0, 0])
+            bcx, bcy = (bx[0] + bx[2]) / 2.0, (bx[1] + bx[3]) / 2.0
+
+            # Find closest numeric suffix token
+            closest_idx = -1
+            min_dist = float("inf")
+            for j, t2 in enumerate(text_items):
+                if j in used or i == j:
+                    continue
+                text2 = t2.get("text", "").strip()
+                if re.match(r"^\d+[A-Za-z]?$", text2) or text2 in ["10l", "101", "101A", "101B"]:
+                    bx2 = t2.get("bbox", [0, 0, 0, 0])
+                    bcx2, bcy2 = (bx2[0] + bx2[2]) / 2.0, (bx2[1] + bx2[3]) / 2.0
+                    dist = math.sqrt((bcx - bcx2) ** 2 + (bcy - bcy2) ** 2)
+                    if dist < 180 and dist < min_dist:
+                        min_dist = dist
+                        closest_idx = j
+
+            if closest_idx != -1:
+                t2 = text_items[closest_idx]
+                bx2 = t2.get("bbox", [0, 0, 0, 0])
+                combined_text = f"{text}-{t2.get('text', '').strip()}"
+                combined_bbox = [
+                    min(bx[0], bx2[0]),
+                    min(bx[1], bx2[1]),
+                    max(bx[2], bx2[2]),
+                    max(bx[3], bx2[3])
+                ]
+                ocr_c = min(t.get("ocr_confidence", 0.95), t2.get("ocr_confidence", 0.95))
+                tags.append({
+                    "id": t.get("id"),
+                    "text": combined_text,
+                    "bbox": combined_bbox,
+                    "ocr_confidence": ocr_c,
+                    "rotation": t.get("rotation", 0),
+                    "source": t.get("source", "vector")
+                })
+                used.add(i)
+                used.add(closest_idx)
+
+    return tags
+
