@@ -80,3 +80,14 @@ def verify_api_token(authorization: str = Header(None)) -> None:
 
 ## 3. Rate Limiting on `POST /jobs`
 Recommend applying a sliding-window rate limit (e.g. `slowapi` or an in-memory token bucket) allowing max 10 uploads per IP per minute.
+
+---
+
+## 4. Implementation Status
+- **Status:** **Implemented & Fully Verified** ✅
+- **Module:** `services/api/app/core/security.py`
+- **Enforcement:**
+  - `validate_and_save_upload()` enforces MIME type whitelisting (`application/pdf`, `.xlsx`), strict size limits (50MB / 10MB), UUID renaming, and `os.path.abspath` prefix verification to eliminate directory traversal attacks.
+  - `verify_api_token()` enforces `Bearer` token verification using `secrets.compare_digest` to prevent timing attacks.
+  - Applied as FastAPI dependencies on protected routers in `services/api/app/routers/jobs.py`.
+

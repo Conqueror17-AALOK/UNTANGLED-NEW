@@ -20,3 +20,22 @@ Inspect `/tmp/test_output/debug_overlay_page_1.png` to verify:
 - Yellow circles enclose instrument bubbles
 - Green boxes detect pump/tank equipment
 - Blue lines trace piping process streams
+
+## 3. Running & Testing the Backend API Gateway
+To run the FastAPI backend gateway locally:
+```bash
+uvicorn services.api.app.main:app --host 0.0.0.0 --port 8000 --reload
+```
+To verify service health:
+```bash
+curl -s http://localhost:8000/api/v1/health
+```
+To kick off an instant benchmark demo pipeline execution without manual file uploads:
+```bash
+curl -s -X POST http://localhost:8000/api/v1/jobs/load-sample
+```
+To run the automated test suite across perception and API modules:
+```bash
+pytest -v
+```
+

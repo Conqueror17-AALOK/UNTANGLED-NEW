@@ -29,13 +29,13 @@
 
 UNTANGLE is built as a modular monorepo with strict directory boundaries:
 
-| Directory | Owner | Responsibility |
-|---|---|---|
-| `services/perception/` | **Aalok** | PyMuPDF vector/raster extraction, OpenCV preprocessing, dual OCR voting, symbol templates, line/junction detection |
-| `services/api/` | **Indra** | FastAPI backend, SQLite/SQLAlchemy repository, ISA-5.1 grammar cleanup, LLM resolver, Graph builder & layout |
-| `apps/web/` | **Yash** | React 18 + Vite + Tailwind CSS SPA, SVG sketch canvas with pan/zoom, live WebSocket stage tracker, Review Queue |
-| `infra/` & `docs/` | **Aalok** | Dockerfiles, Docker Compose, CI/CD, Benchmarks, Runbook, Demo script |
-| `contracts/` | **Shared** | OpenAPI 3.0 specification (`openapi.yaml`) and strict JSON Schemas |
+| Directory | Owner | Responsibility | Status |
+|---|---|---|---|
+| `services/perception/` | **Aalok** | PyMuPDF vector/raster extraction, OpenCV preprocessing, dual OCR voting, symbol templates, line/junction detection | **Complete** ✅ |
+| `services/api/` | **Indra** | FastAPI backend, SQLite/SQLAlchemy repository, ISA-5.1 grammar cleanup, LLM candidate resolver, Cross-validation engine, Graph builder & SVG layout | **Complete** ✅ |
+| `apps/web/` | **Yash** | React 18 + Vite + Tailwind CSS SPA, SVG sketch canvas with pan/zoom, live WebSocket stage tracker, Review Queue | **In Progress** ⏳ |
+| `infra/` & `docs/` | **Aalok** | Dockerfiles, Docker Compose, CI/CD, Benchmarks, Runbook, Demo script | **Complete** ✅ |
+| `contracts/` | **Shared** | OpenAPI 3.0 specification (`openapi.yaml`) and strict JSON Schemas | **Complete** ✅ |
 
 ---
 
@@ -60,23 +60,54 @@ UNTANGLE is built as a modular monorepo with strict directory boundaries:
    python3 -m venv .venv
    source .venv/bin/activate
    pip install -r services/perception/requirements.txt
+   pip install -r services/api/requirements.txt
    ```
 
-3. **Run Perception Pipeline on Sample P&ID:**
+3. **Start FastAPI Backend Gateway:**
+   ```bash
+   uvicorn services.api.app.main:app --host 0.0.0.0 --port 8000 --reload
+   ```
+   - OpenAPI Swagger UI: `http://localhost:8000/docs`
+   - Deep Healthcheck: `http://localhost:8000/api/v1/health`
+   - Live WebSocket: `ws://localhost:8000/ws/v1/jobs/{job_id}`
+
+4. **Run Perception Pipeline on Sample P&ID:**
    ```bash
    python -m services.perception.perception.run contracts/samples/sample_pid_01.pdf data/jobs/demo_job
    ```
    *Outputs `perception.json` and visual bounding box overlay `debug_overlay_page_1.png` in `data/jobs/demo_job/`.*
 
-4. **Run Benchmark Script:**
+5. **Run Benchmark Script:**
    ```bash
    python infra/scripts/benchmark.py
    ```
 
-5. **Run Pytest Suite:**
+6. **Run Full Pytest Suite (25 Tests Passing):**
    ```bash
-   pytest services/perception/tests/ -v
+   pytest -v
    ```
+
+---
+
+## 🔌 API Endpoints Reference
+
+All endpoints conform to [`contracts/openapi.yaml`](contracts/openapi.yaml):
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/api/v1/jobs` | Upload P&ID PDF and IO List XLSX, start 9-stage pipeline |
+| `POST` | `/api/v1/jobs/load-sample` | Pre-load benchmark sample P&ID & IO list for instant demo |
+| `GET` | `/api/v1/jobs/{id}` | Real-time status, pipeline stage (1-9), and progress metrics |
+| `GET` | `/api/v1/jobs/{id}/tags` | Extracted and resolved tags with 5-signal confidence breakdown |
+| `PATCH` | `/api/v1/jobs/{id}/tags/{tag_id}` | Human tag correction (updates to 100% confidence, logs audit trail) |
+| `POST` | `/api/v1/jobs/{id}/rebuild` | Sub-second (<400ms) re-simplification of stages 6–9 after human edits |
+| `GET` | `/api/v1/jobs/{id}/graph` | Simplified topological process graph JSON |
+| `GET` | `/api/v1/jobs/{id}/sketch` | Interactive SVG process sketch with confidence badges |
+| `GET` | `/api/v1/jobs/{id}/source/{page}/crop` | High-res source crop with cyan bounding box overlay |
+| `GET` | `/api/v1/jobs/{id}/report` | Cross-validation discrepancy audit report (supports `lang=en,hi,mr`) |
+| `GET` | `/api/v1/jobs/{id}/export` | Export bundled results as JSON, SVG, or PDF |
+| `GET` | `/api/v1/health` | Deep system health check (DB, Storage, OCR, LLM) |
+| `WS` | `/ws/v1/jobs/{id}` | Live WebSocket stage & progress stream |
 
 ### Option B: Docker Compose (Full Stack)
 

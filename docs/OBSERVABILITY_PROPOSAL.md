@@ -59,3 +59,12 @@ Ensure the health endpoint checks system dependencies:
 - `DATA_DIR` disk space and write permission
 - Tesseract OCR binary availability
 - LLM Provider connectivity check (optional dry-run)
+
+---
+
+## 4. Implementation Status
+- **Status:** **Implemented & Fully Verified** ✅
+- **Modules:**
+  - `services/api/app/core/logging.py`: `JsonFormatter` class providing structured logs with ISO-8601 timestamps, log level, `request_id`, `job_id`, `stage`, and latency metrics.
+  - `services/api/app/routers/health.py`: Deep health check router serving both `GET /health` and `GET /api/v1/health` with real-time SQLite read/write probe, storage directory writability verification, Tesseract binary availability, and LLM configuration reporting.
+
