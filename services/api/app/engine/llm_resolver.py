@@ -72,12 +72,20 @@ def _extract_json_object(text: str) -> Optional[Dict[str, Any]]:
     return None
 
 
+_RESOLUTION_CACHE: Dict[Tuple[str, str, Tuple[str, ...]], CandidateResolution] = {}
+
+
+def clear_resolution_cache() -> None:
+    """Clear in-memory resolution cache."""
+    _RESOLUTION_CACHE.clear()
+
+
 async def call_nvidia_llm(
     prompt: str,
     model: str,
     api_key: str,
     base_url: str,
-    timeout: float = 8.0
+    timeout: float = 6.0
 ) -> Optional[Dict[str, Any]]:
     """
     Call NVIDIA OpenAI-compatible chat completion endpoint.
@@ -92,16 +100,13 @@ async def call_nvidia_llm(
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json"
     }
+    # Pass instructions directly in user prompt to prevent models hanging on system messages
     payload = {
         "model": model,
         "messages": [
             {
-                "role": "system",
-                "content": "You are an industrial P&ID instrumentation expert. Always output your final answer as JSON."
-            },
-            {
                 "role": "user",
-                "content": prompt
+                "content": f"You are an industrial P&ID instrumentation expert. Always output your final answer as JSON.\n\n{prompt}"
             }
         ],
         "temperature": 0.1,
@@ -136,22 +141,28 @@ async def resolve_tag_with_llm_or_heuristics(
     rule_reasoning: str = ""
 ) -> CandidateResolution:
     """
-    Resolve ambiguous tag using NVIDIA NIM LLMs (Fast: GLM 5.3 Flash, Strong: DeepSeek V4.1 Flash)
+    Resolve ambiguous tag using NVIDIA NIM LLMs (Fast: GLM 5.3 Flash, Strong: DeepSeek V4.1 Flash, Rescue: Nemotron-Bolt)
     with resilient fallback to deterministic candidate matching and heuristics.
     """
+    cache_key = (raw_text.strip(), normalized_candidate.strip(), tuple(io_tags[:30]))
+    if cache_key in _RESOLUTION_CACHE:
+        return _RESOLUTION_CACHE[cache_key]
+
     settings = get_settings()
     best_io_tag, io_sim = fuzzy_match_io(normalized_candidate, io_tags)
 
     # 1. Deterministic Fast-Path: If raw text itself is already an exact match in DCS IO list (no OCR ambiguity), resolve instantly
     raw_clean = re.sub(r"[\s_-]+", "-", raw_text.strip().upper())
-    if best_io_tag and (raw_clean == best_io_tag.upper() or io_sim == 1.0 and raw_clean == normalized_candidate.upper()):
-        return CandidateResolution(
+    if best_io_tag and (raw_clean == best_io_tag.upper() or (io_sim == 1.0 and raw_clean == normalized_candidate.upper())):
+        res = CandidateResolution(
             resolved_tag=best_io_tag,
             confidence=0.98,
             reasoning=f"Exact verified match in DCS IO List: '{best_io_tag}'. {rule_reasoning}".strip(),
             io_match_tag=best_io_tag,
             io_score=1.0
         )
+        _RESOLUTION_CACHE[cache_key] = res
+        return res
 
     prompt = (
         f"You are an industrial P&ID (Piping and Instrumentation Diagram) expert. "
@@ -166,6 +177,8 @@ async def resolve_tag_with_llm_or_heuristics(
         f'{{"resolved_tag": "TAG-123", "confidence": 0.95, "reasoning": "Clear explanation of correction"}}'
     )
 
+    timeout = getattr(settings, "LLM_TIMEOUT", 6.0)
+
     # 2. Primary: NVIDIA Fast Model (GLM 5.3 Flash)
     if settings.LLM_PROVIDER == "nvidia" and settings.NVIDIA_API_KEY_GLM:
         try:
@@ -174,7 +187,7 @@ async def resolve_tag_with_llm_or_heuristics(
                 model=settings.LLM_MODEL_FAST,
                 api_key=settings.NVIDIA_API_KEY_GLM,
                 base_url=settings.NVIDIA_BASE_URL,
-                timeout=3.0
+                timeout=timeout
             )
             if parsed and "resolved_tag" in parsed:
                 resolved_tag = str(parsed["resolved_tag"]).strip()
@@ -185,17 +198,20 @@ async def resolve_tag_with_llm_or_heuristics(
                     io_sim = 1.0
                     best_io_tag = resolved_tag
 
-                return CandidateResolution(
+                res = CandidateResolution(
                     resolved_tag=resolved_tag,
                     confidence=llm_conf,
                     reasoning=f"[NVIDIA: GLM-5.3-Flash] {llm_reason}",
                     io_match_tag=best_io_tag,
                     io_score=io_sim
                 )
+                _RESOLUTION_CACHE[cache_key] = res
+                return res
         except Exception as e:
-            logger.warning(f"NVIDIA GLM 5.3 Flash call failed: {e}. Attempting fallback...")
+            err_msg = str(e) or "Request timed out"
+            logger.warning(f"NVIDIA GLM 5.3 Flash call failed ({type(e).__name__}: {err_msg}). Attempting fallback...")
 
-    # 2. Secondary: NVIDIA Strong Model (DeepSeek V4.1 Flash) if configured
+    # 3. Secondary: NVIDIA Strong Model (DeepSeek V4.1 Flash) if configured
     if settings.LLM_PROVIDER == "nvidia" and settings.NVIDIA_API_KEY_DEEPSEEK:
         try:
             parsed = await call_nvidia_llm(
@@ -203,7 +219,7 @@ async def resolve_tag_with_llm_or_heuristics(
                 model=settings.LLM_MODEL_STRONG,
                 api_key=settings.NVIDIA_API_KEY_DEEPSEEK,
                 base_url=settings.NVIDIA_BASE_URL,
-                timeout=3.0
+                timeout=timeout
             )
             if parsed and "resolved_tag" in parsed:
                 resolved_tag = str(parsed["resolved_tag"]).strip()
@@ -214,17 +230,55 @@ async def resolve_tag_with_llm_or_heuristics(
                     io_sim = 1.0
                     best_io_tag = resolved_tag
 
-                return CandidateResolution(
+                res = CandidateResolution(
                     resolved_tag=resolved_tag,
                     confidence=llm_conf,
                     reasoning=f"[NVIDIA: DeepSeek-V4.1-Flash] {llm_reason}",
                     io_match_tag=best_io_tag,
                     io_score=io_sim
                 )
+                _RESOLUTION_CACHE[cache_key] = res
+                return res
         except Exception as e:
-            logger.warning(f"NVIDIA DeepSeek V4.1 Flash call failed: {e}. Falling back to heuristics...")
+            err_msg = str(e) or "Request timed out"
+            logger.warning(f"NVIDIA DeepSeek V4.1 Flash call failed ({type(e).__name__}: {err_msg}). Attempting rescue model...")
 
-    # 3. Backward-compatible Gemini fallback (if explicitly configured)
+    # 4. Rescue: Ultra-fast active NVIDIA NIM model if primary/secondary models are congested upstream
+    rescue_model = getattr(settings, "LLM_MODEL_RESCUE", "nvidia/nemotron-3.5-bolt-e4b")
+    rescue_key = settings.NVIDIA_API_KEY_DEEPSEEK or settings.NVIDIA_API_KEY_GLM
+    if settings.LLM_PROVIDER == "nvidia" and rescue_key and rescue_model:
+        try:
+            parsed = await call_nvidia_llm(
+                prompt=prompt,
+                model=rescue_model,
+                api_key=rescue_key,
+                base_url=settings.NVIDIA_BASE_URL,
+                timeout=3.5
+            )
+            if parsed and "resolved_tag" in parsed:
+                resolved_tag = str(parsed["resolved_tag"]).strip()
+                llm_conf = float(parsed.get("confidence", 0.93))
+                llm_reason = parsed.get("reasoning", f"Resolved by NVIDIA {rescue_model}")
+
+                if resolved_tag in io_tags or resolved_tag.replace("-", "") in [t.replace("-", "") for t in io_tags]:
+                    io_sim = 1.0
+                    best_io_tag = resolved_tag
+
+                model_label = rescue_model.split("/")[-1]
+                res = CandidateResolution(
+                    resolved_tag=resolved_tag,
+                    confidence=llm_conf,
+                    reasoning=f"[NVIDIA: {model_label}] {llm_reason}",
+                    io_match_tag=best_io_tag,
+                    io_score=io_sim
+                )
+                _RESOLUTION_CACHE[cache_key] = res
+                return res
+        except Exception as e:
+            err_msg = str(e) or "Request timed out"
+            logger.warning(f"NVIDIA Rescue model call failed ({type(e).__name__}: {err_msg}). Falling back to heuristics...")
+
+    # 5. Backward-compatible Gemini fallback (if explicitly configured)
     if settings.GEMINI_API_KEY:
         try:
             url = f"https://generativelanguage.googleapis.com/v1beta/models/{settings.LLM_MODEL_FAST}:generateContent?key={settings.GEMINI_API_KEY}"
@@ -247,32 +301,38 @@ async def resolve_tag_with_llm_or_heuristics(
                             if resolved_tag in io_tags or resolved_tag.replace("-", "") in [t.replace("-", "") for t in io_tags]:
                                 io_sim = 1.0
                                 best_io_tag = resolved_tag
-                            return CandidateResolution(
+                            res = CandidateResolution(
                                 resolved_tag=resolved_tag,
                                 confidence=llm_conf,
                                 reasoning=f"[Gemini] {llm_reason}",
                                 io_match_tag=best_io_tag,
                                 io_score=io_sim
                             )
+                            _RESOLUTION_CACHE[cache_key] = res
+                            return res
         except Exception as e:
             logger.warning(f"Gemini fallback failed: {e}")
 
-    # 4. Fallback deterministic resolution (Heuristic + IO List Matching)
+    # 6. Fallback deterministic resolution (Heuristic + IO List Matching)
     if best_io_tag and io_sim >= 0.85:
         reason = f"Matched IO List entry '{best_io_tag}' (similarity: {int(io_sim * 100)}%). {rule_reasoning}".strip()
-        return CandidateResolution(
+        res = CandidateResolution(
             resolved_tag=best_io_tag,
             confidence=round(0.85 + 0.12 * io_sim, 2),
             reasoning=reason,
             io_match_tag=best_io_tag,
             io_score=io_sim
         )
+        _RESOLUTION_CACHE[cache_key] = res
+        return res
 
-    # 5. Fallback to normalized candidate
-    return CandidateResolution(
+    # 7. Fallback to normalized candidate
+    res = CandidateResolution(
         resolved_tag=normalized_candidate,
         confidence=0.75,
         reasoning=rule_reasoning or "Standard rule normalization.",
         io_match_tag=best_io_tag,
         io_score=io_sim
     )
+    _RESOLUTION_CACHE[cache_key] = res
+    return res

@@ -4,8 +4,16 @@ from services.api.app.engine.llm_resolver import (
     fuzzy_match_io,
     _extract_json_object,
     resolve_tag_with_llm_or_heuristics,
-    CandidateResolution
+    CandidateResolution,
+    clear_resolution_cache
 )
+
+
+@pytest.fixture(autouse=True)
+def reset_cache():
+    clear_resolution_cache()
+    yield
+    clear_resolution_cache()
 
 
 def test_fuzzy_match_io():
@@ -100,3 +108,33 @@ async def test_resolve_fallback_when_nvidia_times_out():
         assert res.resolved_tag == "PT-101"
         assert res.confidence >= 0.85
         assert "Matched IO List entry 'PT-101'" in res.reasoning
+
+
+@pytest.mark.asyncio
+async def test_resolve_rescue_tier_when_primary_models_fail():
+    io_tags = ["PT-101", "FT-102"]
+
+    # Mock call_nvidia_llm to fail on first 2 calls (GLM and DeepSeek), but succeed on 3rd (Rescue Nemotron-Bolt)
+    side_effects = [
+        Exception("GLM timeout"),
+        Exception("DeepSeek timeout"),
+        {
+            "resolved_tag": "PT-101",
+            "confidence": 0.95,
+            "reasoning": "Rescue model resolved tag correctly"
+        }
+    ]
+
+    with patch("services.api.app.engine.llm_resolver.call_nvidia_llm", side_effect=side_effects):
+        res = await resolve_tag_with_llm_or_heuristics(
+            raw_text="PT-10l",
+            normalized_candidate="PT-101",
+            symbol_class="transmitter",
+            io_tags=io_tags
+        )
+
+        assert isinstance(res, CandidateResolution)
+        assert res.resolved_tag == "PT-101"
+        assert res.confidence == 0.95
+        assert "[NVIDIA: nemotron-3.5-bolt-e4b]" in res.reasoning
+        assert res.io_score == 1.0

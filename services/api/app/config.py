@@ -17,6 +17,8 @@ class Settings(BaseSettings):
     
     LLM_MODEL_FAST: str = "z-ai/glm-5.3-flash"
     LLM_MODEL_STRONG: str = "deepseek-ai/deepseek-v4.1-flash"
+    LLM_MODEL_RESCUE: str = "nvidia/nemotron-3.5-bolt-e4b"
+    LLM_TIMEOUT: float = 6.0
     
     # Backward-compatible fallbacks
     GEMINI_API_KEY: str = ""
