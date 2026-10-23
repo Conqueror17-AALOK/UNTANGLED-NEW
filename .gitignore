@@ -60,6 +60,8 @@ node_modules/
 apps/web/dist/
 apps/web/.next/
 apps/web/build/
+.vite/
+apps/web/.vite/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
