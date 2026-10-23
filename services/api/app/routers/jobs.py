@@ -378,7 +378,7 @@ def get_source_crop(
 @router.get("/{job_id}/report")
 def get_report(
     job_id: str,
-    lang: str = Query("en", enum=["en", "hi", "mr"])
+    lang: str = Query("en", pattern="^(en|hi|mr)$")
 ):
     """
     Get cross-validation report with optional multi-language operator localization (English, Hindi, Marathi).
@@ -402,7 +402,7 @@ def get_report(
 @router.get("/{job_id}/export")
 def export_job(
     job_id: str,
-    export_format: str = Query(..., alias="format", enum=["json", "svg", "pdf"])
+    export_format: str = Query(..., alias="format", pattern="^(json|svg|pdf)$")
 ):
     """
     Export processed job artifacts as JSON, SVG, or PDF.
