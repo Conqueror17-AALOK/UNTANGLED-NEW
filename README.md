@@ -12,11 +12,11 @@
    - Tags in IO List but missing from drawing (`missing_in_drawing`).
    - Tags in drawing but missing from IO List (e.g. manual hand valves flagged under `missing_in_io_list`).
    - Signal type mismatches (e.g. `PT` mapped to digital input instead of analog 4-20mA).
-2. **NVIDIA NIM LLM Tag Resolution (GLM 5.3 Flash & DeepSeek V4.1 Flash):**  
-   High-throughput contextual resolution powered by **NVIDIA NIM**:
-   - **Fast Model:** `z-ai/glm-5.3-flash` for sub-second tag candidate clarification with step-by-step reasoning extraction.
-   - **Strong Model:** `deepseek-ai/deepseek-v4.1-flash` for complex ambiguous cases.
-   - **Resilient Fallback:** 8-second non-blocking timeout with automatic graceful fallback to deterministic rule normalization and fuzzy IO list matching.
+2. **NVIDIA NIM LLM Tag Resolution (NeMoTron-3 Ultra 550B & NeMoTron-Bolt):**  
+   High-precision industrial contextual resolution powered by **NVIDIA NIM**:
+   - **Primary Model:** `nvidia/nemotron-3-ultra-550b-a55b` (550B parameters) for comprehensive tag disambiguation, character confusion correction, and ISA-5.1 verification.
+   - **Fast Companion:** `nvidia/nemotron-3.5-bolt-e4b` for low-latency high-throughput resolution fallback.
+   - **Resilient Fallback:** 18-second non-blocking timeout with automatic graceful fallback to deterministic rule normalization and fuzzy IO list matching.
 3. **Multi-Signal Confidence Scoring:**  
    Combines OCR confidence ($w=0.20$), symbol matching ($w=0.20$), IO fuzzy match ($w=0.30$), ISA-5.1 grammar validity ($w=0.15$), and LLM reasoning ($w=0.15$) into an interpretable score ($0.0 - 1.0$) with transparent breakdown.
 4. **Three-Tier Decision Logic:**  
@@ -57,7 +57,7 @@ UNTANGLE is built as a modular monorepo with strict directory boundaries:
   │ 1. Perception & Dual OCR Voting (PyMuPDF + Tess / Vector)    │
   │ 2. IO List Parsing (openpyxl fuzzy header detection)         │
   │ 3. Rule Cleanup (ISA-5.1 grammar & character confusion)     │
-  │ 4. LLM Resolver (NVIDIA GLM 5.3 Flash & DeepSeek V4.1)      │
+  │ 4. LLM Resolver (NVIDIA NeMoTron-3 Ultra 550B)               │
   │ 5. Cross-Validation (Drawing vs IO List discrepancy matrix)  │
   │ 6. Spatial Graph Assembly (Line-to-port topological snapping)│
   │ 7. Graph Simplification (Stream alignment & valve collapse) │
@@ -215,11 +215,10 @@ Evaluated on the benchmark ground truth dataset (`contracts/samples/sample_pid_0
 | `DATABASE_URL` | `sqlite:///./data/untangle.db` | SQLite database connection string |
 | `DATA_DIR` | `./data/jobs` | Local storage directory for jobs, crops, and SVG overlays |
 | `LLM_PROVIDER` | `nvidia` | Active LLM service provider (`nvidia`, `gemini`, or `heuristic`) |
-| `NVIDIA_API_KEY_GLM` | *(secret)* | API key for NVIDIA NIM GLM 5.3 Flash (Fast LLM model) |
-| `NVIDIA_API_KEY_DEEPSEEK` | *(secret)* | API key for NVIDIA NIM DeepSeek V4.1 Flash (Strong LLM model) |
+| `NVIDIA_API_KEY` | *(secret)* | API key for NVIDIA NIM |
 | `NVIDIA_BASE_URL` | `https://integrate.api.nvidia.com/v1` | Base URL for NVIDIA OpenAI-compatible inference endpoint |
-| `LLM_MODEL_FAST` | `z-ai/glm-5.3-flash` | Fast model for high-throughput tag candidate resolution |
-| `LLM_MODEL_STRONG` | `deepseek-ai/deepseek-v4.1-flash` | Strong reasoning model for complex ambiguity fallback |
+| `LLM_MODEL` | `nvidia/nemotron-3-ultra-550b-a55b` | Primary 550B model for high-precision tag resolution |
+| `LLM_MODEL_FAST` | `nvidia/nemotron-3.5-bolt-e4b` | Fast companion model for low-latency resolution fallback |
 | `CONF_AUTO_THRESHOLD` | `0.85` | Score threshold for auto-acceptance |
 | `CONF_REVIEW_THRESHOLD` | `0.60` | Score threshold for review queue |
 | `VITE_API_BASE_URL` | `http://localhost:8000/api/v1` | Backend API base URL for frontend |

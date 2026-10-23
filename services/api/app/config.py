@@ -9,16 +9,16 @@ class Settings(BaseSettings):
     DATABASE_URL: str = "sqlite:///./data/untangle.db"
     DATA_DIR: str = "./data/jobs"
     
-    # LLM Settings (NVIDIA API: GLM 5.3 Flash & DeepSeek V4.1 Flash)
+    # LLM Settings (NVIDIA API: NeMoTron-3 Ultra 550B)
     LLM_PROVIDER: str = "nvidia"
-    NVIDIA_API_KEY_GLM: str = ""
-    NVIDIA_API_KEY_DEEPSEEK: str = ""
+    NVIDIA_API_KEY: str = ""
+    NVIDIA_API_KEY_GLM: str = ""      # Backward-compatible fallback alias
+    NVIDIA_API_KEY_DEEPSEEK: str = "" # Backward-compatible fallback alias
     NVIDIA_BASE_URL: str = "https://integrate.api.nvidia.com/v1"
     
-    LLM_MODEL_FAST: str = "z-ai/glm-5.3-flash"
-    LLM_MODEL_STRONG: str = "deepseek-ai/deepseek-v4.1-flash"
-    LLM_MODEL_RESCUE: str = "nvidia/nemotron-3.5-bolt-e4b"
-    LLM_TIMEOUT: float = 6.0
+    LLM_MODEL: str = "nvidia/nemotron-3-ultra-550b-a55b"
+    LLM_MODEL_FAST: str = "nvidia/nemotron-3.5-bolt-e4b"
+    LLM_TIMEOUT: float = 18.0
     
     # Backward-compatible fallbacks
     GEMINI_API_KEY: str = ""
@@ -45,6 +45,10 @@ class Settings(BaseSettings):
     @property
     def cors_origins_list(self) -> List[str]:
         return [origin.strip() for origin in self.CORS_ORIGINS.split(",") if origin.strip()]
+
+    @property
+    def effective_nvidia_api_key(self) -> str:
+        return self.NVIDIA_API_KEY or self.NVIDIA_API_KEY_DEEPSEEK or self.NVIDIA_API_KEY_GLM
 
 
 @lru_cache()

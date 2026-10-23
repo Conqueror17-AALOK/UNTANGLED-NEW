@@ -72,7 +72,7 @@ async def test_resolve_with_mocked_nvidia_llm():
     with patch("services.api.app.engine.llm_resolver.call_nvidia_llm") as mock_llm:
         mock_llm.return_value = {
             "resolved_tag": "PT-101",
-            "confidence": 0.96,
+            "confidence": 0.95,
             "reasoning": "Corrected OCR l to 1 to match transmitter on IO list"
         }
 
@@ -85,8 +85,8 @@ async def test_resolve_with_mocked_nvidia_llm():
 
         assert isinstance(res, CandidateResolution)
         assert res.resolved_tag == "PT-101"
-        assert res.confidence == 0.96
-        assert "[NVIDIA: GLM-5.3-Flash]" in res.reasoning
+        assert res.confidence == 0.95
+        assert "[NVIDIA: NeMoTron-3-Ultra-550B]" in res.reasoning
         assert res.io_score == 1.0
 
 
@@ -114,14 +114,13 @@ async def test_resolve_fallback_when_nvidia_times_out():
 async def test_resolve_rescue_tier_when_primary_models_fail():
     io_tags = ["PT-101", "FT-102"]
 
-    # Mock call_nvidia_llm to fail on first 2 calls (GLM and DeepSeek), but succeed on 3rd (Rescue Nemotron-Bolt)
+    # Mock call_nvidia_llm to fail on first call (Ultra 550B), but succeed on 2nd (NeMoTron-Bolt)
     side_effects = [
-        Exception("GLM timeout"),
-        Exception("DeepSeek timeout"),
+        Exception("NeMoTron-3 Ultra 550B timeout"),
         {
             "resolved_tag": "PT-101",
-            "confidence": 0.95,
-            "reasoning": "Rescue model resolved tag correctly"
+            "confidence": 0.94,
+            "reasoning": "NeMoTron-Bolt resolved tag correctly"
         }
     ]
 
@@ -135,6 +134,6 @@ async def test_resolve_rescue_tier_when_primary_models_fail():
 
         assert isinstance(res, CandidateResolution)
         assert res.resolved_tag == "PT-101"
-        assert res.confidence == 0.95
-        assert "[NVIDIA: nemotron-3.5-bolt-e4b]" in res.reasoning
+        assert res.confidence == 0.94
+        assert "[NVIDIA: NeMoTron-Bolt]" in res.reasoning
         assert res.io_score == 1.0

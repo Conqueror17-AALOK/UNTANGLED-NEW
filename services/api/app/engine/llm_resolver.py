@@ -85,11 +85,11 @@ async def call_nvidia_llm(
     model: str,
     api_key: str,
     base_url: str,
-    timeout: float = 6.0
+    timeout: float = 18.0
 ) -> Optional[Dict[str, Any]]:
     """
     Call NVIDIA OpenAI-compatible chat completion endpoint.
-    Handles reasoning models (like GLM 5.3 Flash & DeepSeek) by checking both
+    Handles NeMoTron-3 Ultra 550B and reasoning models by checking both
     message.content and message.reasoning_content.
     """
     if not api_key:
@@ -100,7 +100,6 @@ async def call_nvidia_llm(
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json"
     }
-    # Pass instructions directly in user prompt to prevent models hanging on system messages
     payload = {
         "model": model,
         "messages": [
@@ -141,8 +140,8 @@ async def resolve_tag_with_llm_or_heuristics(
     rule_reasoning: str = ""
 ) -> CandidateResolution:
     """
-    Resolve ambiguous tag using NVIDIA NIM LLMs (Fast: GLM 5.3 Flash, Strong: DeepSeek V4.1 Flash, Rescue: Nemotron-Bolt)
-    with resilient fallback to deterministic candidate matching and heuristics.
+    Resolve ambiguous tag using NVIDIA NeMoTron-3 Ultra 550B with resilient
+    NeMoTron-Bolt and deterministic candidate matching heuristics fallback.
     """
     cache_key = (raw_text.strip(), normalized_candidate.strip(), tuple(io_tags[:30]))
     if cache_key in _RESOLUTION_CACHE:
@@ -177,54 +176,55 @@ async def resolve_tag_with_llm_or_heuristics(
         f'{{"resolved_tag": "TAG-123", "confidence": 0.95, "reasoning": "Clear explanation of correction"}}'
     )
 
-    timeout = getattr(settings, "LLM_TIMEOUT", 6.0)
+    api_key = settings.effective_nvidia_api_key
+    timeout = getattr(settings, "LLM_TIMEOUT", 18.0)
 
-    # 2. Primary: NVIDIA Fast Model (GLM 5.3 Flash)
-    if settings.LLM_PROVIDER == "nvidia" and settings.NVIDIA_API_KEY_GLM:
+    # 2. Primary: NVIDIA NeMoTron-3 Ultra 550B
+    if settings.LLM_PROVIDER == "nvidia" and api_key and settings.LLM_MODEL:
+        try:
+            parsed = await call_nvidia_llm(
+                prompt=prompt,
+                model=settings.LLM_MODEL,
+                api_key=api_key,
+                base_url=settings.NVIDIA_BASE_URL,
+                timeout=timeout
+            )
+            if parsed and "resolved_tag" in parsed:
+                resolved_tag = str(parsed["resolved_tag"]).strip()
+                llm_conf = float(parsed.get("confidence", 0.95))
+                llm_reason = parsed.get("reasoning", "Resolved by NVIDIA NeMoTron-3 Ultra 550B")
+
+                if resolved_tag in io_tags or resolved_tag.replace("-", "") in [t.replace("-", "") for t in io_tags]:
+                    io_sim = 1.0
+                    best_io_tag = resolved_tag
+
+                res = CandidateResolution(
+                    resolved_tag=resolved_tag,
+                    confidence=llm_conf,
+                    reasoning=f"[NVIDIA: NeMoTron-3-Ultra-550B] {llm_reason}",
+                    io_match_tag=best_io_tag,
+                    io_score=io_sim
+                )
+                _RESOLUTION_CACHE[cache_key] = res
+                return res
+        except Exception as e:
+            err_msg = str(e) or "Request timed out"
+            logger.warning(f"NVIDIA NeMoTron-3 Ultra 550B call failed ({type(e).__name__}: {err_msg}). Attempting fast NeMoTron-Bolt fallback...")
+
+    # 3. High-Throughput Fallback: NVIDIA NeMoTron-3.5 Bolt (Low Latency Companion)
+    if settings.LLM_PROVIDER == "nvidia" and api_key and settings.LLM_MODEL_FAST:
         try:
             parsed = await call_nvidia_llm(
                 prompt=prompt,
                 model=settings.LLM_MODEL_FAST,
-                api_key=settings.NVIDIA_API_KEY_GLM,
+                api_key=api_key,
                 base_url=settings.NVIDIA_BASE_URL,
-                timeout=timeout
-            )
-            if parsed and "resolved_tag" in parsed:
-                resolved_tag = str(parsed["resolved_tag"]).strip()
-                llm_conf = float(parsed.get("confidence", 0.92))
-                llm_reason = parsed.get("reasoning", "Resolved by NVIDIA GLM 5.3 Flash")
-
-                if resolved_tag in io_tags or resolved_tag.replace("-", "") in [t.replace("-", "") for t in io_tags]:
-                    io_sim = 1.0
-                    best_io_tag = resolved_tag
-
-                res = CandidateResolution(
-                    resolved_tag=resolved_tag,
-                    confidence=llm_conf,
-                    reasoning=f"[NVIDIA: GLM-5.3-Flash] {llm_reason}",
-                    io_match_tag=best_io_tag,
-                    io_score=io_sim
-                )
-                _RESOLUTION_CACHE[cache_key] = res
-                return res
-        except Exception as e:
-            err_msg = str(e) or "Request timed out"
-            logger.warning(f"NVIDIA GLM 5.3 Flash call failed ({type(e).__name__}: {err_msg}). Attempting fallback...")
-
-    # 3. Secondary: NVIDIA Strong Model (DeepSeek V4.1 Flash) if configured
-    if settings.LLM_PROVIDER == "nvidia" and settings.NVIDIA_API_KEY_DEEPSEEK:
-        try:
-            parsed = await call_nvidia_llm(
-                prompt=prompt,
-                model=settings.LLM_MODEL_STRONG,
-                api_key=settings.NVIDIA_API_KEY_DEEPSEEK,
-                base_url=settings.NVIDIA_BASE_URL,
-                timeout=timeout
+                timeout=4.0
             )
             if parsed and "resolved_tag" in parsed:
                 resolved_tag = str(parsed["resolved_tag"]).strip()
                 llm_conf = float(parsed.get("confidence", 0.94))
-                llm_reason = parsed.get("reasoning", "Resolved by NVIDIA DeepSeek V4.1 Flash")
+                llm_reason = parsed.get("reasoning", "Resolved by NVIDIA NeMoTron-Bolt")
 
                 if resolved_tag in io_tags or resolved_tag.replace("-", "") in [t.replace("-", "") for t in io_tags]:
                     io_sim = 1.0
@@ -233,7 +233,7 @@ async def resolve_tag_with_llm_or_heuristics(
                 res = CandidateResolution(
                     resolved_tag=resolved_tag,
                     confidence=llm_conf,
-                    reasoning=f"[NVIDIA: DeepSeek-V4.1-Flash] {llm_reason}",
+                    reasoning=f"[NVIDIA: NeMoTron-Bolt] {llm_reason}",
                     io_match_tag=best_io_tag,
                     io_score=io_sim
                 )
@@ -241,42 +241,7 @@ async def resolve_tag_with_llm_or_heuristics(
                 return res
         except Exception as e:
             err_msg = str(e) or "Request timed out"
-            logger.warning(f"NVIDIA DeepSeek V4.1 Flash call failed ({type(e).__name__}: {err_msg}). Attempting rescue model...")
-
-    # 4. Rescue: Ultra-fast active NVIDIA NIM model if primary/secondary models are congested upstream
-    rescue_model = getattr(settings, "LLM_MODEL_RESCUE", "nvidia/nemotron-3.5-bolt-e4b")
-    rescue_key = settings.NVIDIA_API_KEY_DEEPSEEK or settings.NVIDIA_API_KEY_GLM
-    if settings.LLM_PROVIDER == "nvidia" and rescue_key and rescue_model:
-        try:
-            parsed = await call_nvidia_llm(
-                prompt=prompt,
-                model=rescue_model,
-                api_key=rescue_key,
-                base_url=settings.NVIDIA_BASE_URL,
-                timeout=3.5
-            )
-            if parsed and "resolved_tag" in parsed:
-                resolved_tag = str(parsed["resolved_tag"]).strip()
-                llm_conf = float(parsed.get("confidence", 0.93))
-                llm_reason = parsed.get("reasoning", f"Resolved by NVIDIA {rescue_model}")
-
-                if resolved_tag in io_tags or resolved_tag.replace("-", "") in [t.replace("-", "") for t in io_tags]:
-                    io_sim = 1.0
-                    best_io_tag = resolved_tag
-
-                model_label = rescue_model.split("/")[-1]
-                res = CandidateResolution(
-                    resolved_tag=resolved_tag,
-                    confidence=llm_conf,
-                    reasoning=f"[NVIDIA: {model_label}] {llm_reason}",
-                    io_match_tag=best_io_tag,
-                    io_score=io_sim
-                )
-                _RESOLUTION_CACHE[cache_key] = res
-                return res
-        except Exception as e:
-            err_msg = str(e) or "Request timed out"
-            logger.warning(f"NVIDIA Rescue model call failed ({type(e).__name__}: {err_msg}). Falling back to heuristics...")
+            logger.warning(f"NVIDIA NeMoTron-Bolt call failed ({type(e).__name__}: {err_msg}). Falling back to heuristics...")
 
     # 5. Backward-compatible Gemini fallback (if explicitly configured)
     if settings.GEMINI_API_KEY:
