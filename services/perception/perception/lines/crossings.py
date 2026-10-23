@@ -45,10 +45,22 @@ class CrossingDetector:
         """
         crossings: List[Crossing] = []
 
-        for i in range(len(lines)):
-            l1 = lines[i]
-            for j in range(i + 1, len(lines)):
-                l2 = lines[j]
+        # Filter out very short segments and limit to top prominent lines to prevent O(N^2) explosion
+        active_lines = [
+            l for l in lines 
+            if math.hypot(l.points[1][0] - l.points[0][0], l.points[1][1] - l.points[0][1]) >= 25.0
+        ]
+        if len(active_lines) > 600:
+            active_lines = sorted(
+                active_lines,
+                key=lambda l: math.hypot(l.points[1][0] - l.points[0][0], l.points[1][1] - l.points[0][1]),
+                reverse=True
+            )[:600]
+
+        for i in range(len(active_lines)):
+            l1 = active_lines[i]
+            for j in range(i + 1, len(active_lines)):
+                l2 = active_lines[j]
 
                 pt = line_intersection(l1.points[0], l1.points[1], l2.points[0], l2.points[1])
                 if not pt:

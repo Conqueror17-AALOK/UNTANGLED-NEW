@@ -55,8 +55,10 @@ def health_check(db: Session = Depends(get_db)):
         health_status["checks"]["tesseract"] = "not_found (using vector & fallback OCR)"
 
     # 4. LLM provider check
-    if settings.GEMINI_API_KEY:
-        health_status["checks"]["llm"] = f"configured ({settings.LLM_PROVIDER})"
+    if settings.LLM_PROVIDER == "nvidia" and settings.NVIDIA_API_KEY_GLM:
+        health_status["checks"]["llm"] = f"configured (nvidia: {settings.LLM_MODEL_FAST} + {settings.LLM_MODEL_STRONG})"
+    elif settings.GEMINI_API_KEY:
+        health_status["checks"]["llm"] = f"configured (gemini: {settings.LLM_MODEL_FAST})"
     else:
         health_status["checks"]["llm"] = "rule_based_fallback"
 

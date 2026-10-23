@@ -1,5 +1,6 @@
 import difflib
 import json
+import re
 from typing import Any, Dict, List, Optional, Tuple
 import httpx
 
@@ -53,6 +54,80 @@ def fuzzy_match_io(raw_tag: str, io_tags: List[str]) -> Tuple[Optional[str], flo
     return None, 0.0
 
 
+def _extract_json_object(text: str) -> Optional[Dict[str, Any]]:
+    """Helper to safely extract and parse a JSON dictionary from LLM response text."""
+    if not text:
+        return None
+    try:
+        return json.loads(text.strip())
+    except Exception:
+        pass
+
+    match = re.search(r"\{.*\}", text, re.DOTALL)
+    if match:
+        try:
+            return json.loads(match.group(0))
+        except Exception:
+            pass
+    return None
+
+
+async def call_nvidia_llm(
+    prompt: str,
+    model: str,
+    api_key: str,
+    base_url: str,
+    timeout: float = 8.0
+) -> Optional[Dict[str, Any]]:
+    """
+    Call NVIDIA OpenAI-compatible chat completion endpoint.
+    Handles reasoning models (like GLM 5.3 Flash & DeepSeek) by checking both
+    message.content and message.reasoning_content.
+    """
+    if not api_key:
+        return None
+
+    url = f"{base_url.rstrip('/')}/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "model": model,
+        "messages": [
+            {
+                "role": "system",
+                "content": "You are an industrial P&ID instrumentation expert. Always output your final answer as JSON."
+            },
+            {
+                "role": "user",
+                "content": prompt
+            }
+        ],
+        "temperature": 0.1,
+        "max_tokens": 1024
+    }
+
+    async with httpx.AsyncClient(timeout=timeout) as client:
+        resp = await client.post(url, headers=headers, json=payload)
+        if resp.status_code == 200:
+            data = resp.json()
+            choices = data.get("choices", [])
+            if choices:
+                msg = choices[0].get("message", {})
+                content = msg.get("content") or ""
+                reasoning = msg.get("reasoning_content") or ""
+
+                # Try parsing content first
+                parsed = _extract_json_object(content)
+                if not parsed and reasoning:
+                    parsed = _extract_json_object(reasoning)
+                return parsed
+        else:
+            logger.warning(f"NVIDIA API ({model}) returned HTTP {resp.status_code}: {resp.text[:200]}")
+            return None
+
+
 async def resolve_tag_with_llm_or_heuristics(
     raw_text: str,
     normalized_candidate: str,
@@ -61,30 +136,91 @@ async def resolve_tag_with_llm_or_heuristics(
     rule_reasoning: str = ""
 ) -> CandidateResolution:
     """
-    Resolve ambiguous tag using Gemini LLM if configured, otherwise smart deterministic heuristic.
+    Resolve ambiguous tag using NVIDIA NIM LLMs (Fast: GLM 5.3 Flash, Strong: DeepSeek V4.1 Flash)
+    with resilient fallback to deterministic candidate matching and heuristics.
     """
     settings = get_settings()
     best_io_tag, io_sim = fuzzy_match_io(normalized_candidate, io_tags)
 
-    # If Gemini API Key is available, invoke LLM
+    prompt = (
+        f"You are an industrial P&ID (Piping and Instrumentation Diagram) expert. "
+        f"Resolve this ambiguous OCR reading to the correct ISA-5.1 engineering tag.\n"
+        f"Raw OCR text: '{raw_text}'\n"
+        f"Rule normalized candidate: '{normalized_candidate}'\n"
+        f"Associated P&ID Symbol: '{symbol_class or 'unknown'}'\n"
+        f"DCS Engineering IO List tags: {io_tags[:40]}\n\n"
+        f"Instructions:\n"
+        f"1. Choose or verify the best engineering tag matching the IO list or ISA-5.1 syntax.\n"
+        f"2. Return ONLY a valid JSON object in this exact schema:\n"
+        f'{{"resolved_tag": "TAG-123", "confidence": 0.95, "reasoning": "Clear explanation of correction"}}'
+    )
+
+    # 1. Primary: NVIDIA Fast Model (GLM 5.3 Flash)
+    if settings.LLM_PROVIDER == "nvidia" and settings.NVIDIA_API_KEY_GLM:
+        try:
+            parsed = await call_nvidia_llm(
+                prompt=prompt,
+                model=settings.LLM_MODEL_FAST,
+                api_key=settings.NVIDIA_API_KEY_GLM,
+                base_url=settings.NVIDIA_BASE_URL,
+                timeout=8.0
+            )
+            if parsed and "resolved_tag" in parsed:
+                resolved_tag = str(parsed["resolved_tag"]).strip()
+                llm_conf = float(parsed.get("confidence", 0.92))
+                llm_reason = parsed.get("reasoning", "Resolved by NVIDIA GLM 5.3 Flash")
+
+                if resolved_tag in io_tags or resolved_tag.replace("-", "") in [t.replace("-", "") for t in io_tags]:
+                    io_sim = 1.0
+                    best_io_tag = resolved_tag
+
+                return CandidateResolution(
+                    resolved_tag=resolved_tag,
+                    confidence=llm_conf,
+                    reasoning=f"[NVIDIA: GLM-5.3-Flash] {llm_reason}",
+                    io_match_tag=best_io_tag,
+                    io_score=io_sim
+                )
+        except Exception as e:
+            logger.warning(f"NVIDIA GLM 5.3 Flash call failed: {e}. Attempting fallback...")
+
+    # 2. Secondary: NVIDIA Strong Model (DeepSeek V4.1 Flash) if configured
+    if settings.LLM_PROVIDER == "nvidia" and settings.NVIDIA_API_KEY_DEEPSEEK:
+        try:
+            parsed = await call_nvidia_llm(
+                prompt=prompt,
+                model=settings.LLM_MODEL_STRONG,
+                api_key=settings.NVIDIA_API_KEY_DEEPSEEK,
+                base_url=settings.NVIDIA_BASE_URL,
+                timeout=8.0
+            )
+            if parsed and "resolved_tag" in parsed:
+                resolved_tag = str(parsed["resolved_tag"]).strip()
+                llm_conf = float(parsed.get("confidence", 0.94))
+                llm_reason = parsed.get("reasoning", "Resolved by NVIDIA DeepSeek V4.1 Flash")
+
+                if resolved_tag in io_tags or resolved_tag.replace("-", "") in [t.replace("-", "") for t in io_tags]:
+                    io_sim = 1.0
+                    best_io_tag = resolved_tag
+
+                return CandidateResolution(
+                    resolved_tag=resolved_tag,
+                    confidence=llm_conf,
+                    reasoning=f"[NVIDIA: DeepSeek-V4.1-Flash] {llm_reason}",
+                    io_match_tag=best_io_tag,
+                    io_score=io_sim
+                )
+        except Exception as e:
+            logger.warning(f"NVIDIA DeepSeek V4.1 Flash call failed: {e}. Falling back to heuristics...")
+
+    # 3. Backward-compatible Gemini fallback (if explicitly configured)
     if settings.GEMINI_API_KEY:
         try:
-            prompt = (
-                f"You are an industrial P&ID expert. Resolve this OCR reading to the correct engineering tag.\n"
-                f"Raw OCR text: '{raw_text}'\n"
-                f"Rule normalized candidate: '{normalized_candidate}'\n"
-                f"Associated P&ID Symbol: '{symbol_class or 'unknown'}'\n"
-                f"DCS Engineering IO List tags: {io_tags[:40]}\n"
-                f"Respond ONLY with a JSON object in this format:\n"
-                f'{{"resolved_tag": "TAG-123", "confidence": 0.95, "reasoning": "Reason here"}}'
-            )
-
             url = f"https://generativelanguage.googleapis.com/v1beta/models/{settings.LLM_MODEL_FAST}:generateContent?key={settings.GEMINI_API_KEY}"
             payload = {
                 "contents": [{"parts": [{"text": prompt}]}],
                 "generationConfig": {"temperature": 0.1, "maxOutputTokens": 200}
             }
-
             async with httpx.AsyncClient(timeout=4.0) as client:
                 resp = await client.post(url, json=payload)
                 if resp.status_code == 200:
@@ -92,32 +228,25 @@ async def resolve_tag_with_llm_or_heuristics(
                     candidates = data.get("candidates", [])
                     if candidates:
                         text_resp = candidates[0]["content"]["parts"][0]["text"].strip()
-                        # Extract JSON from response
-                        if "{" in text_resp and "}" in text_resp:
-                            json_str = text_resp[text_resp.find("{"):text_resp.rfind("}") + 1]
-                            parsed = json.loads(json_str)
-                            resolved_tag = parsed.get("resolved_tag", normalized_candidate)
+                        parsed = _extract_json_object(text_resp)
+                        if parsed and "resolved_tag" in parsed:
+                            resolved_tag = str(parsed["resolved_tag"]).strip()
                             llm_conf = float(parsed.get("confidence", 0.92))
-                            llm_reasoning = parsed.get("reasoning", "Resolved by Gemini LLM")
-                            
-                            # Verify if resolved_tag matches an IO tag
+                            llm_reason = parsed.get("reasoning", "Resolved by Gemini LLM")
                             if resolved_tag in io_tags or resolved_tag.replace("-", "") in [t.replace("-", "") for t in io_tags]:
                                 io_sim = 1.0
                                 best_io_tag = resolved_tag
-
                             return CandidateResolution(
                                 resolved_tag=resolved_tag,
                                 confidence=llm_conf,
-                                reasoning=f"[Gemini] {llm_reasoning}",
+                                reasoning=f"[Gemini] {llm_reason}",
                                 io_match_tag=best_io_tag,
                                 io_score=io_sim
                             )
-                else:
-                    logger.warning(f"Gemini API returned status {resp.status_code}, falling back to heuristic")
         except Exception as e:
-            logger.warning(f"LLM resolution failed: {e}. Falling back to deterministic candidate resolution.")
+            logger.warning(f"Gemini fallback failed: {e}")
 
-    # Fallback deterministic resolution
+    # 4. Fallback deterministic resolution (Heuristic + IO List Matching)
     if best_io_tag and io_sim >= 0.85:
         reason = f"Matched IO List entry '{best_io_tag}' (similarity: {int(io_sim * 100)}%). {rule_reasoning}".strip()
         return CandidateResolution(
@@ -128,7 +257,7 @@ async def resolve_tag_with_llm_or_heuristics(
             io_score=io_sim
         )
 
-    # Fallback to normalized candidate
+    # 5. Fallback to normalized candidate
     return CandidateResolution(
         resolved_tag=normalized_candidate,
         confidence=0.75,

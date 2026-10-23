@@ -16,6 +16,7 @@ Thumbs.db
 .env.*.local
 *.key
 *.pem
+scripts/
 
 # Python artifacts
 __pycache__/

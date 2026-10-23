@@ -4,7 +4,7 @@ export const PIPELINE_STAGES: { id: PipelineStage; label: string; desc: string }
   { id: 'perception', label: '1. Perception & OCR', desc: 'PyMuPDF text extraction & dual OCR voting' },
   { id: 'io_parse', label: '2. IO List Parsing', desc: 'Reading DCS tags & building fuzzy search index' },
   { id: 'cleanup', label: '3. Rule Cleanup', desc: 'ISA-5.1 grammar & character confusion normalization' },
-  { id: 'llm_resolve', label: '4. LLM Resolver', desc: 'Resolving ambiguous candidates with Gemini Flash' },
+  { id: 'llm_resolve', label: '4. LLM Resolver', desc: 'Resolving ambiguous candidates with NVIDIA GLM 5.3 Flash & DeepSeek' },
   { id: 'validate', label: '5. Cross-Validation', desc: 'Drawing vs IO List discrepancy detection' },
   { id: 'graph', label: '6. Graph Assembly', desc: 'Snapping line segments to symbol ports' },
   { id: 'simplify', label: '7. Graph Simplification', desc: 'Collapsing inline manual valves & instrument loops' },

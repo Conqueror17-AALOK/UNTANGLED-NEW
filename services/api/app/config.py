@@ -9,11 +9,18 @@ class Settings(BaseSettings):
     DATABASE_URL: str = "sqlite:///./data/untangle.db"
     DATA_DIR: str = "./data/jobs"
     
-    LLM_PROVIDER: str = "gemini"
+    # LLM Settings (NVIDIA API: GLM 5.3 Flash & DeepSeek V4.1 Flash)
+    LLM_PROVIDER: str = "nvidia"
+    NVIDIA_API_KEY_GLM: str = ""
+    NVIDIA_API_KEY_DEEPSEEK: str = ""
+    NVIDIA_BASE_URL: str = "https://integrate.api.nvidia.com/v1"
+    
+    LLM_MODEL_FAST: str = "z-ai/glm-5.3-flash"
+    LLM_MODEL_STRONG: str = "deepseek-ai/deepseek-v4.1-flash"
+    
+    # Backward-compatible fallbacks
     GEMINI_API_KEY: str = ""
     ANTHROPIC_API_KEY: str = ""
-    LLM_MODEL_FAST: str = "gemini-1.5-flash"
-    LLM_MODEL_STRONG: str = "gemini-1.5-pro"
     
     CONF_AUTO_THRESHOLD: float = 0.85
     CONF_REVIEW_THRESHOLD: float = 0.60

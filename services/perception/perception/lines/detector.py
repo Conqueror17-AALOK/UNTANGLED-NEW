@@ -85,10 +85,13 @@ class LineDetector:
         idx = 1
 
         for line in raw_hough:
-            x1, y1, x2, y2 = line[0]
+            coords = line[0] if (hasattr(line, "__len__") and len(line) == 1 and hasattr(line[0], "__len__")) else line
+            if not hasattr(coords, "__len__") or len(coords) < 4:
+                continue
+            x1, y1, x2, y2 = int(coords[0]), int(coords[1]), int(coords[2]), int(coords[3])
             # Analyze line type (dashed vs solid)
             length = math.hypot(x2 - x1, y2 - y1)
-            if length < 10.0:
+            if length < 25.0:
                 continue
 
             # Sample profile along segment
@@ -113,5 +116,12 @@ class LineDetector:
                 )
             )
             idx += 1
+
+        if len(segments) > 1500:
+            segments = sorted(
+                segments,
+                key=lambda s: math.hypot(s.points[1][0] - s.points[0][0], s.points[1][1] - s.points[0][1]),
+                reverse=True
+            )[:1500]
 
         return segments

@@ -21,7 +21,7 @@
 |                             |       |                                    |
 | 1. PDF Vector/Scanned Detect|       | 1. IO List Parser (openpyxl)       |
 | 2. PyMuPDF Digital Extract  |       | 2. ISA-5.1 Grammar Cleanup         |
-| 3. Adaptive Preprocessing   |       | 3. LLM Candidate Resolver (Gemini) |
+| 3. Adaptive Preprocessing   |       | 3. LLM Candidate Resolver (NVIDIA) |
 | 4. Dual OCR (Tess + Paddle) |       | 4. Multi-Signal Confidence Fusion  |
 | 5. Multi-Scale OpenCV Match |       | 5. Cross-Validation against IO     |
 | 6. Bubble Contour Classifier|       | 6. Spatial Graph Snapping          |
@@ -68,7 +68,7 @@ The semantic and graph engine is implemented as a modular FastAPI service:
 | `isa51_rules.py` | `services/api/app/engine/isa51_rules.py` | ISA-5.1 naming convention validator and equipment/valve taxonomies |
 | `cleanup.py` | `services/api/app/engine/cleanup.py` | OCR character-confusion resolver and spatial stacked bubble word-merging |
 | `confidence.py` | `services/api/app/engine/confidence.py` | 5-signal weighted formula implementation and 3-tier decision categorization |
-| `llm_resolver.py` | `services/api/app/engine/llm_resolver.py` | Gemini 1.5 Flash client with deterministic candidate matching fallback |
+| `llm_resolver.py` | `services/api/app/engine/llm_resolver.py` | NVIDIA NIM (GLM 5.3 Flash & DeepSeek V4.1 Flash) client with deterministic candidate matching fallback |
 | `cross_validator.py` | `services/api/app/engine/cross_validator.py` | Detects `missing_in_drawing`, `missing_in_io_list`, and signal type mismatches |
 | `graph_builder.py` | `services/api/app/engine/graph_builder.py` | Spatial line-to-port snapping and topological node linking |
 | `simplifier.py` | `services/api/app/engine/simplifier.py` | Aligns process stream horizontally (left-to-right) with attached instrument branches |
