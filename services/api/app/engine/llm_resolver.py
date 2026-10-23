@@ -19,37 +19,42 @@ class CandidateResolution:
 
 def fuzzy_match_io(raw_tag: str, io_tags: List[str]) -> Tuple[Optional[str], float]:
     """
-    Fuzzy match raw_tag against the IO list using difflib similarity.
+    Fuzzy match raw_tag against the IO list using canonical normalization and difflib.
     Returns: (best_match_tag, similarity_score_0_to_1)
     """
     if not io_tags:
         return None, 0.0
 
-    raw_clean = raw_tag.strip().upper().replace(" ", "-")
+    raw_clean = re.sub(r"[\s_-]+", "-", raw_tag.strip().upper())
+    raw_no_hyphen = re.sub(r"[\s_-]+", "", raw_tag.strip().upper())
 
-    # 1. Exact match
+    # 1. Exact canonical match (collapses whitespace, hyphens, underscores)
     for t in io_tags:
-        if raw_clean == t.upper().replace(" ", "-"):
+        t_clean = re.sub(r"[\s_-]+", "-", t.strip().upper())
+        if raw_clean == t_clean:
             return t, 1.0
 
-    # 2. Match without hyphens
-    raw_no_hyphen = raw_clean.replace("-", "")
+    # 2. Match without delimiters (handles embedded spacing/hyphen variations)
     for t in io_tags:
-        if raw_no_hyphen == t.upper().replace("-", "").replace(" ", ""):
-            return t, 0.98
+        t_no_hyphen = re.sub(r"[\s_-]+", "", t.strip().upper())
+        if raw_no_hyphen == t_no_hyphen:
+            return t, 1.0
 
     # 3. Handle trailing OCR 'l' or 'I' -> '1'
     if raw_clean.endswith("L") or raw_clean.endswith("I"):
         alt_raw = raw_clean[:-1] + "1"
         for t in io_tags:
-            if alt_raw == t.upper().replace(" ", "-"):
+            t_clean = re.sub(r"[\s_-]+", "-", t.strip().upper())
+            if alt_raw == t_clean:
                 return t, 0.96
 
     # 4. Standard SequenceMatcher ratio
-    matches = difflib.get_close_matches(raw_clean, io_tags, n=1, cutoff=0.6)
+    io_clean_list = [re.sub(r"[\s_-]+", "-", t.strip().upper()) for t in io_tags]
+    matches = difflib.get_close_matches(raw_clean, io_clean_list, n=1, cutoff=0.6)
     if matches:
+        best_orig = next((t for t in io_tags if re.sub(r"[\s_-]+", "-", t.strip().upper()) == matches[0]), matches[0])
         ratio = difflib.SequenceMatcher(None, raw_clean, matches[0]).ratio()
-        return matches[0], round(ratio, 2)
+        return best_orig, round(ratio, 2)
 
     return None, 0.0
 
@@ -109,7 +114,7 @@ async def call_nvidia_llm(
             }
         ],
         "temperature": 0.1,
-        "max_tokens": 1024
+        "max_tokens": 512
     }
 
     async with httpx.AsyncClient(timeout=timeout) as client:
@@ -150,9 +155,9 @@ async def resolve_tag_with_llm_or_heuristics(
     settings = get_settings()
     best_io_tag, io_sim = fuzzy_match_io(normalized_candidate, io_tags)
 
-    # 1. Deterministic Fast-Path: If raw text itself is already an exact match in DCS IO list (no OCR ambiguity), resolve instantly
-    raw_clean = re.sub(r"[\s_-]+", "-", raw_text.strip().upper())
-    if best_io_tag and (raw_clean == best_io_tag.upper() or (io_sim == 1.0 and raw_clean == normalized_candidate.upper())):
+    # 1. Deterministic Fast-Path: If raw text itself is already an exact canonical match in DCS IO list (no OCR ambiguity), resolve instantly
+    raw_canon = re.sub(r"[\s_-]+", "-", raw_text.strip().upper())
+    if best_io_tag and raw_canon == re.sub(r"[\s_-]+", "-", best_io_tag.strip().upper()):
         res = CandidateResolution(
             resolved_tag=best_io_tag,
             confidence=0.98,

@@ -159,10 +159,11 @@ async def execute_untangle_pipeline(job_id: str, db: Session):
 
         await update_job_stage(db, job, "llm_resolve", 0.48)
 
-        resolved_tags_list = []
-        idx = 1
-        
-        for page_num, txt_dict in extracted_tag_items:
+        # Resolve candidates concurrently with bounded concurrency
+        sem = asyncio.Semaphore(10)
+
+        async def _resolve_tag_entry(item):
+            page_num, txt_dict = item
             raw = txt_dict["text"].strip()
             candidates = resolve_ocr_confusion(raw)
             best_cand, cand_rule_conf, rule_reason = candidates[0]
@@ -170,14 +171,14 @@ async def execute_untangle_pipeline(job_id: str, db: Session):
             # Parse against ISA-5.1 rules
             is_valid_isa, desc_type, category, grammar_score = parse_isa51_tag(best_cand)
 
-            # Invoke LLM or deterministic candidate resolution
-            res = await resolve_tag_with_llm_or_heuristics(
-                raw_text=raw,
-                normalized_candidate=best_cand,
-                symbol_class=category,
-                io_tags=io_result.tags_list,
-                rule_reasoning=rule_reason
-            )
+            async with sem:
+                res = await resolve_tag_with_llm_or_heuristics(
+                    raw_text=raw,
+                    normalized_candidate=best_cand,
+                    symbol_class=category,
+                    io_tags=io_result.tags_list,
+                    rule_reasoning=rule_reason
+                )
 
             # Compute Multi-Signal Confidence
             symbol_score = 0.95 if category in ["equipment", "valve"] else 0.92
@@ -189,16 +190,13 @@ async def execute_untangle_pipeline(job_id: str, db: Session):
                 llm_score=res.confidence
             )
 
-            tag_id = f"{job.id[:8]}_tag_{idx:04d}"
-            tag_bbox = txt_dict.get("bbox", [0, 0, 0, 0])
-            tag_data = {
-                "id": tag_id,
+            return {
                 "page": page_num,
                 "raw_text": raw,
+                "txt_dict": txt_dict,
                 "normalized_tag": res.resolved_tag,
                 "type": desc_type,
                 "category": category,
-                "bbox": tag_bbox,
                 "confidence": final_conf,
                 "conf_breakdown": conf_breakdown,
                 "status": status_val,
@@ -210,27 +208,48 @@ async def execute_untangle_pipeline(job_id: str, db: Session):
                 "reasoning": res.reasoning,
                 "source": "auto" if final_conf >= 0.85 else "llm"
             }
+
+        resolved_entries = await asyncio.gather(*[_resolve_tag_entry(it) for it in extracted_tag_items])
+
+        resolved_tags_list = []
+        for idx, entry in enumerate(resolved_entries, start=1):
+            tag_id = f"{job.id[:8]}_tag_{idx:04d}"
+            tag_bbox = entry["txt_dict"].get("bbox", [0, 0, 0, 0])
+            tag_data = {
+                "id": tag_id,
+                "page": entry["page"],
+                "raw_text": entry["raw_text"],
+                "normalized_tag": entry["normalized_tag"],
+                "type": entry["type"],
+                "category": entry["category"],
+                "bbox": tag_bbox,
+                "confidence": entry["confidence"],
+                "conf_breakdown": entry["conf_breakdown"],
+                "status": entry["status"],
+                "io_match": entry["io_match"],
+                "reasoning": entry["reasoning"],
+                "source": entry["source"]
+            }
             resolved_tags_list.append(tag_data)
 
             # Save to Database
             tag_row = TagModel(
                 id=tag_id,
                 job_id=job.id,
-                page=page_num,
-                raw_text=raw,
-                normalized_tag=res.resolved_tag,
-                type=desc_type,
-                category=category,
-                confidence=final_conf,
-                status=status_val,
-                reasoning=res.reasoning,
-                source="auto" if final_conf >= 0.85 else "llm"
+                page=entry["page"],
+                raw_text=entry["raw_text"],
+                normalized_tag=entry["normalized_tag"],
+                type=entry["type"],
+                category=entry["category"],
+                confidence=entry["confidence"],
+                status=entry["status"],
+                reasoning=entry["reasoning"],
+                source=entry["source"]
             )
             tag_row.bbox = tag_bbox
-            tag_row.conf_breakdown = conf_breakdown
-            tag_row.io_match = tag_data["io_match"]
+            tag_row.conf_breakdown = entry["conf_breakdown"]
+            tag_row.io_match = entry["io_match"]
             db.add(tag_row)
-            idx += 1
 
         db.commit()
 
