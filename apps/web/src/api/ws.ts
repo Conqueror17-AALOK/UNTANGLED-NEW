@@ -100,7 +100,20 @@ export class JobStreamClient {
   destroy(): void {
     this.isDestroyed = true;
     if (this.ws) {
-      this.ws.close();
+      const currentWs = this.ws;
+      currentWs.onmessage = null;
+      currentWs.onerror = null;
+      currentWs.onclose = null;
+      
+      if (currentWs.readyState === WebSocket.OPEN) {
+        currentWs.close(1000, 'Component unmounted');
+      } else if (currentWs.readyState === WebSocket.CONNECTING) {
+        currentWs.onopen = () => {
+          try {
+            currentWs.close(1000, 'Component unmounted');
+          } catch {}
+        };
+      }
       this.ws = null;
     }
   }
