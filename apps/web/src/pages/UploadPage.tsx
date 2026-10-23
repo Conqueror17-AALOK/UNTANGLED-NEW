@@ -44,14 +44,17 @@ export const UploadPage: React.FC = () => {
     setXlsxFile(file);
   };
 
-  const loadSampleFiles = () => {
+  const loadSampleFiles = async () => {
     setErrorMsg(null);
-    const fakePdf = new File(['%PDF-1.4 sample content'], 'sample_pid_01.pdf', { type: 'application/pdf' });
-    const fakeXlsx = new File(['fake xlsx content'], 'sample_io_list.xlsx', {
-      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    });
-    setPdfFile(fakePdf);
-    setXlsxFile(fakeXlsx);
+    setIsSubmitting(true);
+    try {
+      const res = await apiClient.loadSampleJob();
+      navigate(`/jobs/${res.job_id}`);
+    } catch (err: unknown) {
+      const error = err as { message?: string };
+      setErrorMsg(error?.message || 'Failed to trigger demo sample pipeline.');
+      setIsSubmitting(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

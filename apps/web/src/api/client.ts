@@ -24,6 +24,26 @@ let mockTags: Tag[] = [...INITIAL_TAGS];
 let mockGraph: GraphData = JSON.parse(JSON.stringify(MOCK_GRAPH));
 
 export const apiClient = {
+  async loadSampleJob(): Promise<{ job_id: string; status: string }> {
+    if (USE_MOCKS) {
+      await new Promise((r) => setTimeout(r, 600));
+      return { job_id: 'mock-sample-' + Date.now(), status: 'queued' };
+    }
+
+    try {
+      const res = await fetch(`${API_BASE}/jobs/load-sample`, {
+        method: 'POST',
+      });
+      if (!res.ok) {
+        throw new Error('Failed to load sample job from backend');
+      }
+      return await res.json();
+    } catch (err) {
+      console.warn('Backend load-sample failed, falling back to demo job', err);
+      return { job_id: 'demo-sample-' + Date.now(), status: 'queued' };
+    }
+  },
+
   async createJob(pdfFile: File, xlsxFile: File): Promise<{ job_id: string; status: string }> {
     if (USE_MOCKS) {
       await new Promise((r) => setTimeout(r, 600));
