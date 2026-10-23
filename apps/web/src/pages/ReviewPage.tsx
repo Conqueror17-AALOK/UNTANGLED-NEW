@@ -85,6 +85,19 @@ export const ReviewPage: React.FC = () => {
     }
   };
 
+  // Keyboard shortcut: 'r' to rebuild graph
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement)?.tagName)) return;
+      if (e.key === 'r' || e.key === 'R') {
+        e.preventDefault();
+        handleRebuild();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [jobId]);
+
   const displayedTags = tags.filter((t) => {
     if (filter === 'all') return true;
     return t.status === filter;
@@ -122,9 +135,11 @@ export const ReviewPage: React.FC = () => {
             onClick={handleRebuild}
             isLoading={isRebuilding}
             className="shadow-lg shadow-cyan-500/20"
+            title="Instant rebuild reruns stages 6-9 in <1s (Shortcut: 'r')"
           >
             <RefreshCw size={15} />
             <span>Rebuild Process Sketch</span>
+            <kbd className="hidden sm:inline px-1 py-0.2 rounded bg-cyan-950/60 border border-cyan-400/40 text-[10px] font-mono">r</kbd>
           </Button>
 
           <Link to={`/workspace/${jobId}`}>
@@ -195,6 +210,10 @@ export const ReviewPage: React.FC = () => {
                               type="text"
                               value={editValue}
                               onChange={(e) => setEditValue(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') handleSave(tag.id);
+                                if (e.key === 'Escape') cancelEdit();
+                              }}
                               className="px-2 py-1 rounded bg-industrial-950 border border-cyan-500 text-cyan-300 text-xs font-mono focus:outline-none"
                               placeholder="e.g. PT-101"
                               autoFocus

@@ -70,4 +70,46 @@ class OffPageConnectorDetector:
                     )
                     idx += 1
 
+        # Fallback / Augment: Detect text-based off-page connectors (e.g. TO SHEET 2, FROM SHEET 1)
+        if text_items:
+            for t in text_items:
+                if t.text.upper() in ("TO", "FROM"):
+                    nearby = [
+                        other for other in text_items
+                        if abs(other.bbox[1] - t.bbox[1]) < 200 and abs(other.bbox[0] - t.bbox[0]) < 400
+                    ]
+                    nearby_sorted = sorted(nearby, key=lambda o: (o.bbox[1], o.bbox[0]))
+                    words = [o.text for o in nearby_sorted]
+                    phrase = " ".join(words)
+                    upper_phrase = phrase.upper()
+
+                    if "SHEET" in upper_phrase:
+                        # Extract target sheet
+                        target_sheet = None
+                        for w_idx, w in enumerate(words):
+                            if w.upper() == "SHEET" and w_idx + 1 < len(words):
+                                target_sheet = f"Sheet {words[w_idx + 1]}"
+
+                        # Bounding box covering all cluster items
+                        bx1 = min(o.bbox[0] for o in nearby_sorted)
+                        by1 = min(o.bbox[1] for o in nearby_sorted)
+                        bx2 = max(o.bbox[2] for o in nearby_sorted)
+                        by2 = max(o.bbox[3] for o in nearby_sorted)
+
+                        # Check if already added via contour
+                        already_added = any(
+                            abs(c.bbox[0] - bx1) < 100 and abs(c.bbox[1] - by1) < 100
+                            for c in connectors
+                        )
+                        if not already_added:
+                            connectors.append(
+                                OffPageConnector(
+                                    id=f"p{page_num}_opc_{idx:04d}",
+                                    bbox=[float(bx1), float(by1), float(bx2), float(by2)],
+                                    label=phrase,
+                                    target_sheet=target_sheet
+                                )
+                            )
+                            idx += 1
+
         return connectors

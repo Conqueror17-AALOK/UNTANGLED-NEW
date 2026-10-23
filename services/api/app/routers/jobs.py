@@ -31,7 +31,7 @@ from services.api.app.engine.pipeline import (
     execute_untangle_pipeline,
     rebuild_graph_and_artifacts,
 )
-from services.api.app.engine.report_generator import localize_report
+from services.api.app.engine.report_generator import generate_pdf_report, localize_report
 
 router = APIRouter(prefix="/jobs", tags=["jobs"], dependencies=[Depends(verify_api_token)])
 
@@ -431,9 +431,14 @@ def export_job(
         return bundle
 
     elif export_format == "pdf":
-        sketch_path = os.path.join(job_dir, "sketch.svg")
-        # If PDF export requested, return SVG or generate simple PDF wrapper
-        if os.path.exists(sketch_path):
-            with open(sketch_path, "rb") as f:
-                return Response(content=f.read(), media_type="image/svg+xml")
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Artifacts not found")
+        report_path = os.path.join(job_dir, "report.json")
+        if not os.path.exists(report_path):
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Report artifacts not found")
+        with open(report_path, "r", encoding="utf-8") as f:
+            report_data = json.load(f)
+        pdf_bytes = generate_pdf_report(job_id, report_data)
+        return Response(
+            content=pdf_bytes,
+            media_type="application/pdf",
+            headers={"Content-Disposition": f"attachment; filename=untangle_audit_report_{job_id}.pdf"}
+        )

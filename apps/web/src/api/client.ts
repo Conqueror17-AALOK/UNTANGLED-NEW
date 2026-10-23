@@ -151,11 +151,75 @@ export const apiClient = {
 
   async getReport(jobId: string, lang = 'en'): Promise<ReportData> {
     if (USE_MOCKS || jobId.startsWith('mock-') || jobId.startsWith('demo-')) {
-      return MOCK_REPORT;
+      const selectedLang = ['en', 'hi', 'mr'].includes(lang) ? lang : 'en';
+      const translations: Record<string, Record<string, string>> = {
+        hi: {
+          report_title: "P&ID आरेख बनाम DCS IO सूची सत्यापन रिपोर्ट",
+          report_subtitle: "भौतिक P&ID ब्लूप्रिंट और DCS इलेक्ट्रिकल IO रजिस्टरों के बीच क्रॉस-सत्यापन।",
+          total_tags_title: "कुल टैग (Total Tags)",
+          resolved_title: "सत्यापित टैग (Resolved)",
+          review_req_title: "समीक्षा आवश्यक (Review Req.)",
+          decision_split_title: "निर्णय वितरण (Decision Split)",
+          missing_drawing_title: "ड्राइंग में अनुपस्थित (Missing in Drawing)",
+          missing_io_title: "IO सूची में अनुपस्थित (Missing in IO List)",
+          type_mismatch_title: "सिग्नल प्रकार बेमेल (Signal Mismatch)",
+          missing_drawing_desc: "DCS IO सूची में उपलब्ध है लेकिन P&ID आरेख पर नहीं मिला।",
+          missing_io_desc: "P&ID पर पहचाने गए भौतिक उपकरण जिनके पास IO कनेक्शन नहीं है।",
+          manual_valve_desc: "मैनुअल हैंड वाल्व - कोई विद्युत सिग्नल नहीं।",
+          matched_status: "मेल खाता है (Matched)",
+        },
+        mr: {
+          report_title: "P&ID रेखाचित्र विरुद्ध DCS IO सूची पडताळणी अहवाल",
+          report_subtitle: "P&ID रेखाचित्र आणि DCS इलेक्ट्रिकल IO सूची यांच्यातील अचूक क्रॉस-व्हॅलिडेशन.",
+          total_tags_title: "एकूण टॅग्ज (Total Tags)",
+          resolved_title: "पडताळणी पूर्ण (Resolved)",
+          review_req_title: "पुनरावलोकन आवश्यक (Review Req.)",
+          decision_split_title: "निर्णय विभागणी (Decision Split)",
+          missing_drawing_title: "रेखाचित्रात गहाळ (Missing in Drawing)",
+          missing_io_title: "IO सूचीमध्ये गहाळ (Missing in IO List)",
+          type_mismatch_title: "सिग्नल प्रकार जुळत नाही (Signal Mismatch)",
+          missing_drawing_desc: "DCS IO सूचीत नोंद आहे परंतु P&ID रेखाचित्रावर आढळले नाही.",
+          missing_io_desc: "रेखाचित्रावर आढळलेले भौतिक उपकरणे ज्यांना विद्युत IO जोडणी नाही.",
+          manual_valve_desc: "मॅन्युअल हँड व्हॉल्व्ह - कोणतीही इलेक्ट्रिकल जोडणी नाही.",
+          matched_status: "जुळले (Matched)",
+        },
+        en: {
+          report_title: "P&ID Drawing vs IO List Cross-Validation Report",
+          report_subtitle: "Deterministic discrepancy analysis between physical P&ID blueprints and DCS electrical point registers.",
+          total_tags_title: "Total Tags Extracted",
+          resolved_title: "Resolved & Verified",
+          review_req_title: "Review Required",
+          decision_split_title: "Decision Split",
+          missing_drawing_title: "Defined in IO List, Missing in Drawing",
+          missing_io_title: "Found in Drawing, Missing in IO List",
+          type_mismatch_title: "Instrument Type & Signal Discrepancies",
+          missing_drawing_desc: "Present in DCS IO list but missing from P&ID drawing.",
+          missing_io_desc: "Physical equipment or mechanical valves detected on blueprint that lack an electrical IO point.",
+          manual_valve_desc: "Manual hand valve - no electrical IO connection.",
+          matched_status: "Matched",
+        }
+      };
+
+      const labels = translations[selectedLang];
+      const localizedMissing = MOCK_REPORT.missing_in_drawing.map(item => ({
+        ...item,
+        description: selectedLang === 'en' ? item.description : labels.missing_drawing_desc
+      }));
+
+      return {
+        ...MOCK_REPORT,
+        missing_in_drawing: localizedMissing,
+        lang: selectedLang,
+        i18n_labels: labels
+      };
     }
 
     const res = await fetch(`${API_BASE}/jobs/${jobId}/report?lang=${lang}`);
     if (!res.ok) throw new ApiError('Failed to fetch report', 'JOB_NOT_FOUND');
     return await res.json();
+  },
+
+  getExportUrl(jobId: string, format: 'json' | 'svg' | 'pdf'): string {
+    return `${API_BASE}/jobs/${jobId}/export?format=${format}`;
   },
 };

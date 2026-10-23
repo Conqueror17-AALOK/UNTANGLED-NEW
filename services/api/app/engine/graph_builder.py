@@ -1,4 +1,5 @@
 import math
+import re
 from typing import Any, Dict, List, Tuple
 from services.api.app.db.schemas import GraphEdge, GraphNode, GraphSchema, GraphWarning
 
@@ -94,6 +95,76 @@ def build_graph_from_perception(
                         )
                     )
                     edge_idx += 1
+
+    # Multi-page Off-Page Connector (OPC) stitching across sheets
+    all_opcs = []
+    for page in pages:
+        p_num = page.get("page_number", 1)
+        for opc in page.get("off_page_connectors", []):
+            all_opcs.append((p_num, opc))
+
+    # Match outgoing OPCs (TO SHEET X) with incoming OPCs (FROM SHEET Y)
+    for p_src, opc_src in all_opcs:
+        src_label = opc_src.get("label", "").upper()
+        if "TO" not in src_label:
+            continue
+        src_line_m = re.search(r"LINE\s+([A-Z0-9\-]+)", src_label)
+        src_line = src_line_m.group(1) if src_line_m else None
+        src_target = opc_src.get("target_sheet")
+
+        for p_dst, opc_dst in all_opcs:
+            if p_src == p_dst:
+                continue
+            dst_label = opc_dst.get("label", "").upper()
+            if "FROM" not in dst_label:
+                continue
+            dst_line_m = re.search(r"LINE\s+([A-Z0-9\-]+)", dst_label)
+            dst_line = dst_line_m.group(1) if dst_line_m else None
+
+            # Match on identical line number or complementary target sheet
+            is_match = False
+            if src_line and dst_line and src_line == dst_line:
+                is_match = True
+            elif src_target and f"SHEET {p_src}" in dst_label:
+                is_match = True
+
+            if is_match:
+                src_bbox = opc_src.get("bbox", [0, 0, 0, 0])
+                dst_bbox = opc_dst.get("bbox", [0, 0, 0, 0])
+                src_cx, src_cy = get_bbox_center(src_bbox)
+                dst_cx, dst_cy = get_bbox_center(dst_bbox)
+
+                closest_src_node = None
+                closest_dst_node = None
+                min_d_src = float("inf")
+                min_d_dst = float("inf")
+
+                for node in nodes:
+                    d_s = euclidean_dist([src_cx, src_cy], [node.x, node.y])
+                    if d_s < min_d_src:
+                        min_d_src = d_s
+                        closest_src_node = node.id
+
+                    d_d = euclidean_dist([dst_cx, dst_cy], [node.x, node.y])
+                    if d_d < min_d_dst:
+                        min_d_dst = d_d
+                        closest_dst_node = node.id
+
+                if closest_src_node and closest_dst_node and closest_src_node != closest_dst_node:
+                    pair = (closest_src_node, closest_dst_node)
+                    rev_pair = (closest_dst_node, closest_src_node)
+                    if pair not in connected_pairs and rev_pair not in connected_pairs:
+                        connected_pairs.add(pair)
+                        edges.append(
+                            GraphEdge(
+                                id=f"e_{edge_idx:02d}",
+                                source=closest_src_node,
+                                target=closest_dst_node,
+                                line_type="process",
+                                directed=True,
+                            )
+                        )
+                        edge_idx += 1
 
     # Ensure baseline ground truth connections are preserved if perception drawing matches sample
     # Fallback/augmentation from benchmark ground truth

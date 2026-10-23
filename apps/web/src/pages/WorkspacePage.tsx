@@ -70,6 +70,28 @@ export const WorkspacePage: React.FC = () => {
     setPan({ x: 0, y: 0 });
   };
 
+  // Keyboard navigation shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement)?.tagName)) return;
+      if (e.key === '+' || e.key === '=') {
+        e.preventDefault();
+        setZoom((z) => Math.min(z + 0.15, 3));
+      } else if (e.key === '-' || e.key === '_') {
+        e.preventDefault();
+        setZoom((z) => Math.max(z - 0.15, 0.4));
+      } else if (e.key === '0') {
+        e.preventDefault();
+        resetViewport();
+      } else if (e.key === 'b' || e.key === 'B') {
+        e.preventDefault();
+        setShowBeforeAfter((prev) => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   // Filter nodes based on layer
   const visibleNodes = (graph?.nodes || []).filter((node) => {
     if (activeLayer === 'all') return true;

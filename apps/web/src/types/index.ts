@@ -124,6 +124,8 @@ export interface ReportData {
   missing_in_io_list: MissingInIOList[];
   type_mismatches: TypeMismatch[];
   graph_warnings: GraphWarning[];
+  lang?: string;
+  i18n_labels?: Record<string, string>;
 }
 
 export type WebSocketEvent =
