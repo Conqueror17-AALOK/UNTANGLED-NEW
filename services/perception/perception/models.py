@@ -12,6 +12,7 @@ class TextItem(BaseModel):
     source: Literal["vector", "ocr"] = "vector"
 
 class SymbolItem(BaseModel):
+    model_config = {"populate_by_name": True}
     id: str
     symbol_class: Literal[
         "pump",
@@ -24,7 +25,7 @@ class SymbolItem(BaseModel):
         "compressor",
         "check_valve",
         "safety_valve"
-    ] = Field(..., serialization_alias="class")
+    ] = Field(..., alias="class")
     bbox: List[float] = Field(..., description="[x1, y1, x2, y2]")
     confidence: float = Field(..., ge=0.0, le=1.0)
     ports: List[List[float]] = Field(default_factory=list, description="[[x, y], ...]")

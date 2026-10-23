@@ -239,7 +239,11 @@ export const apiClient = {
     return await res.json();
   },
 
-  getExportUrl(jobId: string, format: 'json' | 'svg' | 'pdf'): string {
+  getExportUrl(jobId: string, format: 'json' | 'svg' | 'pdf' | 'diagram-pdf'): string {
     return `${API_BASE}/jobs/${jobId}/export?format=${format}`;
+  },
+
+  getDiagramPdfUrl(jobId: string): string {
+    return `${API_BASE}/jobs/${jobId}/simplified-diagram/pdf`;
   },
 };

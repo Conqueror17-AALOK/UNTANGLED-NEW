@@ -1,5 +1,5 @@
 import re
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 # OCR Character Confusion Mappings
 CHAR_TO_DIGIT = {
@@ -25,14 +25,14 @@ def normalize_tag(raw: str) -> str:
     """
     Standardize tag formatting:
     - Uppercase, strip whitespace
-    - Standardize separators to hyphens
+    - Standardize separators to hyphens (collapsing multiple spaces and hyphens)
     - Insert hyphen between prefix letters and loop numbers if omitted (e.g. PT101 -> PT-101)
     """
     cleaned = raw.strip().upper()
-    cleaned = re.sub(r"[\s_]+", "-", cleaned)
+    cleaned = re.sub(r"[\s_-]+", "-", cleaned)
     
     # If no hyphen, e.g. PT101 or TK101, insert it
-    m = re.match(r"^([A-Z]+)(\d+[A-Z]?)$", cleaned)
+    m = re.match(r"^([A-Z]{1,4})(\d+[A-Z]?)$", cleaned)
     if m:
         cleaned = f"{m.group(1)}-{m.group(2)}"
 
@@ -50,10 +50,11 @@ def resolve_ocr_confusion(raw_tag: str) -> List[Tuple[str, float, str]]:
     # 1. Base clean
     candidates.append((normalized, 0.85, "Standard normalized format"))
 
-    # 2. Check for numeric suffix confusion, e.g. PT10l -> PT-101
+    # 2. Check for numeric suffix confusion, e.g. PT10l -> PT-101 or 631-FIT-042l -> 631-FIT-0421
     parts = normalized.split("-")
-    if len(parts) == 2:
-        prefix, suffix = parts[0], parts[1]
+    if len(parts) >= 2:
+        prefix = "-".join(parts[:-1])
+        suffix = parts[-1]
         
         # Suffix should generally be numbers with optional single letter suffix
         fixed_suffix = list(suffix)
@@ -92,10 +93,11 @@ def resolve_ocr_confusion(raw_tag: str) -> List[Tuple[str, float, str]]:
     return candidates
 
 
-def extract_pid_tags(text_items: List[dict]) -> List[dict]:
+def extract_pid_tags(text_items: List[dict], io_tags: Optional[List[str]] = None) -> List[dict]:
     """
     Spatially identify true P&ID tags (instruments, equipment, valves) from raw text items.
-    Handles both single-token tags (e.g. TK-101) and split instrument bubble tokens (e.g. 'PT' + '101' -> 'PT-101').
+    Handles single-token tags (TK-101, 631-AY-0421), split instrument bubble tokens ('PT' + '101'),
+    and matches against known IO List tags if provided.
     Filters out non-tag generic text (drawing title blocks, notes, scale labels).
     """
     import math
@@ -111,22 +113,39 @@ def extract_pid_tags(text_items: List[dict]) -> List[dict]:
         "DWG-UNT-002", "&"
     }
 
-    # 1. Single-token tags (e.g. TK-101, P-101A, P-101B, E-101, CV-101, HV-77)
+    normalized_io_set = set()
+    if io_tags:
+        for it in io_tags:
+            normalized_io_set.add(normalize_tag(it))
+
+    # Regex patterns for engineering tags:
+    # 1. Standard: PT-101, CV-101, P-101A, HV-77
+    # 2. Multi-part / Unit-prefixed: 631-AY-0421, 631-FIT-0421, 631-XSH-0421, 631-G-0119A, 631-D-0118
+    # 3. Compact: PT101, TK101
+    tag_patterns = [
+        re.compile(r"^[A-Z]{1,4}-\d+[A-Z]?$"),
+        re.compile(r"^[A-Z]{2,4}\d{2,5}[A-Za-z]?$"),
+        re.compile(r"^(\d{1,5}|[A-Z]{1,3})-[A-Z]{1,4}-\d{1,5}[A-Z]?$"),
+        re.compile(r"^(\d{1,5}|[A-Z]{1,3})-[A-Z]{1,3}-\d{1,5}[A-Z]?$"),
+    ]
+
+    # 1. Single-token tags
     for i, t in enumerate(text_items):
         text = t.get("text", "").strip()
         if text in ignored_words or len(text) < 2:
             continue
-        if re.match(r"^[A-Z]{1,4}-\d+[A-Z]?$", text) or re.match(r"^[A-Z]{2,4}\d{2,4}[A-Za-z]?$", text):
+        norm = normalize_tag(text)
+        if norm in normalized_io_set or any(pat.match(norm) for pat in tag_patterns):
             tags.append(t)
             used.add(i)
 
-    # 2. Spatially adjacent / stacked split tags (e.g. 'PT' above '101' or 'PT' followed by '101')
-    known_prefixes = {"PT", "FT", "FIC", "LT", "LIC", "TT", "TI", "PI", "PSV", "XV", "CV", "HV", "CK"}
+    # 2. Spatially adjacent / stacked split tags (e.g. 'PT' above '101' or '631-FIT' above '0421')
+    known_prefixes = {"PT", "FT", "FIC", "LT", "LIC", "TT", "TI", "PI", "PSV", "XV", "CV", "HV", "CK", "AY", "XSH", "XSL"}
     for i, t in enumerate(text_items):
         if i in used:
             continue
         text = t.get("text", "").strip().upper()
-        if text in known_prefixes:
+        if text in known_prefixes or any(text.endswith(f"-{kp}") for kp in known_prefixes):
             bx = t.get("bbox", [0, 0, 0, 0])
             bcx, bcy = (bx[0] + bx[2]) / 2.0, (bx[1] + bx[3]) / 2.0
 

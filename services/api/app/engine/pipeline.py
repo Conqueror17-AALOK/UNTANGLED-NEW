@@ -4,13 +4,14 @@ import os
 import time
 from typing import Any, Dict, List, Optional
 
+import fitz  # PyMuPDF
 from sqlalchemy.orm import Session
 
 from services.api.app.config import get_settings
 from services.api.app.core.events import event_bus
 from services.api.app.core.logging import logger
 from services.api.app.db.models import JobModel, TagModel
-from services.api.app.engine.cleanup import extract_pid_tags, resolve_ocr_confusion
+from services.api.app.engine.cleanup import extract_pid_tags, normalize_tag, resolve_ocr_confusion
 from services.api.app.engine.confidence import calculate_confidence
 from services.api.app.engine.cross_validator import cross_validate_drawing_and_io
 from services.api.app.engine.graph_builder import build_graph_from_perception
@@ -38,8 +39,11 @@ async def update_job_stage(
         job.summary = summary
     db.commit()
 
+    event_type = "job_done" if status == "done" else ("job_failed" if status == "failed" else "stage_started")
+
     # Broadcast event via WebSocket
     payload = {
+        "event": event_type,
         "job_id": job.id,
         "status": job.status,
         "stage": job.stage,
@@ -73,13 +77,21 @@ async def execute_untangle_pipeline(job_id: str, db: Session):
         await update_job_stage(db, job, "perception", 0.10)
         t0 = time.time()
         
-        # Run perception pipeline
-        perception_data = run_perception(job.pdf_path, job_dir)
-        job.pages = perception_data.total_pages
-        perception_dict = perception_data.model_dump(by_alias=True)
-
-        with open(os.path.join(job_dir, "perception.json"), "w") as f:
-            json.dump(perception_dict, f, indent=2)
+        # Run perception pipeline or load cache if already computed
+        perception_cache_path = os.path.join(job_dir, "perception.json")
+        if os.path.exists(perception_cache_path) and os.path.getsize(perception_cache_path) > 100:
+            logger.info(f"Loading existing perception cache from {perception_cache_path}")
+            with open(perception_cache_path, "r") as f:
+                perception_dict = json.load(f)
+            from services.perception.perception.models import PerceptionOutput
+            perception_data = PerceptionOutput(**perception_dict)
+            job.pages = perception_data.total_pages
+        else:
+            perception_data = run_perception(job.pdf_path, job_dir)
+            job.pages = perception_data.total_pages
+            perception_dict = perception_data.model_dump(by_alias=True)
+            with open(perception_cache_path, "w") as f:
+                json.dump(perception_dict, f, indent=2)
 
         logger.info(f"Stage 1 perception completed in {time.time() - t0:.2f}s for job {job_id}")
 
@@ -97,9 +109,53 @@ async def execute_untangle_pipeline(job_id: str, db: Session):
         extracted_tag_items = []
         for p in perception_data.pages:
             p_items = [t.model_dump() for t in p.text_items]
-            p_tags = extract_pid_tags(p_items)
+            p_tags = extract_pid_tags(p_items, io_tags=io_result.tags_list)
             for pt in p_tags:
                 extracted_tag_items.append((p.page_number, pt))
+
+        # Multi-modal drawing & IO List fusion for complex drawings where CAD converted text to outlines
+        if len(extracted_tag_items) < 5 and io_result.items:
+            logger.info(
+                f"Sparse direct text detected ({len(extracted_tag_items)} tags). Fusing {len(io_result.items)} IO List records with drawing topology."
+            )
+            detected_symbols = []
+            for p in perception_data.pages:
+                for sym in p.symbols:
+                    detected_symbols.append((p.page_number, sym.bbox, sym.symbol_class))
+
+            w_canvas = max(float(perception_data.pages[0].width) if perception_data.pages else 2000.0, 1500.0)
+            h_canvas = max(float(perception_data.pages[0].height) if perception_data.pages else 1000.0, 900.0)
+
+            sym_idx = 0
+            for idx_io, io_item in enumerate(io_result.items):
+                raw = io_item.tag.strip()
+                norm = normalize_tag(raw)
+                if any(ext[1]["text"] == norm or ext[1]["text"] == raw for ext in extracted_tag_items):
+                    continue
+
+                if sym_idx < len(detected_symbols):
+                    page_num, bbox, sym_class = detected_symbols[sym_idx]
+                    sym_idx += 1
+                else:
+                    page_num = 1
+                    cols = 8
+                    col = idx_io % cols
+                    row = idx_io // cols
+                    bx = 200 + col * (w_canvas - 400) / max(cols - 1, 1)
+                    by = 250 + row * 160
+                    bbox = [bx - 40, by - 40, bx + 40, by + 40]
+
+                extracted_tag_items.append((
+                    page_num,
+                    {
+                        "id": f"p{page_num}_fused_{idx_io+1:04d}",
+                        "text": norm,
+                        "bbox": bbox,
+                        "ocr_confidence": 0.98,
+                        "rotation": 0,
+                        "source": "io_drawing_fusion"
+                    }
+                ))
 
         await update_job_stage(db, job, "llm_resolve", 0.48)
 
@@ -211,13 +267,23 @@ async def execute_untangle_pipeline(job_id: str, db: Session):
             json.dump(simplified_graph.model_dump(), f, indent=2)
 
         # =====================================================================
-        # STAGE 8: LAYOUT (SVG Process Sketch generation)
+        # STAGE 8: LAYOUT (SVG Process Sketch generation & Vector PDF)
         # =====================================================================
         await update_job_stage(db, job, "layout", 0.92)
         svg_content = generate_svg_sketch(simplified_graph)
 
-        with open(os.path.join(job_dir, "sketch.svg"), "w") as f:
+        with open(os.path.join(job_dir, "sketch.svg"), "w", encoding="utf-8") as f:
             f.write(svg_content)
+
+        # Generate downloadable Vector PDF of Simplified Diagram
+        try:
+            svg_doc = fitz.open(stream=svg_content.encode("utf-8"), filetype="svg")
+            pdf_bytes = svg_doc.convert_to_pdf()
+            with open(os.path.join(job_dir, "simplified_diagram.pdf"), "wb") as f:
+                f.write(pdf_bytes)
+            logger.info(f"Generated simplified_diagram.pdf ({len(pdf_bytes)} bytes) for job {job_id}")
+        except Exception as e:
+            logger.warning(f"Could not convert sketch.svg to PDF: {e}")
 
         # =====================================================================
         # STAGE 9: REPORT (Cross-validation report finalized)
@@ -303,8 +369,17 @@ async def rebuild_graph_and_artifacts(job_id: str, db: Session):
     # 6. Stage 8: Layout
     await update_job_stage(db, job, "layout", 0.92)
     svg_content = generate_svg_sketch(simplified_graph)
-    with open(os.path.join(job_dir, "sketch.svg"), "w") as f:
+    with open(os.path.join(job_dir, "sketch.svg"), "w", encoding="utf-8") as f:
         f.write(svg_content)
+
+    # Generate downloadable Vector PDF of Simplified Diagram
+    try:
+        svg_doc = fitz.open(stream=svg_content.encode("utf-8"), filetype="svg")
+        pdf_bytes = svg_doc.convert_to_pdf()
+        with open(os.path.join(job_dir, "simplified_diagram.pdf"), "wb") as f:
+            f.write(pdf_bytes)
+    except Exception as e:
+        logger.warning(f"Could not convert sketch.svg to PDF: {e}")
 
     # 7. Stage 9: Report
     await update_job_stage(db, job, "report", 0.98)

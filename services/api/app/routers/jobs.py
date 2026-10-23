@@ -402,10 +402,10 @@ def get_report(
 @router.get("/{job_id}/export")
 def export_job(
     job_id: str,
-    export_format: str = Query(..., alias="format", pattern="^(json|svg|pdf)$")
+    export_format: str = Query(..., alias="format", pattern="^(json|svg|pdf|diagram-pdf)$")
 ):
     """
-    Export processed job artifacts as JSON, SVG, or PDF.
+    Export processed job artifacts as JSON, SVG, Audit PDF, or Diagram PDF.
     """
     settings = get_settings()
     job_dir = os.path.join(settings.DATA_DIR, job_id)
@@ -430,6 +430,27 @@ def export_job(
         }
         return bundle
 
+    elif export_format == "diagram-pdf":
+        pdf_path = os.path.join(job_dir, "simplified_diagram.pdf")
+        svg_path = os.path.join(job_dir, "sketch.svg")
+        if not os.path.exists(pdf_path):
+            if os.path.exists(svg_path):
+                with open(svg_path, "r", encoding="utf-8") as f:
+                    svg_content = f.read()
+                svg_doc = fitz.open(stream=svg_content.encode("utf-8"), filetype="svg")
+                pdf_bytes = svg_doc.convert_to_pdf()
+                with open(pdf_path, "wb") as f:
+                    f.write(pdf_bytes)
+            else:
+                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Simplified diagram artifacts not found")
+        with open(pdf_path, "rb") as f:
+            pdf_bytes = f.read()
+        return Response(
+            content=pdf_bytes,
+            media_type="application/pdf",
+            headers={"Content-Disposition": f"attachment; filename=simplified_diagram_{job_id[:8]}.pdf"}
+        )
+
     elif export_format == "pdf":
         report_path = os.path.join(job_dir, "report.json")
         if not os.path.exists(report_path):
@@ -442,3 +463,40 @@ def export_job(
             media_type="application/pdf",
             headers={"Content-Disposition": f"attachment; filename=untangle_audit_report_{job_id}.pdf"}
         )
+
+
+@router.get("/{job_id}/simplified-diagram/pdf")
+def download_simplified_diagram_pdf(job_id: str, db: Session = Depends(get_db)):
+    """
+    Download the simplified engineering process diagram as a vector PDF document.
+    """
+    settings = get_settings()
+    job_dir = os.path.join(settings.DATA_DIR, job_id)
+    pdf_path = os.path.join(job_dir, "simplified_diagram.pdf")
+    svg_path = os.path.join(job_dir, "sketch.svg")
+
+    if not os.path.exists(pdf_path):
+        if os.path.exists(svg_path):
+            with open(svg_path, "r", encoding="utf-8") as f:
+                svg_content = f.read()
+            svg_doc = fitz.open(stream=svg_content.encode("utf-8"), filetype="svg")
+            pdf_bytes = svg_doc.convert_to_pdf()
+            with open(pdf_path, "wb") as f:
+                f.write(pdf_bytes)
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail={"code": "DIAGRAM_NOT_FOUND", "message": "Simplified diagram not yet generated."}
+            )
+
+    with open(pdf_path, "rb") as f:
+        content = f.read()
+
+    return Response(
+        content=content,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f"attachment; filename=simplified_diagram_{job_id[:8]}.pdf"
+        }
+    )
+

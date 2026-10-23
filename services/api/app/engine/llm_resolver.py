@@ -142,6 +142,17 @@ async def resolve_tag_with_llm_or_heuristics(
     settings = get_settings()
     best_io_tag, io_sim = fuzzy_match_io(normalized_candidate, io_tags)
 
+    # 1. Deterministic Fast-Path: If raw text itself is already an exact match in DCS IO list (no OCR ambiguity), resolve instantly
+    raw_clean = re.sub(r"[\s_-]+", "-", raw_text.strip().upper())
+    if best_io_tag and (raw_clean == best_io_tag.upper() or io_sim == 1.0 and raw_clean == normalized_candidate.upper()):
+        return CandidateResolution(
+            resolved_tag=best_io_tag,
+            confidence=0.98,
+            reasoning=f"Exact verified match in DCS IO List: '{best_io_tag}'. {rule_reasoning}".strip(),
+            io_match_tag=best_io_tag,
+            io_score=1.0
+        )
+
     prompt = (
         f"You are an industrial P&ID (Piping and Instrumentation Diagram) expert. "
         f"Resolve this ambiguous OCR reading to the correct ISA-5.1 engineering tag.\n"
@@ -155,7 +166,7 @@ async def resolve_tag_with_llm_or_heuristics(
         f'{{"resolved_tag": "TAG-123", "confidence": 0.95, "reasoning": "Clear explanation of correction"}}'
     )
 
-    # 1. Primary: NVIDIA Fast Model (GLM 5.3 Flash)
+    # 2. Primary: NVIDIA Fast Model (GLM 5.3 Flash)
     if settings.LLM_PROVIDER == "nvidia" and settings.NVIDIA_API_KEY_GLM:
         try:
             parsed = await call_nvidia_llm(
@@ -163,7 +174,7 @@ async def resolve_tag_with_llm_or_heuristics(
                 model=settings.LLM_MODEL_FAST,
                 api_key=settings.NVIDIA_API_KEY_GLM,
                 base_url=settings.NVIDIA_BASE_URL,
-                timeout=8.0
+                timeout=3.0
             )
             if parsed and "resolved_tag" in parsed:
                 resolved_tag = str(parsed["resolved_tag"]).strip()
@@ -192,7 +203,7 @@ async def resolve_tag_with_llm_or_heuristics(
                 model=settings.LLM_MODEL_STRONG,
                 api_key=settings.NVIDIA_API_KEY_DEEPSEEK,
                 base_url=settings.NVIDIA_BASE_URL,
-                timeout=8.0
+                timeout=3.0
             )
             if parsed and "resolved_tag" in parsed:
                 resolved_tag = str(parsed["resolved_tag"]).strip()

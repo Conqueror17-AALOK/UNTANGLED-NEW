@@ -118,15 +118,32 @@ export const ReportPage: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-1.5">
+            <a
+              href={`/api/v1/jobs/${jobId}/simplified-diagram/pdf`}
+              download={`simplified_diagram_${jobId.slice(0, 8)}.pdf`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Button
+                variant="secondary"
+                size="sm"
+                className="font-mono text-xs flex items-center gap-1.5 border-emerald-700/60 text-emerald-400 hover:bg-emerald-950/40"
+                title="Download Simplified Process Diagram as Vector PDF"
+              >
+                <Download size={13} className="text-emerald-400" />
+                <span>Diagram PDF</span>
+              </Button>
+            </a>
+
             <Button
               variant="secondary"
               size="sm"
               onClick={handleDownloadPDF}
               className="font-mono text-xs"
-              title="Download Certified PDF Report"
+              title="Download Certified Audit PDF Report"
             >
               <FileCheck2 size={13} className="text-blue-400" />
-              <span>PDF</span>
+              <span>Report PDF</span>
             </Button>
 
             <Button

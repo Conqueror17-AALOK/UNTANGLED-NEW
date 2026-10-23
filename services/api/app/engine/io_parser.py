@@ -92,8 +92,12 @@ def parse_io_list(file_path: str) -> IoParseResult:
             pid_ref=str(row[pid_ref_col]).strip() if pid_ref_col != -1 and pid_ref_col < len(row) and row[pid_ref_col] else "",
             location=str(row[loc_col]).strip() if loc_col != -1 and loc_col < len(row) and row[loc_col] else "",
         )
+        import re
+        norm_key = re.sub(r"[\s_-]+", "-", raw_tag.upper())
+        compact_key = re.sub(r"[\s_-]+", "", raw_tag.upper())
         items.append(item)
         by_tag[raw_tag] = item
-        by_tag[raw_tag.upper().replace(" ", "-")] = item
+        by_tag[norm_key] = item
+        by_tag[compact_key] = item
 
     return IoParseResult(items=items, by_tag=by_tag, tags_list=[i.tag for i in items])

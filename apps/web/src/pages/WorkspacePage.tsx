@@ -9,7 +9,8 @@ import {
   FileSpreadsheet,
   Columns,
   Crosshair,
-  ChevronRight
+  ChevronRight,
+  Download
 } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
@@ -121,7 +122,19 @@ export const WorkspacePage: React.FC = () => {
           </h1>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <a
+            href={`/api/v1/jobs/${jobId}/simplified-diagram/pdf`}
+            download={`simplified_diagram_${jobId.slice(0, 8)}.pdf`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <Button variant="primary" size="sm" className="font-mono text-xs flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white">
+              <Download size={13} />
+              <span>Download PDF Diagram</span>
+            </Button>
+          </a>
+
           <Button
             variant={showBeforeAfter ? 'engineering' : 'secondary'}
             size="sm"

@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { CheckCircle2, Loader2, ArrowRight, Terminal, Cpu } from 'lucide-react';
+import { CheckCircle2, Loader2, ArrowRight, Terminal, Cpu, AlertTriangle, Download } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
 import { JobStreamClient, PIPELINE_STAGES } from '../api/ws';
-import { PipelineStage, WebSocketEvent } from '../types';
+import { apiClient } from '../api/client';
+import { Job, PipelineStage } from '../types';
 
 export const JobPage: React.FC = () => {
   const { jobId = 'demo-job-1' } = useParams();
@@ -15,6 +16,7 @@ export const JobPage: React.FC = () => {
   const [completedStages, setCompletedStages] = useState<Set<PipelineStage>>(new Set());
   const [progress, setProgress] = useState(0.1);
   const [isDone, setIsDone] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [summary, setSummary] = useState<{ resolved: number; needs_review: number; rejected: number }>({
     resolved: 0,
     needs_review: 0,
@@ -22,21 +24,91 @@ export const JobPage: React.FC = () => {
   });
 
   useEffect(() => {
-    const client = new JobStreamClient(jobId, (event: WebSocketEvent) => {
-      if (event.event === 'stage_started') {
-        setCurrentStage(event.stage);
-        setProgress(event.progress);
-      } else if (event.event === 'stage_done') {
-        setCompletedStages((prev) => new Set([...prev, event.stage]));
-        setProgress(event.progress);
-      } else if (event.event === 'job_done') {
+    let isMounted = true;
+
+    const syncWithJob = (job: Job) => {
+      if (!isMounted) return;
+      if (job.error?.message) {
+        setErrorMsg(job.error.message);
+      }
+      if (job.progress !== undefined) {
+        setProgress(Math.max(0.1, job.progress));
+      }
+      if (job.stage) {
+        setCurrentStage(job.stage);
+        const stageIdx = PIPELINE_STAGES.findIndex((s) => s.id === job.stage);
+        if (stageIdx >= 0) {
+          const completed = new Set<PipelineStage>(
+            PIPELINE_STAGES.slice(0, stageIdx).map((s) => s.id)
+          );
+          if (job.status === 'done') {
+            completed.add(job.stage);
+          }
+          setCompletedStages(completed);
+        }
+      }
+      if (job.summary) {
+        setSummary(job.summary);
+      }
+      if (job.status === 'done') {
         setIsDone(true);
         setProgress(1.0);
-        setSummary(event.summary);
+        setCompletedStages(new Set(PIPELINE_STAGES.map((s) => s.id)));
+      }
+    };
+
+    // Immediate initial fetch
+    apiClient.getJob(jobId).then(syncWithJob).catch((e) => console.warn('Job fetch:', e));
+
+    // Polling fallback to guarantee stage progression tracking
+    const pollInterval = setInterval(() => {
+      if (!isMounted) return;
+      apiClient.getJob(jobId).then((job) => {
+        syncWithJob(job);
+        if (job.status === 'done' || job.status === 'failed') {
+          clearInterval(pollInterval);
+        }
+      }).catch(() => {});
+    }, 1500);
+
+    // WebSocket listener
+    const client = new JobStreamClient(jobId, (event: any) => {
+      if (!isMounted) return;
+      if (event.event === 'stage_started' || event.stage) {
+        const stage = event.stage as PipelineStage;
+        setCurrentStage(stage);
+        if (event.progress !== undefined) setProgress(Math.max(0.1, event.progress));
+        const stageIdx = PIPELINE_STAGES.findIndex((s) => s.id === stage);
+        if (stageIdx >= 0) {
+          setCompletedStages((prev) => {
+            const next = new Set(prev);
+            for (let i = 0; i < stageIdx; i++) next.add(PIPELINE_STAGES[i].id);
+            return next;
+          });
+        }
+      }
+      if (event.event === 'stage_done') {
+        setCompletedStages((prev) => new Set([...prev, event.stage as PipelineStage]));
+        if (event.progress !== undefined) setProgress(event.progress);
+      }
+      if (event.event === 'job_done' || event.status === 'done') {
+        setIsDone(true);
+        setProgress(1.0);
+        setCompletedStages(new Set(PIPELINE_STAGES.map((s) => s.id)));
+        if (event.summary) setSummary(event.summary);
+        clearInterval(pollInterval);
+      }
+      if (event.event === 'job_failed' || event.status === 'failed') {
+        setErrorMsg(event.error?.message || 'Pipeline execution failed.');
+        clearInterval(pollInterval);
       }
     });
 
-    return () => client.destroy();
+    return () => {
+      isMounted = false;
+      clearInterval(pollInterval);
+      client.destroy();
+    };
   }, [jobId]);
 
   return (
@@ -57,15 +129,33 @@ export const JobPage: React.FC = () => {
         </div>
 
         {isDone ? (
-          <Button
-            variant="engineering"
-            size="md"
-            onClick={() => navigate(`/workspace/${jobId}`)}
-            className="font-mono text-xs"
-          >
-            <span>Inspect Process Topology</span>
-            <ArrowRight size={14} />
-          </Button>
+          <div className="flex items-center gap-2">
+            <a
+              href={`/api/v1/jobs/${jobId}/simplified-diagram/pdf`}
+              download={`simplified_diagram_${jobId.slice(0, 8)}.pdf`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Button variant="secondary" size="md" className="font-mono text-xs flex items-center gap-1.5">
+                <Download size={13} className="text-emerald-400" />
+                <span>Download Diagram (PDF)</span>
+              </Button>
+            </a>
+            <Button
+              variant="engineering"
+              size="md"
+              onClick={() => navigate(`/workspace/${jobId}`)}
+              className="font-mono text-xs flex items-center gap-1.5"
+            >
+              <span>Inspect Process Topology</span>
+              <ArrowRight size={14} />
+            </Button>
+          </div>
+        ) : errorMsg ? (
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded bg-red-950/40 border border-red-800 text-xs font-mono text-red-400">
+            <AlertTriangle size={13} className="text-red-400" />
+            <span>Pipeline Failed: {errorMsg}</span>
+          </div>
         ) : (
           <div className="flex items-center gap-2 px-3 py-1.5 rounded bg-[#12141c] border border-[#1e222d] text-xs font-mono text-blue-400">
             <Loader2 size={13} className="animate-spin text-blue-400" />
