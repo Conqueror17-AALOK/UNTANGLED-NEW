@@ -18,7 +18,7 @@ class Settings(BaseSettings):
     
     LLM_MODEL: str = "nvidia/nemotron-3-ultra-550b-a55b"
     LLM_MODEL_FAST: str = "nvidia/nemotron-3.5-bolt-e4b"
-    LLM_TIMEOUT: float = 18.0
+    LLM_TIMEOUT: float = 45.0
     
     # Backward-compatible fallbacks
     GEMINI_API_KEY: str = ""

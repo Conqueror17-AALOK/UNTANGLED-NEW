@@ -85,7 +85,7 @@ async def call_nvidia_llm(
     model: str,
     api_key: str,
     base_url: str,
-    timeout: float = 18.0
+    timeout: float = 45.0
 ) -> Optional[Dict[str, Any]]:
     """
     Call NVIDIA OpenAI-compatible chat completion endpoint.
@@ -177,7 +177,7 @@ async def resolve_tag_with_llm_or_heuristics(
     )
 
     api_key = settings.effective_nvidia_api_key
-    timeout = getattr(settings, "LLM_TIMEOUT", 18.0)
+    timeout = getattr(settings, "LLM_TIMEOUT", 45.0)
 
     # 2. Primary: NVIDIA NeMoTron-3 Ultra 550B
     if settings.LLM_PROVIDER == "nvidia" and api_key and settings.LLM_MODEL:
