@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import { UploadPage } from '../pages/UploadPage';
 import { JobPage } from '../pages/JobPage';
 import { WorkspacePage } from '../pages/WorkspacePage';
@@ -9,7 +9,7 @@ import { Navbar } from '../components/layout/Navbar';
 
 export const AppRouter: React.FC = () => {
   return (
-    <div className="min-h-screen flex flex-col bg-industrial-950 text-slate-100">
+    <div className="min-h-screen flex flex-col bg-[#090a0f] text-[#f1f5f9] antialiased">
       <NavbarWithJobId />
       <main className="flex-1">
         <Routes>
@@ -21,20 +21,28 @@ export const AppRouter: React.FC = () => {
         </Routes>
       </main>
 
-      <footer className="border-t border-industrial-800/80 py-6 text-center text-xs text-slate-500 font-mono">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <span>UNTANGLE Industrial P&ID Verification Engine</span>
-          <span>Built for Trust, Reliability, and Real Engineering Audits</span>
+      <footer className="border-t border-[#1e222d] py-4 bg-[#090a0f] text-[11px] text-[#64748b] font-mono">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-2">
+          <div className="flex items-center gap-3">
+            <span className="text-[#94a3b8] font-semibold">UNTANGLE INDUSTRIAL ENGINE</span>
+            <span>•</span>
+            <span>ISA-5.1-2009 SPECIFICATION</span>
+            <span>•</span>
+            <span>IEC 62443 COMPLIANT PIPELINE</span>
+          </div>
+          <div>
+            <span>DCS CROSS-VALIDATION GATEWAY</span>
+          </div>
         </div>
       </footer>
     </div>
   );
 };
 
-// Helper to pass current active jobId to Navbar
+// Reactively passes current active jobId from URL pathname
 const NavbarWithJobId: React.FC = () => {
-  const pathname = window.location.pathname;
-  const match = pathname.match(/\/(?:jobs|workspace|review|report)\/([^/]+)/);
+  const location = useLocation();
+  const match = location.pathname.match(/\/(?:jobs|workspace|review|report)\/([^/]+)/);
   const activeJobId = match ? match[1] : 'demo-job-1';
   return <Navbar currentJobId={activeJobId} />;
 };

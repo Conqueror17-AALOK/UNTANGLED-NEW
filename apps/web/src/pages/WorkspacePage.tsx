@@ -5,10 +5,11 @@ import {
   ZoomOut,
   RotateCcw,
   Layers,
-  CheckSquare,
-  FileText,
-  SlidersHorizontal,
-  Info
+  CheckCircle2,
+  FileSpreadsheet,
+  Columns,
+  Crosshair,
+  ChevronRight
 } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
@@ -23,6 +24,7 @@ export const WorkspacePage: React.FC = () => {
   const [tags, setTags] = useState<Tag[]>([]);
   const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null);
   const [selectedTag, setSelectedTag] = useState<Tag | null>(null);
+  const [inspectorTab, setInspectorTab] = useState<'telemetry' | 'confidence' | 'traceability'>('telemetry');
 
   // Canvas Viewport State (Zoom & Pan)
   const [zoom, setZoom] = useState(1);
@@ -37,7 +39,6 @@ export const WorkspacePage: React.FC = () => {
   useEffect(() => {
     apiClient.getGraph(jobId).then((g) => {
       setGraph(g);
-      // Auto-select first node for immediate inspection
       if (g.nodes.length > 0) {
         setSelectedNode(g.nodes.find((n) => n.id === 'PT-101') || g.nodes[0]);
       }
@@ -107,68 +108,68 @@ export const WorkspacePage: React.FC = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-4 animate-fade-in">
       
-      {/* Top Action Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-industrial-800">
+      {/* Top Engineering Action Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-[#1e222d]">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-slate-100 flex items-center gap-2">
-            <span>Simplified Process Sketch Canvas</span>
-            <span className="text-xs font-mono font-normal text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded border border-cyan-500/30">
-              v{graph?.version || 1}
-            </span>
+          <div className="flex items-center gap-2 text-[11px] font-mono text-[#64748b] mb-0.5">
+            <span>PROCESS TOPOLOGY WORKSPACE</span>
+            <span>/</span>
+            <span className="text-blue-400 font-semibold">GRAPH V{graph?.version || 1}</span>
+          </div>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#f1f5f9] flex items-center gap-2.5">
+            <span>Simplified Process Topology Canvas</span>
           </h1>
-          <p className="text-xs text-slate-400">
-            Interactive, topological representation synthesized from P&ID drawing and validated with DCS IO List.
-          </p>
         </div>
 
         <div className="flex items-center gap-2">
           <Button
-            variant={showBeforeAfter ? 'primary' : 'secondary'}
+            variant={showBeforeAfter ? 'engineering' : 'secondary'}
             size="sm"
             onClick={() => setShowBeforeAfter(!showBeforeAfter)}
+            className="font-mono text-xs"
           >
-            <SlidersHorizontal size={14} />
+            <Columns size={13} />
             <span>Before / After Split</span>
           </Button>
 
           <Link to={`/review/${jobId}`}>
-            <Button variant="secondary" size="sm">
-              <CheckSquare size={14} />
+            <Button variant="secondary" size="sm" className="font-mono text-xs">
+              <CheckCircle2 size={13} className="text-amber-400" />
               <span>Review Queue</span>
             </Button>
           </Link>
 
           <Link to={`/report/${jobId}`}>
-            <Button variant="outline" size="sm">
-              <FileText size={14} />
-              <span>Validation Report</span>
+            <Button variant="secondary" size="sm" className="font-mono text-xs">
+              <FileSpreadsheet size={13} className="text-blue-400" />
+              <span>Audit Report</span>
             </Button>
           </Link>
         </div>
       </div>
 
-      {/* Main Workspace Layout (Canvas + Inspector) */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* Main Workspace Layout (Canvas + High-Density Inspector) */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         
         {/* Canvas Area (Col span 2) */}
         <div className="lg:col-span-2 space-y-3">
           
           {/* Controls Bar */}
-          <div className="flex flex-wrap items-center justify-between gap-2 p-2 rounded-xl bg-industrial-900 border border-industrial-800 text-xs">
+          <div className="flex flex-wrap items-center justify-between gap-2 p-2 rounded bg-[#12141c] border border-[#1e222d] text-xs">
             
             {/* Layer Toggles */}
             <div className="flex items-center gap-1">
-              <span className="text-slate-500 font-mono text-[11px] px-2 flex items-center gap-1">
-                <Layers size={13} /> Layer:
+              <span className="text-[#64748b] font-mono text-[10px] px-1.5 flex items-center gap-1 uppercase tracking-wider">
+                <Layers size={12} /> Layers:
               </span>
               {(['all', 'equipment', 'instrument', 'valve'] as const).map((layer) => (
                 <button
                   key={layer}
                   onClick={() => setActiveLayer(layer)}
-                  className={`px-2.5 py-1 rounded-lg capitalize transition-colors ${
+                  className={`px-2.5 py-1 rounded text-[11px] font-mono uppercase tracking-tight transition-colors ${
                     activeLayer === layer
-                      ? 'bg-cyan-500/20 text-cyan-400 font-semibold border border-cyan-500/40'
-                      : 'text-slate-400 hover:text-slate-200 hover:bg-industrial-800'
+                      ? 'bg-[#1e222d] text-[#f1f5f9] font-bold border border-[#2b3145]'
+                      : 'text-[#94a3b8] hover:text-[#f1f5f9] hover:bg-[#151821]'
                   }`}
                 >
                   {layer}
@@ -180,38 +181,38 @@ export const WorkspacePage: React.FC = () => {
             <div className="flex items-center gap-1">
               <button
                 onClick={() => setZoom((z) => Math.min(z + 0.15, 2.5))}
-                className="p-1.5 rounded-lg bg-industrial-800 hover:bg-industrial-700 text-slate-300"
-                title="Zoom In"
+                className="p-1 rounded bg-[#151821] hover:bg-[#1e222d] text-[#94a3b8] hover:text-[#f1f5f9] border border-[#1e222d]"
+                title="Zoom In (+)"
               >
-                <ZoomIn size={15} />
+                <ZoomIn size={14} />
               </button>
               <button
                 onClick={() => setZoom((z) => Math.max(z - 0.15, 0.5))}
-                className="p-1.5 rounded-lg bg-industrial-800 hover:bg-industrial-700 text-slate-300"
-                title="Zoom Out"
+                className="p-1 rounded bg-[#151821] hover:bg-[#1e222d] text-[#94a3b8] hover:text-[#f1f5f9] border border-[#1e222d]"
+                title="Zoom Out (-)"
               >
-                <ZoomOut size={15} />
+                <ZoomOut size={14} />
               </button>
               <button
                 onClick={resetViewport}
-                className="p-1.5 rounded-lg bg-industrial-800 hover:bg-industrial-700 text-slate-300"
-                title="Reset View"
+                className="p-1 rounded bg-[#151821] hover:bg-[#1e222d] text-[#94a3b8] hover:text-[#f1f5f9] border border-[#1e222d]"
+                title="Reset View (0)"
               >
-                <RotateCcw size={15} />
+                <RotateCcw size={14} />
               </button>
-              <span className="text-[11px] font-mono text-slate-400 px-1.5">
+              <span className="text-[11px] font-mono text-[#64748b] px-1.5 tabular-nums">
                 {Math.round(zoom * 100)}%
               </span>
             </div>
 
           </div>
 
-          {/* SVG Canvas Box */}
-          <Card className="p-0 h-[560px] relative overflow-hidden bg-industrial-950 border-industrial-800 select-none">
+          {/* SVG CAD Canvas Box */}
+          <div className="h-[560px] relative overflow-hidden bg-[#08090d] border border-[#1e222d] rounded-lg select-none">
             
-            {/* Canvas Background Grid */}
+            {/* Coordinate Grid & Interactive Canvas */}
             <div
-              className="absolute inset-0 cursor-grab active:cursor-grabbing"
+              className="absolute inset-0 cursor-grab active:cursor-grabbing bg-cad-grid"
               onMouseDown={handleMouseDown}
               onMouseMove={handleMouseMove}
               onMouseUp={handleMouseUp}
@@ -219,30 +220,44 @@ export const WorkspacePage: React.FC = () => {
             >
               <svg className="w-full h-full">
                 <defs>
-                  <pattern id="grid" width="30" height="30" patternUnits="userSpaceOnUse">
-                    <path d="M 30 0 L 0 0 0 30" fill="none" stroke="#1E293D" strokeWidth="0.8" />
-                  </pattern>
-                  <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                    <path d="M 0 1 L 10 5 L 0 9 z" fill="#06B6D4" />
+                  {/* Process Arrowhead */}
+                  <marker
+                    id="cad-arrow-process"
+                    viewBox="0 0 10 10"
+                    refX="9"
+                    refY="5"
+                    markerWidth="5"
+                    markerHeight="5"
+                    orient="auto-start-reverse"
+                  >
+                    <path d="M 0 1 L 10 5 L 0 9 z" fill="#38bdf8" />
                   </marker>
-                  <marker id="arrow-magenta" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                    <path d="M 0 1 L 10 5 L 0 9 z" fill="#EC4899" />
+
+                  {/* Signal Arrowhead */}
+                  <marker
+                    id="cad-arrow-signal"
+                    viewBox="0 0 10 10"
+                    refX="9"
+                    refY="5"
+                    markerWidth="5"
+                    markerHeight="5"
+                    orient="auto-start-reverse"
+                  >
+                    <path d="M 0 1 L 10 5 L 0 9 z" fill="#a855f7" />
                   </marker>
                 </defs>
 
-                <rect width="100%" height="100%" fill="url(#grid)" />
-
                 <g transform={`translate(${pan.x}, ${pan.y}) scale(${zoom})`}>
                   
-                  {/* Edges */}
+                  {/* Process & Signal Edges */}
                   {visibleEdges.map((edge) => {
                     const src = graph?.nodes.find((n) => n.id === edge.source);
                     const tgt = graph?.nodes.find((n) => n.id === edge.target);
                     if (!src || !tgt) return null;
 
                     const isProcess = edge.line_type === 'process';
-                    const strokeColor = isProcess ? '#06B6D4' : '#EC4899';
-                    const marker = isProcess ? 'url(#arrow)' : 'url(#arrow-magenta)';
+                    const strokeColor = isProcess ? '#38bdf8' : '#a855f7';
+                    const marker = isProcess ? 'url(#cad-arrow-process)' : 'url(#cad-arrow-signal)';
 
                     return (
                       <g key={edge.id}>
@@ -252,21 +267,26 @@ export const WorkspacePage: React.FC = () => {
                           x2={tgt.x}
                           y2={tgt.y}
                           stroke={strokeColor}
-                          strokeWidth={isProcess ? 2.5 : 1.5}
-                          strokeDasharray={isProcess ? undefined : '5,5'}
+                          strokeWidth={isProcess ? 2.2 : 1.5}
+                          strokeDasharray={isProcess ? undefined : '4,4'}
                           markerEnd={edge.directed ? marker : undefined}
-                          className="transition-all"
+                          opacity={0.85}
                         />
                       </g>
                     );
                   })}
 
-                  {/* Nodes */}
+                  {/* Nodes Rendered with Authentic ISA-5.1 Shapes */}
                   {visibleNodes.map((node) => {
                     const isSelected = selectedNode?.id === node.id;
                     const isHighConf = node.confidence >= 0.85;
                     const isMedConf = node.confidence >= 0.60 && node.confidence < 0.85;
-                    const ringColor = isHighConf ? '#10B981' : isMedConf ? '#F59E0B' : '#EF4444';
+                    const haloColor = isHighConf ? '#10b981' : isMedConf ? '#f59e0b' : '#ef4444';
+
+                    // Parse tag prefix and loop number
+                    const parts = node.id.split('-');
+                    const prefix = parts[0] || node.id;
+                    const loopNum = parts.slice(1).join('-') || '';
 
                     return (
                       <g
@@ -278,66 +298,166 @@ export const WorkspacePage: React.FC = () => {
                         }}
                         className="cursor-pointer group"
                       >
-                        {/* Outer Selection / Confidence Ring */}
-                        <circle
-                          r="28"
-                          fill="none"
-                          stroke={isSelected ? '#38BDF8' : ringColor}
-                          strokeWidth={isSelected ? 3 : 2}
-                          strokeDasharray={isMedConf ? '4,3' : undefined}
-                          className="transition-all duration-200 group-hover:scale-110"
-                        />
+                        {/* Selected Target Ring & Crosshairs */}
+                        {isSelected && (
+                          <g>
+                            <circle
+                              r="32"
+                              fill="none"
+                              stroke="#3b82f6"
+                              strokeWidth="1.5"
+                              strokeDasharray="4,3"
+                              className="animate-spin"
+                              style={{ animationDuration: '10s' }}
+                            />
+                            {/* CAD Corner Ticks */}
+                            <line x1="-36" y1="0" x2="-28" y2="0" stroke="#3b82f6" strokeWidth="1.5" />
+                            <line x1="28" y1="0" x2="36" y2="0" stroke="#3b82f6" strokeWidth="1.5" />
+                            <line x1="0" y1="-36" x2="0" y2="-28" stroke="#3b82f6" strokeWidth="1.5" />
+                            <line x1="0" y1="28" x2="0" y2="36" stroke="#3b82f6" strokeWidth="1.5" />
+                          </g>
+                        )}
 
-                        {/* Node Body */}
-                        <circle
-                          r="24"
-                          fill="#111827"
-                          stroke="#1E293D"
-                          strokeWidth="1.5"
-                        />
+                        {/* EQUIPMENT SYMBOL: PUMP */}
+                        {node.category === 'equipment' && (
+                          <g>
+                            {/* Pump Circular Body */}
+                            <circle
+                              r="24"
+                              fill="#12141c"
+                              stroke={haloColor}
+                              strokeWidth={isSelected ? 2.5 : 1.8}
+                            />
+                            {/* Tangential Nozzle Flange */}
+                            <path d="M 12 -20 L 22 -30 L 8 -26 Z" fill="#38bdf8" />
+                            {/* Pump Impeller Hub */}
+                            <circle r="6" fill="#1e222d" stroke="#64748b" strokeWidth="1" />
+                            <text
+                              textAnchor="middle"
+                              dy="-8"
+                              fontSize="9"
+                              fontWeight="bold"
+                              fontFamily="JetBrains Mono, monospace"
+                              fill="#f1f5f9"
+                            >
+                              {node.id}
+                            </text>
+                            <text
+                              textAnchor="middle"
+                              dy="14"
+                              fontSize="7.5"
+                              fontFamily="JetBrains Mono, monospace"
+                              fill="#94a3b8"
+                            >
+                              PUMP
+                            </text>
+                          </g>
+                        )}
 
-                        {/* Node Label */}
-                        <text
-                          textAnchor="middle"
-                          dy="-2"
-                          fontSize="10"
-                          fontWeight="bold"
-                          fontFamily="JetBrains Mono, monospace"
-                          fill="#F8FAFC"
-                        >
-                          {node.id}
-                        </text>
-                        <text
-                          textAnchor="middle"
-                          dy="10"
-                          fontSize="8"
-                          fill="#94A3B8"
-                        >
-                          {node.type.split(' ')[0]}
-                        </text>
+                        {/* VALVE SYMBOL: CONTROL VALVE / MANUAL VALVE */}
+                        {node.category === 'valve' && (
+                          <g>
+                            {/* Double Opposing Triangles (Hourglass) */}
+                            <polygon
+                              points="-16,-9 16,9 16,-9 -16,9"
+                              fill="#12141c"
+                              stroke={haloColor}
+                              strokeWidth={isSelected ? 2.2 : 1.6}
+                            />
+                            {/* Stem Line */}
+                            <line x1="0" y1="0" x2="0" y2="-12" stroke="#94a3b8" strokeWidth="1.5" />
+                            
+                            {/* Actuator Dome (Control Valve) vs Handwheel (Manual) */}
+                            {node.id.startsWith('CV') || node.id.startsWith('FV') ? (
+                              <path d="M -10 -12 Q 0 -22 10 -12 Z" fill="#1e222d" stroke="#38bdf8" strokeWidth="1.5" />
+                            ) : (
+                              <line x1="-8" y1="-12" x2="8" y2="-12" stroke="#94a3b8" strokeWidth="2" />
+                            )}
 
-                        {/* Confidence Tag Bottom */}
-                        <rect
-                          x="-16"
-                          y="18"
-                          width="32"
-                          height="12"
-                          rx="3"
-                          fill="#070A12"
-                          stroke={ringColor}
-                          strokeWidth="1"
-                        />
-                        <text
-                          x="0"
-                          y="27"
-                          textAnchor="middle"
-                          fontSize="7"
-                          fontFamily="monospace"
-                          fontWeight="bold"
-                          fill={ringColor}
-                        >
-                          {Math.round(node.confidence * 100)}%
-                        </text>
+                            <text
+                              textAnchor="middle"
+                              dy="20"
+                              fontSize="8"
+                              fontWeight="bold"
+                              fontFamily="JetBrains Mono, monospace"
+                              fill="#f1f5f9"
+                            >
+                              {node.id}
+                            </text>
+                          </g>
+                        )}
+
+                        {/* INSTRUMENT SYMBOL: ISA-5.1 BUBBLE */}
+                        {node.category === 'instrument' && (
+                          <g>
+                            {/* Outer ISA Bubble Circle */}
+                            <circle
+                              r="23"
+                              fill="#12141c"
+                              stroke={haloColor}
+                              strokeWidth={isSelected ? 2.2 : 1.6}
+                            />
+                            {/* Horizontal Dividing Line (DCS panel vs field) */}
+                            <line
+                              x1="-23"
+                              y1="0"
+                              x2="23"
+                              y2="0"
+                              stroke="#2b3145"
+                              strokeWidth="1"
+                            />
+
+                            {/* Function Prefix (Top Half) */}
+                            <text
+                              textAnchor="middle"
+                              dy="-4"
+                              fontSize="9.5"
+                              fontWeight="bold"
+                              fontFamily="JetBrains Mono, monospace"
+                              fill="#f1f5f9"
+                            >
+                              {prefix}
+                            </text>
+
+                            {/* Loop Number (Bottom Half) */}
+                            <text
+                              textAnchor="middle"
+                              dy="12"
+                              fontSize="8.5"
+                              fontWeight="bold"
+                              fontFamily="JetBrains Mono, monospace"
+                              fill="#94a3b8"
+                            >
+                              {loopNum || prefix}
+                            </text>
+                          </g>
+                        )}
+
+                        {/* Small Confidence Pill Badge Below Node */}
+                        <g transform="translate(0, 27)">
+                          <rect
+                            x="-14"
+                            y="0"
+                            width="28"
+                            height="11"
+                            rx="2"
+                            fill="#090a0f"
+                            stroke={haloColor}
+                            strokeWidth="0.8"
+                          />
+                          <text
+                            x="0"
+                            y="8.5"
+                            textAnchor="middle"
+                            fontSize="7.5"
+                            fontFamily="JetBrains Mono, monospace"
+                            fontWeight="bold"
+                            fill={haloColor}
+                          >
+                            {Math.round(node.confidence * 100)}%
+                          </text>
+                        </g>
+
                       </g>
                     );
                   })}
@@ -347,57 +467,63 @@ export const WorkspacePage: React.FC = () => {
             </div>
 
             {/* Canvas Footer Legend */}
-            <div className="absolute bottom-3 left-3 bg-industrial-900/90 backdrop-blur-md px-3 py-1.5 rounded-lg border border-industrial-800 text-[11px] font-mono flex items-center gap-4 text-slate-400">
+            <div className="absolute bottom-3 left-3 bg-[#12141c]/95 backdrop-blur-md px-3 py-1.5 rounded border border-[#1e222d] text-[10px] font-mono flex items-center gap-4 text-[#94a3b8]">
               <span className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" /> &gt;= 85% Auto
+                <span className="w-2 h-2 rounded-full bg-emerald-400" /> ≥85% Auto Validated
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-amber-500" /> 60-85% Review
+                <span className="w-2 h-2 rounded-full bg-amber-400" /> 60–85% Needs Review
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-cyan-400" /> Process Line
+                <span className="w-3 h-0.5 bg-[#38bdf8]" /> Process Piping
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-pink-500" /> Signal Line
+                <span className="w-3 h-0.5 bg-[#a855f7] border-b border-dashed" /> Electrical Loop
               </span>
             </div>
 
-          </Card>
+          </div>
 
           {/* Before & After Comparison Split View */}
           {showBeforeAfter && (
-            <Card className="p-4 space-y-3 bg-industrial-950 border-cyan-500/30">
+            <Card className="p-4 space-y-3 bg-[#12141c] border-[#1e222d]">
               <div className="flex items-center justify-between">
-                <h4 className="text-xs font-semibold text-cyan-400 uppercase tracking-wider flex items-center gap-2">
-                  <SlidersHorizontal size={14} />
-                  Before / After Side-by-Side Comparison
-                </h4>
-                <span className="text-[11px] text-slate-400">Cluttered Original vs Untangled Process Topology</span>
+                <h3 className="text-xs font-semibold text-[#f1f5f9] flex items-center gap-2">
+                  <Columns size={13} className="text-blue-400" />
+                  <span>Before & After Topology Comparison</span>
+                </h3>
+                <span className="text-[11px] font-mono text-[#64748b]">DWG: UNT-PID-001 (Rev 2)</span>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-64 overflow-hidden rounded-xl border border-industrial-800">
-                {/* Before: Original Drawing Crop */}
-                <div className="bg-slate-900 p-3 flex flex-col justify-between border-r border-industrial-800">
-                  <span className="text-xs font-mono text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20 w-fit">
-                    BEFORE: Scanned Drawing Blueprint
-                  </span>
-                  <div className="my-auto text-center space-y-2 opacity-80">
-                    <p className="text-xs text-slate-400 font-mono">Dense overlapping raster lines & scan grain</p>
-                    <p className="text-sm font-bold text-slate-300">Raw Read: "PT10l" | "P-101A" | "CV-101"</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 h-48 rounded border border-[#1e222d] overflow-hidden text-xs">
+                {/* Before: Raw Drawing Blueprint */}
+                <div className="bg-[#090a0f] p-3 flex flex-col justify-between border-r border-[#1e222d]">
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono text-[10px] text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
+                      BEFORE: Scanned Drawing Raster
+                    </span>
+                    <span className="text-[10px] font-mono text-[#64748b]">300 DPI Raw</span>
                   </div>
-                  <span className="text-[10px] text-slate-500">DWG-UNT-001 (Rev A, Sheet 1)</span>
+                  <div className="my-auto text-center space-y-1">
+                    <p className="font-mono text-xs text-[#94a3b8]">Dense intersecting lines, noise & scan grain</p>
+                    <p className="font-mono font-bold text-amber-300">Raw OCR Read: "PT10l" | "P-101A" | "CV-101"</p>
+                  </div>
+                  <span className="text-[10px] text-[#64748b] font-mono">Unresolved symbol coordinates</span>
                 </div>
 
-                {/* After: Clean Operator Topology */}
-                <div className="bg-industrial-900 p-3 flex flex-col justify-between">
-                  <span className="text-xs font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 w-fit">
-                    AFTER: Cleaned & Cross-Validated Sketch
-                  </span>
-                  <div className="my-auto text-center space-y-2">
-                    <p className="text-xs text-slate-300 font-mono">100% Validated against DCS IO Points</p>
-                    <p className="text-sm font-bold text-cyan-400">Normalized: "PT-101" (4-20mA AI)</p>
+                {/* After: Synthesized Process Topology */}
+                <div className="bg-[#0f1117] p-3 flex flex-col justify-between">
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                      AFTER: Untangled Process Topology
+                    </span>
+                    <span className="text-[10px] font-mono text-emerald-400">100% Cross-Checked</span>
                   </div>
-                  <span className="text-[10px] text-cyan-500">Synthesized Interactive Process Topology</span>
+                  <div className="my-auto text-center space-y-1">
+                    <p className="font-mono text-xs text-[#94a3b8]">Deterministic orthogonal graph layout</p>
+                    <p className="font-mono font-bold text-emerald-300">Verified: "PT-101" (4-20mA DCS Channel AI-01)</p>
+                  </div>
+                  <span className="text-[10px] text-blue-400 font-mono">ISA-5.1 Syntax Validated</span>
                 </div>
               </div>
             </Card>
@@ -405,14 +531,18 @@ export const WorkspacePage: React.FC = () => {
 
         </div>
 
-        {/* Right Sidebar: Visual Traceability Tag Inspector (Task Y9) */}
+        {/* Right Sidebar: Visual Traceability Tag Inspector */}
         <div className="space-y-4">
-          <Card className="p-5 space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-industrial-800">
-              <h3 className="text-sm font-semibold text-slate-200 flex items-center gap-2">
-                <Info size={16} className="text-cyan-400" />
-                <span>Tag Inspector & Traceability</span>
-              </h3>
+          <Card className="bg-[#12141c] border-[#1e222d] p-4 space-y-4">
+            
+            {/* Inspector Header */}
+            <div className="flex items-center justify-between pb-3 border-b border-[#1e222d]">
+              <div className="flex items-center gap-2">
+                <Crosshair size={15} className="text-blue-400" />
+                <h2 className="text-xs font-bold uppercase tracking-wider text-[#f1f5f9]">
+                  Tag Inspector & Telemetry
+                </h2>
+              </div>
               {selectedTag && (
                 <Badge
                   variant={
@@ -422,7 +552,7 @@ export const WorkspacePage: React.FC = () => {
                       ? 'medium'
                       : 'low'
                   }
-                  size="sm"
+                  size="xs"
                 >
                   {Math.round(selectedTag.confidence * 100)}% Conf
                 </Badge>
@@ -432,119 +562,190 @@ export const WorkspacePage: React.FC = () => {
             {selectedNode && selectedTag ? (
               <div className="space-y-4 text-xs">
                 
-                {/* Node Tag Header */}
-                <div className="p-3 rounded-xl bg-industrial-950 border border-industrial-800 space-y-2">
+                {/* Tag Identity Block */}
+                <div className="p-3 rounded bg-[#090a0f] border border-[#1e222d] space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <span className="font-mono text-base font-bold text-cyan-300">
+                    <span className="font-mono text-base font-bold text-[#f1f5f9]">
                       {selectedTag.normalized_tag}
                     </span>
-                    <Badge variant="cyan" size="sm">{selectedTag.category}</Badge>
+                    <Badge variant="neutral" size="xs">
+                      {selectedTag.category.toUpperCase()}
+                    </Badge>
                   </div>
-                  <p className="text-slate-300">{selectedTag.type}</p>
+                  <p className="text-[11px] text-[#94a3b8]">{selectedTag.type}</p>
                 </div>
 
-                {/* Raw vs Normalized */}
-                <div className="grid grid-cols-2 gap-2 font-mono text-[11px]">
-                  <div className="p-2.5 rounded-lg bg-industrial-950 border border-industrial-800">
-                    <span className="text-slate-500 block text-[10px]">RAW OCR READ:</span>
-                    <span className="text-amber-400 font-bold">{selectedTag.raw_text}</span>
-                  </div>
-                  <div className="p-2.5 rounded-lg bg-industrial-950 border border-industrial-800">
-                    <span className="text-slate-500 block text-[10px]">IO LIST MATCH:</span>
-                    <span className="text-emerald-400 font-bold">{selectedTag.io_match?.io_tag || 'None'}</span>
-                  </div>
+                {/* Tab Selector */}
+                <div className="flex rounded bg-[#090a0f] p-0.5 border border-[#1e222d] text-[11px] font-mono">
+                  <button
+                    onClick={() => setInspectorTab('telemetry')}
+                    className={`flex-1 py-1 rounded transition-colors ${
+                      inspectorTab === 'telemetry'
+                        ? 'bg-[#1e222d] text-[#f1f5f9] font-bold'
+                        : 'text-[#64748b] hover:text-[#f1f5f9]'
+                    }`}
+                  >
+                    Telemetry
+                  </button>
+                  <button
+                    onClick={() => setInspectorTab('confidence')}
+                    className={`flex-1 py-1 rounded transition-colors ${
+                      inspectorTab === 'confidence'
+                        ? 'bg-[#1e222d] text-[#f1f5f9] font-bold'
+                        : 'text-[#64748b] hover:text-[#f1f5f9]'
+                    }`}
+                  >
+                    Confidence
+                  </button>
+                  <button
+                    onClick={() => setInspectorTab('traceability')}
+                    className={`flex-1 py-1 rounded transition-colors ${
+                      inspectorTab === 'traceability'
+                        ? 'bg-[#1e222d] text-[#f1f5f9] font-bold'
+                        : 'text-[#64748b] hover:text-[#f1f5f9]'
+                    }`}
+                  >
+                    Crop Trace
+                  </button>
                 </div>
 
-                {/* Multi-Signal Confidence Breakdown */}
-                <div className="space-y-2 pt-2">
-                  <div className="flex items-center justify-between font-mono text-[11px]">
-                    <span className="text-slate-400">MULTI-SIGNAL BREAKDOWN</span>
-                    <span className="text-cyan-400">Score</span>
-                  </div>
-
-                  {selectedTag.conf_breakdown && (
-                    <div className="space-y-1.5 font-mono text-[11px]">
-                      <div>
-                        <div className="flex justify-between text-slate-400 text-[10px]">
-                          <span>OCR Certainty</span>
-                          <span>{Math.round((selectedTag.conf_breakdown.ocr || 0) * 100)}%</span>
-                        </div>
-                        <div className="w-full h-1.5 bg-industrial-950 rounded-full overflow-hidden">
-                          <div
-                            className="h-full bg-cyan-500"
-                            style={{ width: `${(selectedTag.conf_breakdown.ocr || 0) * 100}%` }}
-                          />
-                        </div>
+                {/* Tab 1: Telemetry */}
+                {inspectorTab === 'telemetry' && (
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-2 gap-2 font-mono text-[11px]">
+                      <div className="p-2.5 rounded bg-[#090a0f] border border-[#1e222d]">
+                        <span className="text-[#64748b] block text-[10px]">RAW OCR STRING:</span>
+                        <span className="text-amber-400 font-bold">{selectedTag.raw_text}</span>
                       </div>
-
-                      <div>
-                        <div className="flex justify-between text-slate-400 text-[10px]">
-                          <span>Symbol Template IoU</span>
-                          <span>{Math.round((selectedTag.conf_breakdown.symbol || 0) * 100)}%</span>
-                        </div>
-                        <div className="w-full h-1.5 bg-industrial-950 rounded-full overflow-hidden">
-                          <div
-                            className="h-full bg-emerald-500"
-                            style={{ width: `${(selectedTag.conf_breakdown.symbol || 0) * 100}%` }}
-                          />
-                        </div>
-                      </div>
-
-                      <div>
-                        <div className="flex justify-between text-slate-400 text-[10px]">
-                          <span>IO Match Distance</span>
-                          <span>{Math.round((selectedTag.conf_breakdown.io_match || 0) * 100)}%</span>
-                        </div>
-                        <div className="w-full h-1.5 bg-industrial-950 rounded-full overflow-hidden">
-                          <div
-                            className="h-full bg-blue-500"
-                            style={{ width: `${(selectedTag.conf_breakdown.io_match || 0) * 100}%` }}
-                          />
-                        </div>
-                      </div>
-
-                      <div>
-                        <div className="flex justify-between text-slate-400 text-[10px]">
-                          <span>ISA-5.1 Grammar</span>
-                          <span>{Math.round((selectedTag.conf_breakdown.grammar || 0) * 100)}%</span>
-                        </div>
-                        <div className="w-full h-1.5 bg-industrial-950 rounded-full overflow-hidden">
-                          <div
-                            className="h-full bg-purple-500"
-                            style={{ width: `${(selectedTag.conf_breakdown.grammar || 0) * 100}%` }}
-                          />
-                        </div>
+                      <div className="p-2.5 rounded bg-[#090a0f] border border-[#1e222d]">
+                        <span className="text-[#64748b] block text-[10px]">DCS REGISTER:</span>
+                        <span className="text-emerald-400 font-bold">{selectedTag.io_match?.io_tag || 'Matched'}</span>
                       </div>
                     </div>
-                  )}
-                </div>
 
-                {/* Reasoning Quote */}
-                {selectedTag.reasoning && (
-                  <div className="p-3 rounded-lg bg-industrial-950 border border-industrial-800 text-[11px] text-slate-300 italic">
-                    "{selectedTag.reasoning}"
+                    <div className="p-2.5 rounded bg-[#090a0f] border border-[#1e222d] space-y-1 font-mono text-[11px]">
+                      <div className="flex justify-between text-[#64748b]">
+                        <span>SIGNAL SPECIFICATION:</span>
+                        <span className="text-[#f1f5f9] font-semibold">{selectedTag.io_match?.signal_type || '4-20mA HART'}</span>
+                      </div>
+                      <div className="flex justify-between text-[#64748b]">
+                        <span>ISA-5.1 FUNCTION:</span>
+                        <span className="text-[#f1f5f9]">{selectedTag.type.split(' ')[0]}</span>
+                      </div>
+                      <div className="flex justify-between text-[#64748b]">
+                        <span>STATUS:</span>
+                        <span className="text-emerald-400 uppercase font-semibold">{selectedTag.status}</span>
+                      </div>
+                    </div>
+
+                    {selectedTag.reasoning && (
+                      <div className="p-2.5 rounded bg-[#090a0f] border border-[#1e222d] text-[11px] text-[#94a3b8] italic">
+                        "{selectedTag.reasoning}"
+                      </div>
+                    )}
                   </div>
                 )}
 
-                {/* Original Blueprint High-Res Crop Mock */}
-                <div className="space-y-1.5 pt-2">
-                  <span className="text-[11px] font-mono text-slate-400 uppercase tracking-wider block">
-                    Source Drawing Crop:
-                  </span>
-                  <div className="h-28 rounded-lg bg-slate-900 border border-industrial-800 flex items-center justify-center relative overflow-hidden p-2">
-                    <div className="border-2 border-dashed border-cyan-400 px-4 py-2 rounded bg-cyan-500/10 text-center">
-                      <span className="font-mono font-bold text-amber-300 text-sm">{selectedTag.raw_text}</span>
-                      <span className="block text-[9px] text-slate-400 font-mono mt-0.5">
-                        bbox: [{selectedTag.bbox.join(', ')}]
-                      </span>
+                {/* Tab 2: Multi-Signal Confidence Matrix */}
+                {inspectorTab === 'confidence' && (
+                  <div className="space-y-3 font-mono text-[11px]">
+                    <div className="flex items-center justify-between text-[#64748b] text-[10px] pb-1 border-b border-[#1e222d]">
+                      <span>WEIGHTED SIGNAL</span>
+                      <span>SCORE</span>
                     </div>
+
+                    {selectedTag.conf_breakdown ? (
+                      <div className="space-y-2">
+                        <div>
+                          <div className="flex justify-between text-[#94a3b8] text-[10px] mb-1">
+                            <span>Dual OCR Agreement (w=0.35)</span>
+                            <span className="tabular-nums">{Math.round((selectedTag.conf_breakdown.ocr || 0) * 100)}%</span>
+                          </div>
+                          <div className="w-full h-1.5 bg-[#090a0f] rounded overflow-hidden">
+                            <div
+                              className="h-full bg-blue-500"
+                              style={{ width: `${(selectedTag.conf_breakdown.ocr || 0) * 100}%` }}
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <div className="flex justify-between text-[#94a3b8] text-[10px] mb-1">
+                            <span>Bubble Template IoU (w=0.25)</span>
+                            <span className="tabular-nums">{Math.round((selectedTag.conf_breakdown.symbol || 0) * 100)}%</span>
+                          </div>
+                          <div className="w-full h-1.5 bg-[#090a0f] rounded overflow-hidden">
+                            <div
+                              className="h-full bg-emerald-500"
+                              style={{ width: `${(selectedTag.conf_breakdown.symbol || 0) * 100}%` }}
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <div className="flex justify-between text-[#94a3b8] text-[10px] mb-1">
+                            <span>DCS IO List Match (w=0.25)</span>
+                            <span className="tabular-nums">{Math.round((selectedTag.conf_breakdown.io_match || 0) * 100)}%</span>
+                          </div>
+                          <div className="w-full h-1.5 bg-[#090a0f] rounded overflow-hidden">
+                            <div
+                              className="h-full bg-sky-500"
+                              style={{ width: `${(selectedTag.conf_breakdown.io_match || 0) * 100}%` }}
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <div className="flex justify-between text-[#94a3b8] text-[10px] mb-1">
+                            <span>ISA-5.1 Syntax Grammar (w=0.15)</span>
+                            <span className="tabular-nums">{Math.round((selectedTag.conf_breakdown.grammar || 0) * 100)}%</span>
+                          </div>
+                          <div className="w-full h-1.5 bg-[#090a0f] rounded overflow-hidden">
+                            <div
+                              className="h-full bg-purple-500"
+                              style={{ width: `${(selectedTag.conf_breakdown.grammar || 0) * 100}%` }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-center py-4 text-[#64748b]">No breakdown available</div>
+                    )}
                   </div>
-                </div>
+                )}
+
+                {/* Tab 3: Traceability Crop & Bounding Box */}
+                {inspectorTab === 'traceability' && (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-[10px] font-mono text-[#64748b]">
+                      <span>BOUNDING BOX CROP:</span>
+                      <span>[{selectedTag.bbox.join(', ')}]</span>
+                    </div>
+
+                    <div className="h-28 rounded bg-[#090a0f] border border-[#1e222d] flex items-center justify-center p-3 relative overflow-hidden">
+                      <div className="border border-blue-500/50 bg-blue-500/10 px-4 py-2 rounded text-center">
+                        <span className="font-mono font-bold text-amber-300 text-sm block">
+                          {selectedTag.raw_text}
+                        </span>
+                        <span className="text-[9px] font-mono text-[#64748b] mt-0.5 block">
+                          Mapped to: {selectedTag.normalized_tag}
+                        </span>
+                      </div>
+                    </div>
+
+                    <Link to={`/review/${jobId}`} className="block pt-1">
+                      <Button variant="secondary" size="xs" className="w-full justify-between font-mono">
+                        <span>Edit Tag in Review Queue</span>
+                        <ChevronRight size={13} />
+                      </Button>
+                    </Link>
+                  </div>
+                )}
 
               </div>
             ) : (
-              <div className="py-12 text-center text-slate-500 text-xs">
-                Click any equipment or instrument on the canvas to inspect tag confidence & original drawing crops.
+              <div className="py-12 text-center text-[#64748b] text-xs font-mono">
+                Click any equipment, valve, or instrument node on the canvas to inspect tag telemetry.
               </div>
             )}
           </Card>

@@ -42,6 +42,7 @@ export interface IOMatch {
   matched: boolean;
   io_tag?: string;
   score?: number;
+  signal_type?: string;
 }
 
 export interface Tag {
