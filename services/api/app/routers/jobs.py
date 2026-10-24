@@ -509,6 +509,69 @@ def download_simplified_diagram_pdf(job_id: str, db: Session = Depends(get_db)):
     )
 
 
+@router.get("/{job_id}/verification")
+def get_job_verification(job_id: str, db: Session = Depends(get_db)):
+    """
+    Retrieve deterministic engineering verification report:
+    1. P&ID connection checks (correct vs. wrong, floating equipment, control loops, line compatibility).
+    2. DCS I/O list verification (correct vs. wrong, missing tags, signal type mismatches, calibration errors).
+    """
+    settings = get_settings()
+    job_dir = os.path.join(settings.DATA_DIR, job_id)
+    report_path = os.path.join(job_dir, "report.json")
+    graph_path = os.path.join(job_dir, "graph.json")
+
+    # If report.json exists and has verification data, return it
+    if os.path.exists(report_path):
+        with open(report_path, "r", encoding="utf-8") as f:
+            r_data = json.load(f)
+            if r_data.get("connection_validation") and r_data.get("io_verification"):
+                return {
+                    "job_id": job_id,
+                    "connection_validation": r_data.get("connection_validation"),
+                    "io_verification": r_data.get("io_verification"),
+                }
+
+    job = db.query(JobModel).filter(JobModel.id == job_id).first()
+    if not job:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Job not found.")
+
+    tags = db.query(TagModel).filter(TagModel.job_id == job_id).all()
+    resolved_tags_list = [
+        {
+            "id": t.id,
+            "normalized_tag": t.normalized_tag,
+            "type": t.type,
+            "category": t.category,
+            "status": t.status,
+            "confidence": t.confidence,
+            "bbox": t.bbox,
+        }
+        for t in tags
+    ]
+
+    graph = None
+    if os.path.exists(graph_path):
+        with open(graph_path, "r", encoding="utf-8") as f:
+            graph = GraphSchema(**json.load(f))
+
+    io_items = []
+    if job.xlsx_path and os.path.exists(job.xlsx_path):
+        from services.api.app.engine.io_parser import parse_io_list
+        io_result = parse_io_list(job.xlsx_path)
+        io_items = io_result.items
+
+    from services.api.app.engine.validator import ConnectionValidator, IoListValidator
+    conn_val = ConnectionValidator.validate_connections(graph, resolved_tags_list) if graph else None
+    io_val = IoListValidator.verify_io_and_drawing(resolved_tags_list, io_items)
+
+    return {
+        "job_id": job_id,
+        "connection_validation": conn_val,
+        "io_verification": io_val,
+    }
+
+
 # =============================================================================
 # Multi-Sheet P&ID Merging & Incremental Revision Diff Endpoints
 # =============================================================================

@@ -1,4 +1,4 @@
-import { Job, Tag, GraphData, ReportData, MergeJobsResponse, RevisionDiffData } from '../types';
+import { Job, Tag, GraphData, ReportData, MergeJobsResponse, RevisionDiffData, VerificationReportData } from '../types';
 import { INITIAL_TAGS, MOCK_GRAPH, MOCK_REPORT } from '../mocks/fixtures';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api/v1';
@@ -304,6 +304,14 @@ export const apiClient = {
       }
     );
     if (!res.ok) throw new ApiError('Failed to submit revision job', 'REVISION_SUBMIT_FAILED');
+    return await res.json();
+  },
+
+  async getVerification(jobId: string): Promise<VerificationReportData> {
+    const headers: Record<string, string> = {};
+    if (API_TOKEN) headers['Authorization'] = `Bearer ${API_TOKEN}`;
+    const res = await fetch(`${API_BASE}/jobs/${jobId}/verification`, { headers });
+    if (!res.ok) throw new ApiError('Failed to fetch verification audit', 'VERIFICATION_FAILED');
     return await res.json();
   },
 };

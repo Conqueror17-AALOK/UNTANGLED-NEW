@@ -119,12 +119,64 @@ export interface TypeMismatch {
   io_signal: string;
 }
 
+export interface ConnectionDiagnostic {
+  element_id: string;
+  element_type: 'node' | 'edge';
+  status: 'CORRECT' | 'WARNING' | 'WRONG';
+  severity: 'info' | 'warning' | 'error';
+  rule: string;
+  message: string;
+  recommendation: string;
+}
+
+export interface ConnectionValidationData {
+  status: 'PASSED' | 'NEEDS_ATTENTION' | 'FAILED';
+  health_score_pct: number;
+  total_checks: number;
+  correct_count: number;
+  warning_count: number;
+  error_count: number;
+  diagnostics: ConnectionDiagnostic[];
+}
+
+export interface IoAuditItem {
+  tag: string;
+  status: 'CORRECT' | 'WRONG';
+  discrepancy_type?: string | null;
+  drawing_found: boolean;
+  io_found: boolean;
+  drawing_type?: string | null;
+  io_signal_type?: string | null;
+  expected_signal_type?: string | null;
+  units?: string | null;
+  range_span?: string | null;
+  message: string;
+  recommendation: string;
+}
+
+export interface IoVerificationData {
+  status: 'PASSED' | 'DISCREPANCIES_DETECTED';
+  accuracy_score_pct: number;
+  total_audited: number;
+  correct_count: number;
+  discrepancy_count: number;
+  items_audit: IoAuditItem[];
+}
+
+export interface VerificationReportData {
+  job_id: string;
+  connection_validation: ConnectionValidationData;
+  io_verification: IoVerificationData;
+}
+
 export interface ReportData {
   summary: ReportSummary;
   missing_in_drawing: MissingInDrawing[];
   missing_in_io_list: MissingInIOList[];
   type_mismatches: TypeMismatch[];
   graph_warnings: GraphWarning[];
+  connection_validation?: ConnectionValidationData | null;
+  io_verification?: IoVerificationData | null;
   lang?: string;
   i18n_labels?: Record<string, string>;
 }

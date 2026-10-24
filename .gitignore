@@ -91,3 +91,5 @@ yolo11*.pt
 models/florence2*/*.safetensors
 models/florence2*/*.bin
 data/florence_dataset/
+extra datasets/
+*.zip

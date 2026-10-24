@@ -335,9 +335,16 @@ async def execute_untangle_pipeline(job_id: str, db: Session):
             logger.warning(f"Could not convert sketch.svg to PDF: {e}")
 
         # =====================================================================
-        # STAGE 9: REPORT (Cross-validation report finalized)
+        # STAGE 9: REPORT (Cross-validation and Connection Verification finalized)
         # =====================================================================
         await update_job_stage(db, job, "report", 0.98)
+        report_schema = cross_validate_drawing_and_io(
+            resolved_tags_list,
+            io_result.items,
+            graph_warnings=simplified_graph.warnings,
+            graph=simplified_graph
+        )
+        report_dict = report_schema.model_dump()
         with open(os.path.join(job_dir, "report.json"), "w") as f:
             json.dump(report_dict, f, indent=2)
 
@@ -470,7 +477,12 @@ async def rebuild_graph_and_artifacts(job_id: str, db: Session):
 
     # 7. Stage 9: Report
     await update_job_stage(db, job, "report", 0.98)
-    report_schema = cross_validate_drawing_and_io(resolved_tags_list, io_result.items)
+    report_schema = cross_validate_drawing_and_io(
+        resolved_tags_list,
+        io_result.items,
+        graph_warnings=simplified_graph.warnings,
+        graph=simplified_graph
+    )
     report_dict = report_schema.model_dump()
     with open(os.path.join(job_dir, "report.json"), "w") as f:
         json.dump(report_dict, f, indent=2)

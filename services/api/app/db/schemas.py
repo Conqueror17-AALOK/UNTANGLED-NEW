@@ -123,6 +123,8 @@ class ReportSchema(BaseModel):
     missing_in_io_list: List[MissingInIoListItem] = Field(default_factory=list)
     type_mismatches: List[TypeMismatchItem] = Field(default_factory=list)
     graph_warnings: List[Dict[str, Any]] = Field(default_factory=list)
+    connection_validation: Optional[Dict[str, Any]] = None
+    io_verification: Optional[Dict[str, Any]] = None
 
 
 class ErrorDetail(BaseModel):

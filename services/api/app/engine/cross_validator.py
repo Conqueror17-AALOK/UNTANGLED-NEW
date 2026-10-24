@@ -1,5 +1,6 @@
 from typing import Any, Dict, List, Optional
 from services.api.app.db.schemas import (
+    GraphSchema,
     MissingInDrawingItem,
     MissingInIoListItem,
     ReportSchema,
@@ -7,12 +8,14 @@ from services.api.app.db.schemas import (
     TypeMismatchItem,
 )
 from services.api.app.engine.io_parser import IoItem
+from services.api.app.engine.validator import ConnectionValidator, IoListValidator
 
 
 def cross_validate_drawing_and_io(
     resolved_tags: List[Dict[str, Any]],
     io_items: List[IoItem],
-    graph_warnings: Optional[List[Dict[str, Any]]] = None
+    graph_warnings: Optional[List[Dict[str, Any]]] = None,
+    graph: Optional[GraphSchema] = None,
 ) -> ReportSchema:
     """
     Cross-reference detected drawing tags against DCS IO list.
@@ -93,6 +96,14 @@ def cross_validate_drawing_and_io(
     llm_pct = round((llm_cnt / tags_total * 100), 1) if tags_total > 0 else 0.0
     human_pct = round((human_cnt / tags_total * 100), 1) if tags_total > 0 else 0.0
 
+    # 5. Connection Verification (if topological graph provided)
+    conn_val = None
+    if graph is not None:
+        conn_val = ConnectionValidator.validate_connections(graph, resolved_tags)
+
+    # 6. DCS I/O List Comprehensive Audit
+    io_val = IoListValidator.verify_io_and_drawing(resolved_tags, io_items)
+
     return ReportSchema(
         summary=ReportSummary(
             tags_total=tags_total,
@@ -107,4 +118,6 @@ def cross_validate_drawing_and_io(
         missing_in_io_list=missing_in_io_list,
         type_mismatches=type_mismatches,
         graph_warnings=graph_warnings,
+        connection_validation=conn_val,
+        io_verification=io_val,
     )

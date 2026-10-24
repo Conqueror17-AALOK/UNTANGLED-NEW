@@ -7,7 +7,11 @@ import {
   Printer,
   Globe,
   FileCheck2,
-  FileSpreadsheet
+  FileSpreadsheet,
+  CheckCircle2,
+  XCircle,
+  GitBranch,
+  ShieldCheck,
 } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
@@ -324,6 +328,162 @@ export const ReportPage: React.FC = () => {
           </table>
         </div>
       </Card>
+
+      {/* SECTION: P&ID Connection Verification */}
+      <Card variant="glass" className="p-4 space-y-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-industrial-800">
+          <div className="flex items-center gap-2">
+            <GitBranch size={16} className="text-blue-400" />
+            <h3 className="text-sm font-heading font-bold text-slate-100">
+              P&ID Topological Connection Verification (Correct vs. Wrong)
+            </h3>
+          </div>
+          {report.connection_validation && (
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-mono text-slate-400">
+                Health Score: <strong className="text-emerald-400">{report.connection_validation.health_score_pct}%</strong>
+              </span>
+              <span className={`text-[10px] font-mono px-2 py-0.5 rounded font-semibold ${
+                report.connection_validation.status === 'PASSED'
+                  ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                  : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+              }`}>
+                {report.connection_validation.status}
+              </span>
+            </div>
+          )}
+        </div>
+
+        {report.connection_validation ? (
+          <div className="space-y-2">
+            <div className="grid grid-cols-3 gap-2 text-center text-xs font-mono py-2 bg-industrial-950/60 rounded border border-industrial-800">
+              <div>
+                <span className="text-slate-500 block text-[10px] uppercase">Validated</span>
+                <span className="text-emerald-400 font-bold text-base">{report.connection_validation.correct_count}</span>
+              </div>
+              <div>
+                <span className="text-slate-500 block text-[10px] uppercase">Warnings</span>
+                <span className="text-amber-400 font-bold text-base">{report.connection_validation.warning_count}</span>
+              </div>
+              <div>
+                <span className="text-slate-500 block text-[10px] uppercase">Errors</span>
+                <span className="text-red-400 font-bold text-base">{report.connection_validation.error_count}</span>
+              </div>
+            </div>
+
+            <div className="max-h-60 overflow-y-auto space-y-1.5 pr-1 font-mono text-xs">
+              {report.connection_validation.diagnostics.map((diag, i) => (
+                <div
+                  key={i}
+                  className={`p-2 rounded border flex items-start justify-between gap-3 ${
+                    diag.status === 'CORRECT'
+                      ? 'bg-industrial-950/40 border-industrial-800/60 text-slate-300'
+                      : diag.status === 'WARNING'
+                      ? 'bg-amber-950/20 border-amber-700/30 text-amber-200'
+                      : 'bg-red-950/20 border-red-700/30 text-red-200'
+                  }`}
+                >
+                  <div className="flex items-start gap-2">
+                    {diag.status === 'CORRECT' ? (
+                      <CheckCircle2 size={14} className="text-emerald-400 mt-0.5 shrink-0" />
+                    ) : diag.status === 'WARNING' ? (
+                      <AlertTriangle size={14} className="text-amber-400 mt-0.5 shrink-0" />
+                    ) : (
+                      <XCircle size={14} className="text-red-400 mt-0.5 shrink-0" />
+                    )}
+                    <div>
+                      <p className="font-semibold text-[11px]">{diag.message}</p>
+                      {diag.status !== 'CORRECT' && (
+                        <p className="text-[10px] text-slate-400 mt-0.5 font-sans">
+                          Action: {diag.recommendation}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <span
+                    className={`text-[9px] font-bold px-1.5 py-0.5 rounded shrink-0 uppercase ${
+                      diag.status === 'CORRECT'
+                        ? 'bg-emerald-500/10 text-emerald-400'
+                        : diag.status === 'WARNING'
+                        ? 'bg-amber-500/10 text-amber-400'
+                        : 'bg-red-500/10 text-red-400'
+                    }`}
+                  >
+                    {diag.status}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <p className="text-xs text-slate-500 text-center py-2 font-mono">
+            Topology connection analysis completed. All pipelines verified.
+          </p>
+        )}
+      </Card>
+
+      {/* SECTION: DCS I/O List Full Verification Audit */}
+      {report.io_verification && (
+        <Card variant="glass" className="p-4 space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-industrial-800">
+            <div className="flex items-center gap-2">
+              <ShieldCheck size={16} className="text-emerald-400" />
+              <h3 className="text-sm font-heading font-bold text-slate-100">
+                DCS I/O Register Full Verification Audit (Correct vs. Wrong)
+              </h3>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-mono text-slate-400">
+                Accuracy: <strong className="text-emerald-400">{report.io_verification.accuracy_score_pct}%</strong>
+              </span>
+              <span className={`text-[10px] font-mono px-2 py-0.5 rounded font-semibold ${
+                report.io_verification.status === 'PASSED'
+                  ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                  : 'bg-red-500/10 text-red-400 border border-red-500/20'
+              }`}>
+                {report.io_verification.status}
+              </span>
+            </div>
+          </div>
+
+          <div className="overflow-x-auto rounded-lg border border-industrial-800">
+            <table className="w-full text-left text-xs font-mono">
+              <thead className="bg-industrial-950 text-slate-400 text-[10px] uppercase tracking-wider border-b border-industrial-800">
+                <tr>
+                  <th className="py-2.5 px-3">Tag</th>
+                  <th className="py-2.5 px-3">Type</th>
+                  <th className="py-2.5 px-3">DCS Signal</th>
+                  <th className="py-2.5 px-3">Span / Units</th>
+                  <th className="py-2.5 px-3">Audit Details</th>
+                  <th className="py-2.5 px-3 text-right">Verdict</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-industrial-800/60 bg-industrial-900/30">
+                {report.io_verification.items_audit.map((item) => (
+                  <tr key={item.tag} className="hover:bg-industrial-800/30 transition-colors">
+                    <td className="py-2 px-3 font-bold text-cyan-400">{item.tag}</td>
+                    <td className="py-2 px-3 text-slate-300">{item.drawing_type || '—'}</td>
+                    <td className="py-2 px-3 text-slate-400">{item.io_signal_type || '—'}</td>
+                    <td className="py-2 px-3 text-slate-400">{item.range_span || item.units || '—'}</td>
+                    <td className="py-2 px-3 text-[11px] text-slate-300 max-w-xs">{item.message}</td>
+                    <td className="py-2 px-3 text-right">
+                      <span
+                        className={`text-[10px] font-bold px-2 py-0.5 rounded ${
+                          item.status === 'CORRECT'
+                            ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
+                            : 'bg-red-500/15 text-red-400 border border-red-500/30'
+                        }`}
+                      >
+                        {item.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+      )}
     </div>
   );
 };
