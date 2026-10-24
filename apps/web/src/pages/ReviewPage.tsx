@@ -111,8 +111,8 @@ export const ReviewPage: React.FC = () => {
     <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6 animate-fade-in">
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3 rounded-full bg-[#141414] border border-white/20 text-white text-xs font-bold shadow-2xl animate-fade-in">
-          <Check size={16} className="text-emerald-400 stroke-[2.5]" />
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-2.5 rounded-lg bg-[#20232a] border border-[#2d313a] text-slate-100 text-xs font-medium shadow-xl animate-fade-in">
+          <Check size={15} className="text-emerald-400 stroke-[2.5]" />
           <span>{toastMessage}</span>
         </div>
       )}
@@ -120,10 +120,10 @@ export const ReviewPage: React.FC = () => {
       {/* Refined Engineering Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#2d313a]">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-semibold text-white tracking-tight mb-1">
+          <h1 className="text-2xl sm:text-3xl font-semibold text-slate-100 tracking-tight mb-1">
             Review Queue
           </h1>
-          <p className="text-xs text-neutral-400 font-normal">
+          <p className="text-xs text-slate-400 font-normal">
             Deterministic operator verification and automated topology cross-check.
           </p>
         </div>
@@ -132,17 +132,17 @@ export const ReviewPage: React.FC = () => {
           <button
             onClick={handleRebuild}
             disabled={isRebuilding}
-            className="bg-neutral-100 text-neutral-900 font-medium h-9 px-4 rounded-lg flex items-center gap-2 hover:bg-white transition-all text-xs disabled:opacity-50"
+            className="bg-slate-100 text-slate-900 font-medium h-9 px-4 rounded-lg flex items-center gap-2 hover:bg-white transition-all text-xs disabled:opacity-50"
             title="Rebuild Topology (Hotkey: 'r')"
           >
             <RotateCcw size={13} className={`stroke-[2] ${isRebuilding ? 'animate-spin' : ''}`} />
             <span>Rebuild</span>
-            <kbd className="hidden sm:inline px-1 py-0.2 rounded bg-neutral-300 text-[10px] font-mono font-medium">r</kbd>
+            <kbd className="hidden sm:inline px-1 py-0.2 rounded bg-slate-200 text-[10px] font-mono font-medium">r</kbd>
           </button>
 
           <Link to={`/workspace/${jobId}`}>
-            <button className="h-9 px-3.5 rounded-lg border border-[#2d313a] bg-[#20232a] text-neutral-300 hover:text-white hover:bg-[#252831] flex items-center gap-2 transition-all text-xs font-medium">
-              <Workflow size={13} className="text-neutral-400" />
+            <button className="h-9 px-3.5 rounded-lg border border-[#2d313a] bg-[#20232a] text-slate-300 hover:text-white hover:bg-[#252831] flex items-center gap-2 transition-all text-xs font-medium">
+              <Workflow size={13} className="text-slate-400" />
               <span>Canvas</span>
             </button>
           </Link>
@@ -167,15 +167,15 @@ export const ReviewPage: React.FC = () => {
               onClick={() => setFilter(tab)}
               className={`px-3 py-1 rounded-md transition-all duration-150 flex items-center gap-2 font-medium text-xs ${
                 isActive
-                  ? 'bg-[#2d313a] text-white font-semibold'
-                  : 'text-neutral-400 hover:text-white'
+                  ? 'bg-[#2d313a] text-white font-medium'
+                  : 'text-slate-400 hover:text-slate-200'
               }`}
             >
               <span>{tab === 'needs_review' ? 'Needs Review' : tab === 'resolved' ? 'Resolved' : 'All Tags'}</span>
               <span className={`text-[10px] px-1.5 py-0.2 rounded font-medium ${
                 isActive
-                  ? 'bg-neutral-700 text-white'
-                  : 'bg-white/[0.04] text-neutral-400'
+                  ? 'bg-slate-700 text-slate-100'
+                  : 'bg-white/[0.04] text-slate-400'
               }`}>
                 {count}
               </span>
@@ -192,7 +192,7 @@ export const ReviewPage: React.FC = () => {
           <div className="adobe-card p-0 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
-                <thead className="bg-[#252831] text-neutral-400 text-xs font-medium uppercase tracking-wider border-b border-[#2d313a]">
+                <thead className="bg-[#252831] text-slate-400 text-xs font-medium uppercase tracking-wider border-b border-[#2d313a]">
                   <tr>
                     <th className="py-3 px-4 font-medium">Raw Read</th>
                     <th className="py-3 px-4 font-medium">Target Tag</th>
@@ -219,7 +219,7 @@ export const ReviewPage: React.FC = () => {
                           }`}
                         >
                           {/* Raw OCR Read */}
-                          <td className="py-3 px-4 text-amber-300 font-mono font-bold">
+                          <td className="py-3 px-4 text-amber-300 font-mono font-medium">
                             {tag.raw_text}
                           </td>
 
@@ -235,32 +235,32 @@ export const ReviewPage: React.FC = () => {
                                     if (e.key === 'Enter') handleSave(tag.id);
                                     if (e.key === 'Escape') cancelEdit();
                                   }}
-                                  className="px-2.5 py-1 rounded-lg bg-black border border-white/30 text-white text-xs font-mono font-bold focus:outline-none focus:border-white uppercase"
+                                  className="px-2.5 py-1 rounded-md bg-[#181a1f] border border-[#3b404d] text-slate-100 text-xs font-mono focus:outline-none focus:border-blue-500 uppercase"
                                   placeholder="PT-101"
                                   autoFocus
                                 />
                                 {validationError && (
-                                  <p className="text-[10px] text-[#eb1000] font-bold">{validationError}</p>
+                                  <p className="text-[10px] text-rose-400 font-medium">{validationError}</p>
                                 )}
                               </div>
                             ) : (
-                              <span className="font-bold text-white font-mono">{tag.normalized_tag}</span>
+                              <span className="font-medium text-slate-100 font-mono">{tag.normalized_tag}</span>
                             )}
                           </td>
 
                           {/* Type */}
-                          <td className="py-3 px-4 text-neutral-300 font-bold truncate max-w-[140px]">
+                          <td className="py-3 px-4 text-slate-300 font-normal truncate max-w-[140px]">
                             {tag.type.split(' ')[0]}
                           </td>
 
                           {/* Confidence */}
                           <td className="py-3 px-4">
-                            <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
+                            <span className={`text-[11px] font-medium px-2 py-0.5 rounded-md ${
                               tag.confidence >= 0.85
                                 ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-400/30'
                                 : tag.confidence >= 0.60
                                 ? 'bg-amber-500/15 text-amber-300 border border-amber-400/30'
-                                : 'bg-[#eb1000]/15 text-[#eb1000] border border-[#eb1000]/30'
+                                : 'bg-rose-500/15 text-rose-300 border border-rose-400/30'
                             }`}>
                               {Math.round(tag.confidence * 100)}%
                             </span>
@@ -269,10 +269,10 @@ export const ReviewPage: React.FC = () => {
                           {/* Status */}
                           <td className="py-3 px-4">
                             <span
-                              className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${
+                              className={`text-[10px] font-medium px-2 py-0.5 rounded-md ${
                                 tag.status === 'resolved'
                                   ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-400/30'
-                                  : 'bg-[#eb1000]/15 text-[#eb1000] border border-[#eb1000]/30'
+                                  : 'bg-rose-500/15 text-rose-300 border border-rose-400/30'
                               }`}
                             >
                               {tag.status === 'needs_review' ? 'REVIEW' : 'VERIFIED'}
@@ -288,7 +288,7 @@ export const ReviewPage: React.FC = () => {
                                     e.stopPropagation();
                                     handleSave(tag.id);
                                   }}
-                                  className="p-1.5 rounded-full bg-white text-black hover:bg-neutral-200 transition-all"
+                                  className="p-1 rounded bg-slate-100 text-slate-900 hover:bg-white transition-all"
                                   title="Save Correction"
                                 >
                                   <Check size={14} className="stroke-[2.5]" />
@@ -298,7 +298,7 @@ export const ReviewPage: React.FC = () => {
                                     e.stopPropagation();
                                     cancelEdit();
                                   }}
-                                  className="p-1.5 rounded-full bg-white/[0.08] text-neutral-400 hover:text-white"
+                                  className="p-1 rounded bg-white/[0.08] text-slate-400 hover:text-white"
                                   title="Cancel"
                                 >
                                   <X size={14} />
@@ -310,7 +310,7 @@ export const ReviewPage: React.FC = () => {
                                   e.stopPropagation();
                                   startEdit(tag);
                                 }}
-                                className="p-1.5 rounded-full text-neutral-400 hover:text-white hover:bg-white/[0.08] transition-colors"
+                                className="p-1 rounded text-slate-400 hover:text-white hover:bg-white/[0.08] transition-colors"
                                 title="Edit Tag"
                               >
                                 <Edit3 size={14} />
@@ -322,7 +322,7 @@ export const ReviewPage: React.FC = () => {
                     })
                   ) : (
                     <tr>
-                      <td colSpan={6} className="py-12 text-center text-neutral-500 font-bold">
+                      <td colSpan={6} className="py-12 text-center text-slate-500 font-normal">
                         No tags found matching current filter.
                       </td>
                     </tr>
@@ -336,10 +336,10 @@ export const ReviewPage: React.FC = () => {
         {/* Live Crop & Inspector (Col span 1) */}
         <div>
           <div className="adobe-card p-5 space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-white/[0.1]">
+            <div className="flex items-center justify-between pb-3 border-b border-[#2d313a]">
               <div className="flex items-center gap-2">
-                <Crosshair size={15} className="text-[#eb1000]" />
-                <h3 className="text-xs font-black uppercase tracking-wider text-white">
+                <Crosshair size={14} className="text-slate-400" />
+                <h3 className="text-xs font-medium uppercase tracking-wider text-slate-300">
                   Tag Inspection
                 </h3>
               </div>
@@ -353,12 +353,12 @@ export const ReviewPage: React.FC = () => {
             {selectedTag ? (
               <div className="space-y-3.5 text-xs">
                 {/* Crop Visualizer */}
-                <div className="h-28 rounded-xl bg-[#1a1a1a] border border-white/[0.08] flex items-center justify-center p-3">
-                  <div className="border border-white/20 bg-black/50 px-4 py-2.5 rounded-xl text-center">
-                    <span className="font-mono font-bold text-amber-300 text-base block">
+                <div className="h-28 rounded-lg bg-[#181a1f] border border-[#2d313a] flex items-center justify-center p-3">
+                  <div className="border border-[#3b404d] bg-[#20232a] px-4 py-2 rounded-md text-center">
+                    <span className="font-mono font-medium text-amber-300 text-sm block">
                       {selectedTag.raw_text}
                     </span>
-                    <span className="text-[10px] font-mono text-neutral-500 mt-0.5 block">
+                    <span className="text-[10px] font-mono text-slate-500 mt-0.5 block">
                       [{selectedTag.bbox.join(', ')}]
                     </span>
                   </div>
@@ -366,39 +366,39 @@ export const ReviewPage: React.FC = () => {
 
                 {/* Reasoning */}
                 {selectedTag.reasoning && (
-                  <div className="p-3.5 rounded-xl bg-[#1a1a1a] border border-white/[0.08] text-xs">
-                    <p className="text-neutral-300 text-xs leading-relaxed font-bold">
+                  <div className="p-3 rounded-lg bg-[#181a1f] border border-[#2d313a] text-xs">
+                    <p className="text-slate-300 text-xs leading-relaxed font-normal">
                       {selectedTag.reasoning}
                     </p>
                   </div>
                 )}
 
                 {/* Match Record */}
-                <div className="p-3.5 rounded-xl bg-[#1a1a1a] border border-white/[0.08] space-y-2 text-xs font-mono">
-                  <div className="flex justify-between text-neutral-400 font-sans font-bold">
+                <div className="p-3 rounded-lg bg-[#181a1f] border border-[#2d313a] space-y-2 text-xs font-mono">
+                  <div className="flex justify-between text-slate-400 font-sans font-medium">
                     <span>DCS POINT</span>
-                    <span className="text-emerald-400 font-mono font-bold">{selectedTag.io_match?.io_tag || 'None'}</span>
+                    <span className="text-emerald-400 font-mono font-medium">{selectedTag.io_match?.io_tag || 'None'}</span>
                   </div>
-                  <div className="flex justify-between text-neutral-400 font-sans font-bold">
+                  <div className="flex justify-between text-slate-400 font-sans font-medium">
                     <span>SIGNAL</span>
-                    <span className="text-white font-mono">{selectedTag.io_match?.signal_type || 'N/A'}</span>
+                    <span className="text-slate-200 font-mono">{selectedTag.io_match?.signal_type || 'N/A'}</span>
                   </div>
-                  <div className="flex justify-between text-neutral-400 font-sans font-bold">
+                  <div className="flex justify-between text-slate-400 font-sans font-medium">
                     <span>STATUS</span>
-                    <span className="text-emerald-400 uppercase font-bold">{selectedTag.status}</span>
+                    <span className="text-emerald-400 uppercase font-medium">{selectedTag.status}</span>
                   </div>
                 </div>
 
                 <button
                   onClick={() => startEdit(selectedTag)}
-                  className="w-full h-10 rounded-full border border-white/20 text-white font-bold hover:bg-white/10 flex items-center justify-center gap-2 transition-all text-xs"
+                  className="w-full h-9 rounded-lg border border-[#2d313a] bg-[#181a1f] text-slate-200 font-medium hover:bg-[#252831] flex items-center justify-center gap-2 transition-all text-xs"
                 >
                   <Edit3 size={13} />
                   <span>Edit Tag</span>
                 </button>
               </div>
             ) : (
-              <div className="py-12 text-center text-neutral-500 text-xs font-bold">
+              <div className="py-12 text-center text-slate-500 text-xs font-normal">
                 Select a tag to inspect.
               </div>
             )}

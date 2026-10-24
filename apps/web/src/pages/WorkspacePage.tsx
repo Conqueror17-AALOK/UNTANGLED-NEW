@@ -755,39 +755,39 @@ export const WorkspacePage: React.FC = () => {
                 {inspectorTab === 'confidence' && (
                   <div className="space-y-3 text-xs">
                     {selectedTag.conf_breakdown ? (
-                      <div className="space-y-3 p-3.5 rounded-xl bg-[#1a1a1a] border border-white/[0.08]">
+                      <div className="space-y-3 p-3.5 rounded-lg bg-[#181a1f] border border-[#2d313a]">
                         <div>
-                          <div className="flex justify-between text-neutral-300 text-xs mb-1 font-bold">
+                          <div className="flex justify-between text-slate-300 text-xs mb-1 font-medium">
                             <span>OCR Consensus</span>
-                            <span className="font-bold text-white">{Math.round((selectedTag.conf_breakdown.ocr || 0) * 100)}%</span>
+                            <span className="font-medium text-slate-100">{Math.round((selectedTag.conf_breakdown.ocr || 0) * 100)}%</span>
                           </div>
-                          <div className="w-full h-2 bg-black/60 rounded-full overflow-hidden p-0.5 border border-white/[0.08]">
-                            <div className="h-full bg-white rounded-full" style={{ width: `${(selectedTag.conf_breakdown.ocr || 0) * 100}%` }} />
+                          <div className="w-full h-1.5 bg-[#2d313a] rounded-full overflow-hidden">
+                            <div className="h-full bg-slate-200 rounded-full" style={{ width: `${(selectedTag.conf_breakdown.ocr || 0) * 100}%` }} />
                           </div>
                         </div>
 
                         <div>
-                          <div className="flex justify-between text-neutral-300 text-xs mb-1 font-bold">
+                          <div className="flex justify-between text-slate-300 text-xs mb-1 font-medium">
                             <span>Symbol Match</span>
-                            <span className="font-bold text-emerald-400">{Math.round((selectedTag.conf_breakdown.symbol || 0) * 100)}%</span>
+                            <span className="font-medium text-emerald-400">{Math.round((selectedTag.conf_breakdown.symbol || 0) * 100)}%</span>
                           </div>
-                          <div className="w-full h-2 bg-black/60 rounded-full overflow-hidden p-0.5 border border-white/[0.08]">
+                          <div className="w-full h-1.5 bg-[#2d313a] rounded-full overflow-hidden">
                             <div className="h-full bg-emerald-400 rounded-full" style={{ width: `${(selectedTag.conf_breakdown.symbol || 0) * 100}%` }} />
                           </div>
                         </div>
 
                         <div>
-                          <div className="flex justify-between text-neutral-300 text-xs mb-1 font-bold">
+                          <div className="flex justify-between text-slate-300 text-xs mb-1 font-medium">
                             <span>DCS Verification</span>
-                            <span className="font-bold text-cyan-400">{Math.round((selectedTag.conf_breakdown.io_match || 0) * 100)}%</span>
+                            <span className="font-medium text-blue-400">{Math.round((selectedTag.conf_breakdown.io_match || 0) * 100)}%</span>
                           </div>
-                          <div className="w-full h-2 bg-black/60 rounded-full overflow-hidden p-0.5 border border-white/[0.08]">
-                            <div className="h-full bg-cyan-400 rounded-full" style={{ width: `${(selectedTag.conf_breakdown.io_match || 0) * 100}%` }} />
+                          <div className="w-full h-1.5 bg-[#2d313a] rounded-full overflow-hidden">
+                            <div className="h-full bg-blue-400 rounded-full" style={{ width: `${(selectedTag.conf_breakdown.io_match || 0) * 100}%` }} />
                           </div>
                         </div>
                       </div>
                     ) : (
-                      <div className="text-center py-4 text-neutral-500 font-bold">No score breakdown</div>
+                      <div className="text-center py-4 text-slate-500 font-normal">No score breakdown</div>
                     )}
                   </div>
                 )}
@@ -795,19 +795,19 @@ export const WorkspacePage: React.FC = () => {
                 {/* Tab 3: Traceability Crop */}
                 {inspectorTab === 'traceability' && (
                   <div className="space-y-3">
-                    <div className="h-28 rounded-xl bg-[#1a1a1a] border border-white/[0.08] flex items-center justify-center p-3 text-center">
+                    <div className="h-28 rounded-lg bg-[#181a1f] border border-[#2d313a] flex items-center justify-center p-3 text-center">
                       <div>
-                        <span className="font-mono font-bold text-amber-300 text-base block">
+                        <span className="font-mono font-medium text-amber-300 text-sm block">
                           {selectedTag.raw_text}
                         </span>
-                        <span className="text-xs text-neutral-500 font-mono block mt-1">
+                        <span className="text-xs text-slate-500 font-mono block mt-1">
                           [{selectedTag.bbox.join(', ')}]
                         </span>
                       </div>
                     </div>
 
                     <Link to={`/review/${jobId}`} className="block">
-                      <button className="w-full h-10 rounded-full border border-white/20 text-white font-bold hover:bg-white/10 flex items-center justify-between px-4 transition-all text-xs">
+                      <button className="w-full h-9 rounded-lg border border-[#2d313a] bg-[#181a1f] text-slate-200 font-medium hover:bg-[#252831] flex items-center justify-between px-3.5 transition-all text-xs">
                         <span>Edit Tag</span>
                         <ChevronRight size={14} />
                       </button>
@@ -817,7 +817,7 @@ export const WorkspacePage: React.FC = () => {
 
               </div>
             ) : (
-              <div className="py-12 text-center text-neutral-500 text-xs font-bold">
+              <div className="py-12 text-center text-slate-500 text-xs font-normal">
                 Click any node on the canvas to view details.
               </div>
             )}
