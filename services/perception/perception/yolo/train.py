@@ -16,11 +16,11 @@ def train_yolo11(
     model_variant: str = "yolo11n.pt",  # Nano variant for ultra-fast training and dense micro-symbol detection
     epochs: int = 20,
     imgsz: int = 640,
-    batch: int = 8,
+    batch: int = 16,
     project: str = "runs/detect",
     name: str = "yolo11_pid_symbols",
     output_model_path: str = "models/yolo11_pid.pt",
-):
+) -> None:
     print("=" * 65)
     print("UNTANGLED: Local YOLO11 Training for P&ID Micro-Symbols")
     print("=" * 65)

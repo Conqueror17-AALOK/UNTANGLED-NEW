@@ -223,10 +223,13 @@ PYTHONPATH=. .venv/bin/pytest services/api/tests/
 ```
 
 ### Dataset Ingestion & Local YOLO11 Fine-Tuning
-UNTANGLED supports fine-tuning on real-world industrial P&ID diagram datasets and custom symbol annotations:
+UNTANGLED supports automated ingestion and fine-tuning across both industrial field drawings and academic benchmarks:
 ```bash
-# Ingest and convert extra industrial P&ID datasets (mapping to 17 ISA-5.1 classes):
+# Ingest and convert local Roboflow P&ID datasets (mapping to 17 ISA-5.1 classes):
 .venv/bin/python services/perception/perception/yolo/dataset_converter.py
+
+# Ingest and tile Digitize-PID benchmark diagrams from Hugging Face (kunalnchemtech/digitize-pid-symbols):
+.venv/bin/python services/perception/perception/yolo/digitize_pid_ingestor.py
 
 # Fine-tune YOLO11 on Apple Silicon Metal GPU (MPS) / CUDA:
 .venv/bin/python services/perception/perception/yolo/train.py
