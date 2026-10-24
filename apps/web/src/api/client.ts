@@ -1,4 +1,4 @@
-import { Job, Tag, GraphData, ReportData } from '../types';
+import { Job, Tag, GraphData, ReportData, MergeJobsResponse, RevisionDiffData } from '../types';
 import { INITIAL_TAGS, MOCK_GRAPH, MOCK_REPORT } from '../mocks/fixtures';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api/v1';
@@ -257,5 +257,53 @@ export const apiClient = {
 
   getDiagramPdfUrl(jobId: string): string {
     return `${API_BASE}/jobs/${jobId}/simplified-diagram/pdf`;
+  },
+
+  async mergeJobs(jobIds: string[], mergedJobName = 'Merged Plant Master'): Promise<MergeJobsResponse> {
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (API_TOKEN) headers['Authorization'] = `Bearer ${API_TOKEN}`;
+    const res = await fetch(`${API_BASE}/jobs/merge`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ job_ids: jobIds, merged_job_name: mergedJobName }),
+    });
+    if (!res.ok) throw new ApiError('Failed to merge P&ID sheets', 'MERGE_FAILED');
+    return await res.json();
+  },
+
+  async getRevisionDiff(jobId: string, compareTo?: string): Promise<RevisionDiffData> {
+    const url = compareTo
+      ? `${API_BASE}/jobs/${jobId}/diff?compare_to=${encodeURIComponent(compareTo)}`
+      : `${API_BASE}/jobs/${jobId}/diff`;
+    const headers: Record<string, string> = {};
+    if (API_TOKEN) headers['Authorization'] = `Bearer ${API_TOKEN}`;
+    const res = await fetch(url, { headers });
+    if (!res.ok) throw new ApiError('Failed to fetch revision delta', 'DIFF_FAILED');
+    return await res.json();
+  },
+
+  async createRevisionJob(
+    baselineJobId: string,
+    pdfFile?: File,
+    xlsxFile?: File,
+    revisionLabel = 'Rev 02'
+  ): Promise<{ job_id: string; baseline_job_id: string; revision_label: string; status: string }> {
+    const formData = new FormData();
+    if (pdfFile) formData.append('pid_pdf', pdfFile);
+    if (xlsxFile) formData.append('io_list_xlsx', xlsxFile);
+
+    const headers: Record<string, string> = {};
+    if (API_TOKEN) headers['Authorization'] = `Bearer ${API_TOKEN}`;
+
+    const res = await fetch(
+      `${API_BASE}/jobs/${baselineJobId}/revisions?revision_label=${encodeURIComponent(revisionLabel)}`,
+      {
+        method: 'POST',
+        headers,
+        body: formData,
+      }
+    );
+    if (!res.ok) throw new ApiError('Failed to submit revision job', 'REVISION_SUBMIT_FAILED');
+    return await res.json();
   },
 };

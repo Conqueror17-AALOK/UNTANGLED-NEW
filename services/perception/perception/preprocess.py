@@ -76,6 +76,34 @@ class Preprocessor:
         )
         return binary
 
+    def enhance_blurry_image(self, gray_image: np.ndarray) -> Tuple[np.ndarray, bool, float]:
+        """
+        Assess blur and contrast level via Laplacian variance and apply CLAHE + Unsharp Masking
+        if the drawing is faded, low contrast, or blurry.
+        Returns: (enhanced_image, was_enhanced, blur_score)
+        """
+        blur_score = float(cv2.Laplacian(gray_image, cv2.CV_64F).var())
+        if self.config.enable_blur_enhancement and blur_score < self.config.blur_threshold:
+            # 1. CLAHE contrast equalization for faded ink
+            clahe = cv2.createCLAHE(
+                clipLimit=self.config.clahe_clip_limit,
+                tileGridSize=self.config.clahe_grid_size
+            )
+            contrast_boosted = clahe.apply(gray_image)
+
+            # 2. Unsharp masking to sharpen blurry lines and faded text characters
+            blurred = cv2.GaussianBlur(contrast_boosted, (0, 0), sigmaX=2.0)
+            sharpened = cv2.addWeighted(
+                contrast_boosted,
+                self.config.unsharp_strength,
+                blurred,
+                -(self.config.unsharp_strength - 1.0),
+                0
+            )
+            return sharpened, True, blur_score
+
+        return gray_image, False, blur_score
+
     def process(self, image: np.ndarray) -> Tuple[np.ndarray, np.ndarray, float]:
         """
         Full preprocessing pass.
@@ -83,6 +111,7 @@ class Preprocessor:
         """
         deskewed, angle = self.deskew(image)
         gray = self.to_grayscale(deskewed)
-        denoised = self.denoise(gray)
+        enhanced, was_restored, blur_score = self.enhance_blurry_image(gray)
+        denoised = self.denoise(enhanced)
         binary = self.adaptive_binarize(denoised)
         return deskewed, binary, angle

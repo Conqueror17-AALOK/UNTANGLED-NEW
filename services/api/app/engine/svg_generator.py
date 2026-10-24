@@ -79,7 +79,20 @@ def render_symbol_svg(node: GraphNode) -> str:
         </g>
         """
 
-    # 5. ISA-5.1 Instrument Bubble
+    # 5. Off-Page Connector (OPC Chevron Flag)
+    elif "opc" in node.type.lower() or "connector" in node.type.lower() or "opc" in cat.lower():
+        w, h = 100, 28
+        return f"""
+        <g class="pid-node opc-flag" data-id="{tag}" data-category="{cat}" data-confidence="{conf_pct}" style="cursor: pointer;">
+            <!-- Chevron flag shape -->
+            <polygon points="{x-w/2},{y-h/2} {x+w/2-14},{y-h/2} {x+w/2},{y} {x+w/2-14},{y+h/2} {x-w/2},{y+h/2}" fill="#0F172A" stroke="#38BDF8" stroke-width="2" />
+            <text x="{x-4}" y="{y+4}" font-family="Inter, sans-serif" font-weight="700" font-size="10" fill="#38BDF8" text-anchor="middle">{tag}</text>
+            <rect x="{x-w/2+4}" y="{y+h/2+3}" width="34" height="13" rx="3" fill="{badge_color}" />
+            <text x="{x-w/2+21}" y="{y+h/2+12}" font-family="Inter, sans-serif" font-size="8" font-weight="600" fill="#FFFFFF" text-anchor="middle">{conf_pct}%</text>
+        </g>
+        """
+
+    # 6. ISA-5.1 Instrument Bubble
     else:
         r = 24
         is_dcs = "IC" in tag or "FIC" in tag or "LIC" in tag
@@ -138,9 +151,10 @@ def generate_svg_sketch(graph: GraphSchema) -> str:
             continue
 
         is_process = edge.line_type == "process"
-        color = "#38BDF8" if is_process else "#A855F7"
-        width_stroke = 2.5 if is_process else 1.5
-        dash = "" if is_process else 'stroke-dasharray="5,4"'
+        is_cross_sheet = "opc_bridge" in (edge.id or "")
+        color = "#10B981" if is_cross_sheet else ("#38BDF8" if is_process else "#A855F7")
+        width_stroke = 3.0 if is_cross_sheet else (2.5 if is_process else 1.5)
+        dash = 'stroke-dasharray="8,4"' if is_cross_sheet else ("" if is_process else 'stroke-dasharray="5,4"')
         marker = 'marker-end="url(#arrow)"' if (edge.directed and is_process) else ('marker-end="url(#arrow-signal)"' if edge.directed else '')
 
         # Manhattan routing: horizontal-then-vertical or direct
@@ -163,10 +177,14 @@ def generate_svg_sketch(graph: GraphSchema) -> str:
     svg_parts.append('</g>')
 
     # Drawing Title & Metadata overlay
+    is_merged = any("opc_bridge" in (e.id or "") for e in graph.edges) or width > 3000
+    title_text = "MULTI-SHEET INTEGRATED PLANT TOPOLOGY" if is_merged else "FEED PRETREATMENT &amp; PUMPING PROCESS"
+    sub_title = "UNTANGLE Multi-Sheet Topology Stitching" if is_merged else "UNTANGLE Operator Verified Schematic"
+
     svg_parts.append(f"""
     <g class="title-block" transform="translate(40, 40)">
-        <text font-family="Inter, sans-serif" font-size="16" font-weight="700" fill="#F8FAFC">FEED PRETREATMENT &amp; PUMPING PROCESS</text>
-        <text y="22" font-family="Inter, sans-serif" font-size="11" fill="#64748B">UNTANGLE Operator Verified Schematic • Nodes: {len(graph.nodes)} • Edges: {len(graph.edges)}</text>
+        <text font-family="Inter, sans-serif" font-size="16" font-weight="700" fill="#F8FAFC">{title_text}</text>
+        <text y="22" font-family="Inter, sans-serif" font-size="11" fill="#64748B">{sub_title} • Nodes: {len(graph.nodes)} • Edges: {len(graph.edges)}</text>
     </g>
     """)
 

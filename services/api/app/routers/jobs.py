@@ -3,10 +3,11 @@ import io
 import json
 import os
 import uuid
-from typing import List, Literal, Optional
+from typing import Any, Dict, List, Literal, Optional
 
 import fitz  # PyMuPDF
 from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, Query, Response, UploadFile, status
+from pydantic import BaseModel
 from PIL import Image, ImageDraw
 from sqlalchemy.orm import Session
 
@@ -31,6 +32,13 @@ from services.api.app.engine.pipeline import (
     execute_untangle_pipeline,
     rebuild_graph_and_artifacts,
 )
+from services.api.app.engine.merger import (
+    MultiSheetMerger,
+    RevisionDiffEngine,
+    RevisionDiffSchema,
+)
+from services.api.app.engine.simplifier import simplify_graph_layout
+from services.api.app.engine.svg_generator import generate_svg_sketch
 from services.api.app.engine.report_generator import generate_pdf_report, localize_report
 
 router = APIRouter(prefix="/jobs", tags=["jobs"], dependencies=[Depends(verify_api_token)])
@@ -499,4 +507,311 @@ def download_simplified_diagram_pdf(job_id: str, db: Session = Depends(get_db)):
             "Content-Disposition": f"attachment; filename=simplified_diagram_{job_id[:8]}.pdf"
         }
     )
+
+
+# =============================================================================
+# Multi-Sheet P&ID Merging & Incremental Revision Diff Endpoints
+# =============================================================================
+
+class MergeJobsRequest(BaseModel):
+    job_ids: List[str]
+    merged_job_name: Optional[str] = "Merged Plant Master"
+
+
+@router.post("/merge", status_code=status.HTTP_201_CREATED)
+def merge_jobs(payload: MergeJobsRequest, db: Session = Depends(get_db)):
+    """
+    Merge multiple P&ID jobs or sheets into a unified plant master topology.
+    Stitches boundary pipelines via Off-Page Connectors (OPCs).
+    """
+    if len(payload.job_ids) < 2:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={"code": "INVALID_MERGE_REQUEST", "message": "At least 2 job IDs are required for merging."}
+        )
+
+    settings = get_settings()
+    graphs: List[GraphSchema] = []
+    all_opcs: List[Dict[str, Any]] = []
+    total_pages = 0
+    merged_tags_data: List[Dict[str, Any]] = []
+    sheet_labels: List[str] = []
+
+    for idx, j_id in enumerate(payload.job_ids, start=1):
+        job_dir = os.path.join(settings.DATA_DIR, j_id)
+        graph_path = os.path.join(job_dir, "graph.json")
+        if not os.path.exists(graph_path):
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail={"code": "SOURCE_GRAPH_NOT_FOUND", "message": f"Graph for job {j_id} not found."}
+            )
+
+        with open(graph_path, "r", encoding="utf-8") as f:
+            g_data = json.load(f)
+            graphs.append(GraphSchema(**g_data))
+
+        # Check for OPCs in perception.json
+        perc_path = os.path.join(job_dir, "perception.json")
+        if os.path.exists(perc_path):
+            with open(perc_path, "r", encoding="utf-8") as f:
+                p_data = json.load(f)
+                for page in p_data.get("pages", []):
+                    total_pages += 1
+                    for opc in page.get("off_page_connectors", []):
+                        opc_copy = dict(opc)
+                        opc_copy["sheet"] = idx
+                        all_opcs.append(opc_copy)
+        else:
+            total_pages += 1
+
+        sheet_labels.append(f"Sheet_{idx}")
+
+        # Collect tags from database
+        tags = db.query(TagModel).filter(TagModel.job_id == j_id).all()
+        for t in tags:
+            merged_tags_data.append({
+                "page": t.page,
+                "raw_text": t.raw_text,
+                "normalized_tag": t.normalized_tag,
+                "type": t.type,
+                "category": t.category,
+                "confidence": t.confidence,
+                "status": t.status,
+                "bbox": t.bbox,
+                "conf_breakdown": t.conf_breakdown,
+                "io_match": t.io_match,
+                "reasoning": t.reasoning,
+                "source": t.source,
+            })
+
+    # Execute Multi-Sheet Stitching & Layout
+    merger = MultiSheetMerger(sheet_spacing_x=2200.0)
+    raw_merged_graph = merger.merge_graphs(graphs, sheet_labels=sheet_labels, all_opcs=all_opcs)
+    simplified_merged_graph = simplify_graph_layout(raw_merged_graph)
+
+    # Create new merged job record
+    merged_job_id = str(uuid.uuid4())
+    merged_dir = os.path.join(settings.DATA_DIR, merged_job_id)
+    os.makedirs(merged_dir, exist_ok=True)
+
+    # Save artifacts
+    with open(os.path.join(merged_dir, "graph.json"), "w", encoding="utf-8") as f:
+        json.dump(simplified_merged_graph.model_dump(), f, indent=2)
+
+    svg_content = generate_svg_sketch(simplified_merged_graph)
+    with open(os.path.join(merged_dir, "sketch.svg"), "w", encoding="utf-8") as f:
+        f.write(svg_content)
+
+    try:
+        svg_doc = fitz.open(stream=svg_content.encode("utf-8"), filetype="svg")
+        pdf_bytes = svg_doc.convert_to_pdf()
+        with open(os.path.join(merged_dir, "simplified_diagram.pdf"), "wb") as f:
+            f.write(pdf_bytes)
+    except Exception as e:
+        logger.warning(f"Could not convert merged sketch.svg to PDF: {e}")
+
+    # Save merge metadata
+    merge_meta = {
+        "merged_job_id": merged_job_id,
+        "source_jobs": payload.job_ids,
+        "nodes_count": len(simplified_merged_graph.nodes),
+        "edges_count": len(simplified_merged_graph.edges),
+        "cross_sheet_connections": sum(1 for e in simplified_merged_graph.edges if "opc_bridge" in e.id),
+    }
+    with open(os.path.join(merged_dir, "merge_metadata.json"), "w", encoding="utf-8") as f:
+        json.dump(merge_meta, f, indent=2)
+
+    # Save TagModel entries for merged job
+    for idx, t in enumerate(merged_tags_data, start=1):
+        tag_row = TagModel(
+            id=f"{merged_job_id[:8]}_tag_{idx:04d}",
+            job_id=merged_job_id,
+            page=t["page"],
+            raw_text=t["raw_text"],
+            normalized_tag=t["normalized_tag"],
+            type=t["type"],
+            category=t["category"],
+            confidence=t["confidence"],
+            status=t["status"],
+            reasoning=t["reasoning"],
+            source=t["source"],
+        )
+        tag_row.bbox = t["bbox"]
+        tag_row.conf_breakdown = t["conf_breakdown"]
+        tag_row.io_match = t["io_match"]
+        db.add(tag_row)
+
+    # Save JobModel
+    new_job = JobModel(
+        id=merged_job_id,
+        status="done",
+        stage="report",
+        progress=1.0,
+        pages=max(1, total_pages),
+        pdf_path=os.path.join(merged_dir, "simplified_diagram.pdf"),
+        xlsx_path="",
+        summary={
+            "resolved": sum(1 for t in merged_tags_data if t["status"] == "resolved"),
+            "needs_review": sum(1 for t in merged_tags_data if t["status"] == "needs_review"),
+            "rejected": 0,
+        }
+    )
+    db.add(new_job)
+    db.commit()
+
+    return {
+        "merged_job_id": merged_job_id,
+        "status": "done",
+        "nodes_count": len(simplified_merged_graph.nodes),
+        "edges_count": len(simplified_merged_graph.edges),
+        "source_jobs": payload.job_ids,
+        "cross_sheet_connections": merge_meta["cross_sheet_connections"],
+    }
+
+
+@router.get("/{job_id}/diff", response_model=RevisionDiffSchema)
+def get_revision_diff(
+    job_id: str,
+    compare_to: Optional[str] = Query(None, description="Optional job ID to compare against. If omitted, uses baseline parent."),
+    db: Session = Depends(get_db)
+):
+    """
+    Retrieve differential changes (added, modified, removed tags & connections) between revisions.
+    """
+    settings = get_settings()
+    job_dir = os.path.join(settings.DATA_DIR, job_id)
+
+    # Check if precomputed diff exists
+    diff_file = os.path.join(job_dir, "revision_diff.json")
+    if not compare_to and os.path.exists(diff_file):
+        with open(diff_file, "r", encoding="utf-8") as f:
+            return json.load(f)
+
+    # Otherwise compute on-the-fly comparing against compare_to
+    target_id = compare_to
+    if not target_id:
+        rev_meta_path = os.path.join(job_dir, "revision_meta.json")
+        if os.path.exists(rev_meta_path):
+            with open(rev_meta_path, "r") as f:
+                target_id = json.load(f).get("baseline_job_id")
+
+    if not target_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={"code": "BASELINE_REQUIRED", "message": "Specify 'compare_to' query parameter to diff against another job."}
+        )
+
+    target_dir = os.path.join(settings.DATA_DIR, target_id)
+
+    # Load tags and graphs for both jobs
+    tags_v1 = [
+        {"id": t.id, "normalized_tag": t.normalized_tag, "page": t.page, "type": t.type, "category": t.category, "status": t.status, "bbox": t.bbox, "io_match": t.io_match}
+        for t in db.query(TagModel).filter(TagModel.job_id == target_id).all()
+    ]
+    tags_v2 = [
+        {"id": t.id, "normalized_tag": t.normalized_tag, "page": t.page, "type": t.type, "category": t.category, "status": t.status, "bbox": t.bbox, "io_match": t.io_match}
+        for t in db.query(TagModel).filter(TagModel.job_id == job_id).all()
+    ]
+
+    g1_path = os.path.join(target_dir, "graph.json")
+    g2_path = os.path.join(job_dir, "graph.json")
+    graph_v1 = {}
+    graph_v2 = {}
+    if os.path.exists(g1_path):
+        with open(g1_path, "r") as f:
+            graph_v1 = json.load(f)
+    if os.path.exists(g2_path):
+        with open(g2_path, "r") as f:
+            graph_v2 = json.load(f)
+
+    diff = RevisionDiffEngine.compare_revisions(
+        job_v1_id=target_id,
+        tags_v1=tags_v1,
+        graph_v1=graph_v1,
+        job_v2_id=job_id,
+        tags_v2=tags_v2,
+        graph_v2=graph_v2,
+    )
+    return diff
+
+
+@router.post("/{job_id}/revisions", status_code=status.HTTP_202_ACCEPTED)
+async def create_revision_job(
+    job_id: str,
+    background_tasks: BackgroundTasks,
+    pid_pdf: Optional[UploadFile] = File(None),
+    io_list_xlsx: Optional[UploadFile] = File(None),
+    revision_label: str = Query("Rev 02"),
+    db: Session = Depends(get_db)
+):
+    """
+    Submit an updated P&ID diagram or I/O list as a new revision against an existing job.
+    Automatically initiates the processing pipeline and triggers differential change tracking.
+    """
+    settings = get_settings()
+    base_job = db.query(JobModel).filter(JobModel.id == job_id).first()
+    if not base_job:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Baseline job not found.")
+
+    new_job_id = str(uuid.uuid4())
+    new_job_dir = os.path.join(settings.DATA_DIR, new_job_id)
+    os.makedirs(new_job_dir, exist_ok=True)
+
+    # 1. Use new PDF if uploaded, else clone base PDF
+    if pid_pdf is not None:
+        saved_pdf_path = validate_and_save_upload(
+            pid_pdf,
+            allowed_mimes=["application/pdf"],
+            max_size=MAX_PDF_SIZE_BYTES,
+            target_dir=new_job_dir
+        )
+    else:
+        saved_pdf_path = base_job.pdf_path
+
+    # 2. Use new XLSX if uploaded, else clone base XLSX
+    if io_list_xlsx is not None:
+        saved_xlsx_path = validate_and_save_upload(
+            io_list_xlsx,
+            allowed_mimes=[
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                "application/vnd.ms-excel",
+                "text/csv"
+            ],
+            max_size=MAX_XLSX_SIZE_BYTES,
+            target_dir=new_job_dir
+        )
+    else:
+        saved_xlsx_path = base_job.xlsx_path
+
+    # Record revision metadata
+    rev_meta = {
+        "job_id": new_job_id,
+        "baseline_job_id": job_id,
+        "revision_label": revision_label,
+    }
+    with open(os.path.join(new_job_dir, "revision_meta.json"), "w") as f:
+        json.dump(rev_meta, f, indent=2)
+
+    # Create JobModel record
+    job_record = JobModel(
+        id=new_job_id,
+        status="queued",
+        stage="perception",
+        progress=0.0,
+        pdf_path=saved_pdf_path,
+        xlsx_path=saved_xlsx_path,
+    )
+    db.add(job_record)
+    db.commit()
+
+    # Launch pipeline in background
+    background_tasks.add_task(run_pipeline_in_background, new_job_id)
+
+    return {
+        "job_id": new_job_id,
+        "baseline_job_id": job_id,
+        "revision_label": revision_label,
+        "status": "queued",
+    }
+
 

@@ -16,6 +16,11 @@ class PerceptionConfig:
     denoise_h: float = 10.0
     adaptive_block_size: int = 25
     adaptive_c: int = 10
+    enable_blur_enhancement: bool = True
+    blur_threshold: float = 120.0
+    clahe_clip_limit: float = 2.5
+    clahe_grid_size: Tuple[int, int] = (8, 8)
+    unsharp_strength: float = 1.6
 
     # OCR
     tesseract_oem: int = 3

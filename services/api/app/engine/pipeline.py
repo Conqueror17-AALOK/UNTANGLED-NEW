@@ -21,6 +21,7 @@ from services.api.app.engine.llm_resolver import resolve_tag_with_llm_or_heurist
 from services.api.app.engine.report_generator import localize_report
 from services.api.app.engine.simplifier import simplify_graph_layout
 from services.api.app.engine.svg_generator import generate_svg_sketch
+from services.api.app.engine.merger import RevisionDiffEngine
 from services.perception.perception.run import run_perception
 
 
@@ -232,7 +233,36 @@ async def execute_untangle_pipeline(job_id: str, db: Session):
             }
             resolved_tags_list.append(tag_data)
 
-            # Save to Database
+        # Check if this is a revision job with baseline decisions to carry forward
+        rev_meta_path = os.path.join(job_dir, "revision_meta.json")
+        baseline_job_id = None
+        if os.path.exists(rev_meta_path):
+            try:
+                with open(rev_meta_path, "r", encoding="utf-8") as f:
+                    rev_meta = json.load(f)
+                    baseline_job_id = rev_meta.get("baseline_job_id")
+            except Exception as e:
+                logger.warning(f"Failed to read revision_meta.json: {e}")
+
+        if baseline_job_id:
+            base_tags = db.query(TagModel).filter(TagModel.job_id == baseline_job_id).all()
+            base_tags_data = [
+                {
+                    "id": t.id,
+                    "normalized_tag": t.normalized_tag,
+                    "status": t.status,
+                    "type": t.type,
+                    "category": t.category,
+                }
+                for t in base_tags
+            ]
+            resolved_tags_list = RevisionDiffEngine.carry_forward_human_decisions(
+                base_tags_data, resolved_tags_list
+            )
+
+        # Save to Database
+        for entry in resolved_tags_list:
+            tag_id = entry["id"]
             tag_row = TagModel(
                 id=tag_id,
                 job_id=job.id,
@@ -246,9 +276,9 @@ async def execute_untangle_pipeline(job_id: str, db: Session):
                 reasoning=entry["reasoning"],
                 source=entry["source"]
             )
-            tag_row.bbox = tag_bbox
-            tag_row.conf_breakdown = entry["conf_breakdown"]
-            tag_row.io_match = entry["io_match"]
+            tag_row.bbox = entry.get("bbox", [0, 0, 0, 0])
+            tag_row.conf_breakdown = entry.get("conf_breakdown", {})
+            tag_row.io_match = entry.get("io_match")
             db.add(tag_row)
 
         db.commit()
@@ -310,6 +340,44 @@ async def execute_untangle_pipeline(job_id: str, db: Session):
         await update_job_stage(db, job, "report", 0.98)
         with open(os.path.join(job_dir, "report.json"), "w") as f:
             json.dump(report_dict, f, indent=2)
+
+        # Compute and persist revision difference if this job is an update
+        if baseline_job_id:
+            try:
+                base_dir = os.path.join(settings.DATA_DIR, baseline_job_id)
+                base_graph_path = os.path.join(base_dir, "graph.json")
+                base_graph = {}
+                if os.path.exists(base_graph_path):
+                    with open(base_graph_path, "r", encoding="utf-8") as f:
+                        base_graph = json.load(f)
+
+                base_tags_full = [
+                    {
+                        "id": t.id,
+                        "normalized_tag": t.normalized_tag,
+                        "page": t.page,
+                        "type": t.type,
+                        "category": t.category,
+                        "status": t.status,
+                        "bbox": t.bbox,
+                        "io_match": t.io_match,
+                    }
+                    for t in db.query(TagModel).filter(TagModel.job_id == baseline_job_id).all()
+                ]
+
+                diff = RevisionDiffEngine.compare_revisions(
+                    job_v1_id=baseline_job_id,
+                    tags_v1=base_tags_full,
+                    graph_v1=base_graph,
+                    job_v2_id=job.id,
+                    tags_v2=resolved_tags_list,
+                    graph_v2=simplified_graph.model_dump(),
+                )
+                with open(os.path.join(job_dir, "revision_diff.json"), "w", encoding="utf-8") as f:
+                    json.dump(diff.model_dump(), f, indent=2)
+                logger.info(f"Persisted revision diff for {job.id} against baseline {baseline_job_id}")
+            except Exception as e:
+                logger.warning(f"Could not compute revision diff: {e}")
 
         # Mark Done
         await update_job_stage(db, job, "report", 1.0, status="done", summary=job.summary)

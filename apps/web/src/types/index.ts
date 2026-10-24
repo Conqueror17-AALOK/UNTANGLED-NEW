@@ -135,3 +135,58 @@ export type WebSocketEvent =
   | { event: 'job_done'; job_id: string; summary: JobSummary }
   | { event: 'job_failed'; job_id: string; error: { code: string; message: string } }
   | { event: 'graph_rebuilt'; job_id: string; version: number };
+
+export interface MergeJobsRequest {
+  job_ids: string[];
+  merged_job_name?: string;
+}
+
+export interface MergeJobsResponse {
+  merged_job_id: string;
+  status: string;
+  nodes_count: number;
+  edges_count: number;
+  source_jobs: string[];
+  cross_sheet_connections: number;
+}
+
+export interface TagDiffItem {
+  tag: string;
+  tag_id: string;
+  page: number;
+  type: string;
+  category: string;
+  status: string;
+  change_type: 'added' | 'removed' | 'modified' | 'unchanged';
+  details: Record<string, unknown>;
+}
+
+export interface EdgeDiffItem {
+  source: string;
+  target: string;
+  line_type: string;
+  change_type: 'added' | 'removed' | 'unchanged';
+}
+
+export interface RevisionDiffSummary {
+  total_tags_v1: number;
+  total_tags_v2: number;
+  added_tags_count: number;
+  removed_tags_count: number;
+  modified_tags_count: number;
+  unchanged_tags_count: number;
+  added_edges_count: number;
+  removed_edges_count: number;
+}
+
+export interface RevisionDiffData {
+  job_v1: string;
+  job_v2: string;
+  summary: RevisionDiffSummary;
+  added_tags: TagDiffItem[];
+  removed_tags: TagDiffItem[];
+  modified_tags: TagDiffItem[];
+  unchanged_tags: TagDiffItem[];
+  edge_changes: EdgeDiffItem[];
+  io_changes: Array<Record<string, unknown>>;
+}
