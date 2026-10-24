@@ -127,17 +127,17 @@ export const ReportPage: React.FC = () => {
         {/* Action Controls & Multi-lingual Switcher */}
         <div className="flex flex-wrap items-center gap-2 print:hidden">
           {/* Language Selector */}
-          <div className="flex items-center bg-[#24272f] p-1 rounded-lg border border-[#434856] text-xs">
+          <div className="flex items-center bg-white/[0.04] backdrop-blur-md p-1 rounded-xl border border-white/[0.1] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] text-xs">
             <Globe size={13} className="text-slate-400 ml-1.5 mr-1" />
             {(['en', 'hi', 'mr'] as const).map((l) => (
               <button
                 key={l}
                 id={`lang-${l}-btn`}
                 onClick={() => setLang(l)}
-                className={`px-2.5 py-1 rounded text-xs font-medium transition-all ${
+                className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
                   lang === l
-                    ? 'bg-[#3f4554] text-white font-medium shadow-sm'
-                    : 'text-slate-400 hover:text-white'
+                    ? 'bg-white/[0.16] backdrop-blur-md text-white font-medium shadow-sm border border-white/[0.2]'
+                    : 'text-slate-400 hover:text-white border border-transparent'
                 }`}
               >
                 {l === 'en' ? 'EN' : l === 'hi' ? 'HI' : 'MR'}
@@ -151,7 +151,7 @@ export const ReportPage: React.FC = () => {
             target="_blank"
             rel="noopener noreferrer"
           >
-            <button className="bg-slate-100 text-slate-900 font-medium h-8 px-3 rounded-lg flex items-center gap-2 hover:bg-white transition-all text-xs">
+            <button className="bg-slate-100 text-slate-900 font-medium h-8 px-3 rounded-lg flex items-center gap-2 hover:bg-white transition-all text-xs shadow-sm">
               <Download size={13} />
               <span>Smart Vector PDF</span>
             </button>
@@ -159,15 +159,15 @@ export const ReportPage: React.FC = () => {
 
           <button
             onClick={handleDownloadPDF}
-            className="h-8 px-3 rounded-lg border border-[#434856] bg-[#24272f] text-slate-200 hover:text-white hover:bg-[#323642] flex items-center gap-2 transition-all text-xs font-medium"
+            className="h-8 px-3 rounded-lg border border-white/[0.12] bg-white/[0.04] hover:bg-white/[0.09] backdrop-blur-md text-slate-200 hover:text-white flex items-center gap-2 transition-all text-xs font-medium shadow-sm"
           >
-            <FileCheck2 size={13} className="text-slate-400" />
+            <FileCheck2 size={13} className="text-cyan-400" />
             <span>Audit PDF</span>
           </button>
 
           <button
             onClick={handlePrint}
-            className="h-8 px-3 rounded-lg border border-[#434856] bg-[#24272f] text-slate-300 hover:text-white hover:bg-[#323642] flex items-center gap-1.5 transition-all text-xs"
+            className="h-8 px-3 rounded-lg border border-white/[0.12] bg-white/[0.04] hover:bg-white/[0.09] backdrop-blur-md text-slate-300 hover:text-white flex items-center gap-1.5 transition-all text-xs"
           >
             <Printer size={13} />
             <span className="hidden sm:inline">Print</span>
@@ -175,7 +175,7 @@ export const ReportPage: React.FC = () => {
 
           <button
             onClick={handleExportJSON}
-            className="h-8 px-3 rounded-lg border border-[#434856] bg-[#24272f] text-slate-300 hover:text-white hover:bg-[#323642] flex items-center gap-1.5 transition-all text-xs"
+            className="h-8 px-3 rounded-lg border border-white/[0.12] bg-white/[0.04] hover:bg-white/[0.09] backdrop-blur-md text-slate-300 hover:text-white flex items-center gap-1.5 transition-all text-xs"
           >
             <Download size={13} />
             <span>JSON</span>

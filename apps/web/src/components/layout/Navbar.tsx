@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
+import { UntangledLogo } from './UntangledLogo';
 import { apiClient } from '../../api/client';
 
 interface NavbarProps {
@@ -84,26 +85,17 @@ export const Navbar: React.FC<NavbarProps> = ({ currentJobId = 'demo-job-1' }) =
 
   return (
     <>
-      <header className="sticky top-0 z-40 bg-[#282b33]/95 backdrop-blur-md border-b border-[#434856] h-14 sm:h-16">
+      <header className="sticky top-0 z-40 bg-[#282b33]/70 backdrop-blur-xl border-b border-white/[0.1] shadow-sm h-14 sm:h-16 transition-colors">
         <div className="w-full max-w-[1700px] mx-auto px-4 sm:px-6 lg:px-8 h-full">
           <div className="flex items-center justify-between h-full">
             
-            {/* Brand Logo - UNTANGLED */}
-            <Link to="/" className="flex items-center gap-2.5 group shrink-0" title="UNTANGLED Platform">
-              <div className="flex items-center justify-center">
-                <img
-                  src="/logo-mark.png"
-                  alt="UNTANGLED Logo"
-                  className="w-7 h-7 object-contain transition-transform group-hover:scale-105 opacity-90"
-                />
-              </div>
-              <span className="text-base font-semibold tracking-tight text-slate-100">
-                UNTANGLED
-              </span>
+            {/* Brand Logo - UNTANGLED Glassmorphic Vector */}
+            <Link to="/" className="group shrink-0" title="UNTANGLED Platform">
+              <UntangledLogo size="md" showText={true} />
             </Link>
 
-            {/* Desktop Navigation - Docked Selector Strip */}
-            <nav className="hidden md:flex items-center gap-1 bg-[#24272f] p-1 rounded-lg border border-[#434856] mx-2">
+            {/* Desktop Navigation - Docked Frosted Glass Strip */}
+            <nav className="hidden md:flex items-center gap-1 bg-white/[0.04] backdrop-blur-md p-1 rounded-xl border border-white/[0.1] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] mx-2">
               {navItems.map((item) => {
                 const Icon = item.icon;
                 const active = isActive(item.path);
@@ -111,13 +103,13 @@ export const Navbar: React.FC<NavbarProps> = ({ currentJobId = 'demo-job-1' }) =
                   <Link
                     key={item.label}
                     to={item.path}
-                    className={`flex items-center gap-2 px-3.5 py-1.5 rounded-md text-xs font-medium transition-all duration-150 ${
+                    className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-150 ${
                       active
-                        ? 'bg-[#3f4554] text-white font-medium shadow-sm'
-                        : 'text-slate-300 hover:text-white hover:bg-white/[0.05]'
+                        ? 'bg-white/[0.15] backdrop-blur-md text-white font-medium shadow-sm border border-white/[0.2]'
+                        : 'text-slate-300 hover:text-white hover:bg-white/[0.06] border border-transparent'
                     }`}
                   >
-                    <Icon size={14} className={active ? 'text-blue-400' : 'text-slate-400'} />
+                    <Icon size={14} className={active ? 'text-cyan-400' : 'text-slate-400'} />
                     <span className="lg:hidden">{item.label}</span>
                     <span className="hidden lg:inline">{item.fullLabel}</span>
                   </Link>
@@ -128,10 +120,10 @@ export const Navbar: React.FC<NavbarProps> = ({ currentJobId = 'demo-job-1' }) =
             {/* Right Controls: Hotkeys & Mobile Toggle */}
             <div className="flex items-center gap-2.5 shrink-0">
 
-              {/* Hotkeys (?) Button */}
+              {/* Hotkeys (?) Button with Glassmorphism */}
               <button
                 onClick={() => setShortcutsOpen(true)}
-                className="hidden sm:flex items-center gap-1.5 text-xs text-slate-300 hover:text-white px-3 py-1.5 rounded-lg border border-[#434856] bg-[#24272f] hover:bg-[#323642] transition-all"
+                className="hidden sm:flex items-center gap-1.5 text-xs text-slate-300 hover:text-white px-3 py-1.5 rounded-lg border border-white/[0.12] bg-white/[0.04] hover:bg-white/[0.09] backdrop-blur-md transition-all shadow-sm"
                 title="Keyboard Shortcuts & Reference (?)"
               >
                 <Keyboard size={13} />
@@ -139,10 +131,10 @@ export const Navbar: React.FC<NavbarProps> = ({ currentJobId = 'demo-job-1' }) =
                 <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-[10px] font-mono">?</kbd>
               </button>
 
-              {/* Mobile Hamburger Toggle */}
+              {/* Mobile Hamburger Toggle with Glassmorphism */}
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="md:hidden text-slate-200 p-2 rounded-lg bg-[#24272f] border border-[#434856]"
+                className="md:hidden text-slate-200 p-2 rounded-lg bg-white/[0.05] border border-white/[0.12] backdrop-blur-md"
                 aria-label="Toggle navigation menu"
               >
                 {mobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
@@ -154,7 +146,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentJobId = 'demo-job-1' }) =
 
         {/* Mobile Dropdown Drawer */}
         {mobileMenuOpen && (
-          <div className="md:hidden border-b border-[#434856] bg-[#24272f] px-4 py-3 space-y-1 animate-fade-in">
+          <div className="md:hidden border-b border-white/[0.12] bg-[#282b33]/90 backdrop-blur-2xl px-4 py-3 space-y-1 animate-fade-in shadow-xl">
             {navItems.map((item) => {
               const Icon = item.icon;
               const active = isActive(item.path);
@@ -165,17 +157,17 @@ export const Navbar: React.FC<NavbarProps> = ({ currentJobId = 'demo-job-1' }) =
                   onClick={() => setMobileMenuOpen(false)}
                   className={`flex items-center gap-3 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                     active
-                      ? 'bg-[#3f4554] text-white font-medium'
+                      ? 'bg-white/[0.15] text-white font-medium border border-white/[0.2]'
                       : 'text-slate-300 hover:text-white hover:bg-white/[0.06]'
                   }`}
                 >
-                  <Icon size={16} className={active ? 'text-blue-400' : 'text-slate-400'} />
+                  <Icon size={16} className={active ? 'text-cyan-400' : 'text-slate-400'} />
                   <span>{item.fullLabel}</span>
                 </Link>
               );
             })}
 
-            <div className="pt-3 border-t border-[#434856] flex items-center justify-between">
+            <div className="pt-3 border-t border-white/[0.1] flex items-center justify-between">
               <button
                 onClick={() => {
                   setMobileMenuOpen(false);

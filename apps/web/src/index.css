@@ -48,39 +48,54 @@
    CLEAN ENGINEERING DESIGN TOKENS (Sleek Architectural Grey Surface)
    ========================================================================= */
 
-/* Technical Panel / Card Token */
+/* =========================================================================
+   GLASSMORPHISM DESIGN SYSTEM (Frosted Slate-Grey Architecture)
+   ========================================================================= */
+
+/* Frosted Glass Card Token */
 .adobe-card {
-  background-color: #323642;
+  background: rgba(50, 54, 66, 0.68);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   color: #e2e8f0;
-  border: 1px solid #434856;
-  border-radius: 12px;
-  transition: border-color 0.15s ease, background-color 0.15s ease;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.12), 0 10px 30px -5px rgba(0, 0, 0, 0.25);
+  border-radius: 14px;
+  transition: all 0.2s ease;
 }
 
 .adobe-card-hover:hover {
-  background-color: #383d4a;
-  border-color: #525869;
+  background: rgba(58, 63, 76, 0.80);
+  border-color: rgba(255, 255, 255, 0.22);
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.18), 0 16px 36px -6px rgba(0, 0, 0, 0.35);
 }
 
-/* Technical Ingestion Well / Dropzone */
+/* Frosted Technical Ingestion Well / Dropzone */
 .adobe-well {
-  background-color: #24272f;
-  border: 1px dashed #484e5e;
+  background: rgba(36, 39, 47, 0.55);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px dashed rgba(255, 255, 255, 0.15);
+  box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.20);
   border-radius: 12px;
   transition: all 0.2s ease;
 }
 
 .adobe-well:hover {
-  background-color: #2a2e38;
-  border-color: #5a6175;
+  background: rgba(44, 48, 58, 0.70);
+  border-color: rgba(255, 255, 255, 0.30);
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.10);
 }
 
-/* Clean Technical Chip */
+/* Frosted Glass Chip */
 .adobe-chip {
-  background-color: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   color: #e2e8f0;
   font-weight: 500;
-  border: 1px solid #434856;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.10);
   border-radius: 6px;
   padding: 0.15rem 0.5rem;
 }
@@ -93,8 +108,12 @@
 }
 
 .adobe-nav-pill-active {
-  background-color: #3f4554;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.20);
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.18), 0 2px 8px rgba(0, 0, 0, 0.20);
   font-weight: 600;
 }
 

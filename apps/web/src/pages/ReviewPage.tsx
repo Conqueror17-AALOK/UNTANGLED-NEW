@@ -149,8 +149,8 @@ export const ReviewPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Filter Tabs */}
-      <div className="flex rounded-lg bg-[#24272f] p-1 border border-[#434856] text-xs max-w-fit">
+      {/* Filter Tabs with Frosted Glassmorphism */}
+      <div className="flex rounded-xl bg-white/[0.04] backdrop-blur-md p-1 border border-white/[0.1] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] text-xs max-w-fit">
         {(['needs_review', 'resolved', 'all'] as const).map((tab) => {
           const count =
             tab === 'needs_review'
@@ -165,16 +165,16 @@ export const ReviewPage: React.FC = () => {
             <button
               key={tab}
               onClick={() => setFilter(tab)}
-              className={`px-3 py-1 rounded-md transition-all duration-150 flex items-center gap-2 font-medium text-xs ${
+              className={`px-3 py-1 rounded-lg transition-all duration-150 flex items-center gap-2 font-medium text-xs ${
                 isActive
-                  ? 'bg-[#3f4554] text-white font-medium shadow-sm'
-                  : 'text-slate-400 hover:text-slate-200'
+                  ? 'bg-white/[0.15] backdrop-blur-md text-white font-medium shadow-sm border border-white/[0.2]'
+                  : 'text-slate-400 hover:text-slate-200 border border-transparent'
               }`}
             >
               <span>{tab === 'needs_review' ? 'Needs Review' : tab === 'resolved' ? 'Resolved' : 'All Tags'}</span>
               <span className={`text-[10px] px-1.5 py-0.2 rounded font-medium ${
                 isActive
-                  ? 'bg-slate-700 text-slate-100'
+                  ? 'bg-white/20 text-white'
                   : 'bg-white/[0.06] text-slate-400'
               }`}>
                 {count}
@@ -235,7 +235,7 @@ export const ReviewPage: React.FC = () => {
                                     if (e.key === 'Enter') handleSave(tag.id);
                                     if (e.key === 'Escape') cancelEdit();
                                   }}
-                                  className="px-2.5 py-1 rounded-md bg-[#181a1f] border border-[#3b404d] text-slate-100 text-xs font-mono focus:outline-none focus:border-blue-500 uppercase"
+                                  className="px-2.5 py-1 rounded-md bg-[#24272f] border border-white/[0.15] text-slate-100 text-xs font-mono focus:outline-none focus:border-cyan-400 uppercase"
                                   placeholder="PT-101"
                                   autoFocus
                                 />

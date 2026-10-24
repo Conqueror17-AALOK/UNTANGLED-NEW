@@ -217,11 +217,11 @@ export const WorkspacePage: React.FC = () => {
         {/* Canvas Area (Col span 2) */}
         <div className="lg:col-span-2 flex flex-col h-full min-h-0 space-y-2.5">
           
-          {/* Controls Bar */}
-          <div className="flex flex-wrap items-center justify-between gap-3 p-2 rounded-lg bg-[#323642] border border-[#434856] text-xs shrink-0">
+          {/* Controls Bar with Frosted Glassmorphism */}
+          <div className="flex flex-wrap items-center justify-between gap-3 p-2 rounded-xl bg-[#323642]/70 backdrop-blur-xl border border-white/[0.12] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.12),0_8px_20px_rgba(0,0,0,0.2)] text-xs shrink-0">
             
             {/* Layer Toggles */}
-            <div className="flex items-center gap-1 bg-[#24272f] p-1 rounded-md border border-[#434856]">
+            <div className="flex items-center gap-1 bg-[#24272f]/70 backdrop-blur-md p-1 rounded-lg border border-white/[0.1]">
               <span className="text-slate-400 text-xs px-2 font-medium">
                 Layers:
               </span>
@@ -231,8 +231,8 @@ export const WorkspacePage: React.FC = () => {
                   onClick={() => setActiveLayer(layer)}
                   className={`px-2.5 py-1 rounded text-xs font-medium capitalize transition-all ${
                     activeLayer === layer
-                      ? 'bg-[#3f4554] text-white font-medium shadow-sm'
-                      : 'text-slate-400 hover:text-slate-200'
+                      ? 'bg-white/[0.16] backdrop-blur-md text-white font-medium shadow-sm border border-white/[0.2]'
+                      : 'text-slate-400 hover:text-slate-200 border border-transparent'
                   }`}
                 >
                   {layer}
@@ -244,21 +244,21 @@ export const WorkspacePage: React.FC = () => {
             <div className="flex items-center gap-1 pr-1">
               <button
                 onClick={() => setZoom((z) => Math.min(z + 0.15, 2.5))}
-                className="w-7 h-7 rounded-md bg-[#24272f] hover:bg-[#383d4a] text-slate-300 hover:text-white border border-[#434856] transition-all flex items-center justify-center"
+                className="w-7 h-7 rounded-lg bg-white/[0.05] hover:bg-white/[0.12] text-slate-300 hover:text-white border border-white/[0.1] backdrop-blur-md transition-all flex items-center justify-center shadow-sm"
                 title="Zoom In (+)"
               >
                 <ZoomIn size={13} />
               </button>
               <button
                 onClick={() => setZoom((z) => Math.max(z - 0.15, 0.5))}
-                className="w-7 h-7 rounded-md bg-[#24272f] hover:bg-[#383d4a] text-slate-300 hover:text-white border border-[#434856] transition-all flex items-center justify-center"
+                className="w-7 h-7 rounded-lg bg-white/[0.05] hover:bg-white/[0.12] text-slate-300 hover:text-white border border-white/[0.1] backdrop-blur-md transition-all flex items-center justify-center shadow-sm"
                 title="Zoom Out (-)"
               >
                 <ZoomOut size={13} />
               </button>
               <button
                 onClick={resetViewport}
-                className="w-7 h-7 rounded-md bg-[#24272f] hover:bg-[#383d4a] text-slate-300 hover:text-white border border-[#434856] transition-all flex items-center justify-center"
+                className="w-7 h-7 rounded-lg bg-white/[0.05] hover:bg-white/[0.12] text-slate-300 hover:text-white border border-white/[0.1] backdrop-blur-md transition-all flex items-center justify-center shadow-sm"
                 title="Reset View (0)"
               >
                 <RotateCcw size={13} />
@@ -270,8 +270,8 @@ export const WorkspacePage: React.FC = () => {
 
           </div>
 
-          {/* SVG CAD Canvas Box - Fits remaining height and grey background */}
-          <div className="flex-1 min-h-[400px] h-full relative overflow-hidden bg-[#2b2e37] border border-[#434856] rounded-xl select-none shadow-inner">
+          {/* SVG CAD Canvas Box - Fits remaining height with glass border */}
+          <div className="flex-1 min-h-[400px] h-full relative overflow-hidden bg-[#2b2e37]/95 border border-white/[0.12] rounded-xl select-none shadow-inner">
             {/* Coordinate Grid & Interactive Canvas */}
             <div
               className="absolute inset-0 cursor-grab active:cursor-grabbing bg-cad-grid touch-none z-0"
@@ -570,7 +570,7 @@ export const WorkspacePage: React.FC = () => {
                             width="28"
                             height="11"
                             rx="5.5"
-                            fill="#000000"
+                            fill="#24272f"
                             stroke={haloColor}
                             strokeWidth="0.8"
                           />
@@ -595,13 +595,13 @@ export const WorkspacePage: React.FC = () => {
               </svg>
             </div>
 
-            {/* Canvas Footer Legend - Docked Pill Strip */}
-            <div className="absolute bottom-4 left-4 bg-[#141414]/90 backdrop-blur-md px-4 py-2 rounded-full border border-white/[0.12] text-xs font-bold flex items-center gap-4 text-neutral-300">
+            {/* Canvas Footer Legend - Docked Frosted Glass Pill Strip */}
+            <div className="absolute bottom-3 left-3 bg-[#282b33]/80 backdrop-blur-xl px-4 py-1.5 rounded-full border border-white/[0.15] shadow-lg shadow-black/25 text-xs font-medium flex items-center gap-4 text-slate-200">
               <span className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-emerald-400" /> ≥85% Validated
+                <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.8)]" /> ≥85% Validated
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-amber-400" /> 60–85% Needs Review
+                <span className="w-2 h-2 rounded-full bg-amber-400 shadow-[0_0_6px_rgba(251,191,36,0.8)]" /> 60–85% Needs Review
               </span>
               <span className="flex items-center gap-1.5">
                 <span className="w-3 h-0.5 bg-[#38bdf8]" /> Process Piping
@@ -613,35 +613,35 @@ export const WorkspacePage: React.FC = () => {
 
           </div>
 
-          {/* Before & After Comparison Split View */}
+          {/* Before & After Comparison Split View with Glassmorphism */}
           {showBeforeAfter && (
-            <div className="adobe-card p-5 space-y-4">
+            <div className="adobe-card p-4 space-y-3">
               <div className="flex items-center justify-between">
-                <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                <h3 className="text-sm font-semibold text-white flex items-center gap-2">
                   <Columns size={15} className="text-white" />
                   <span>Before & After Comparison</span>
                 </h3>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-44 rounded-2xl border border-white/[0.1] overflow-hidden text-xs">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 h-36 rounded-xl border border-white/[0.1] overflow-hidden text-xs">
                 {/* Before: Raw Drawing */}
-                <div className="bg-[#1a1a1a] p-4 flex flex-col justify-between border-r border-white/[0.08]">
-                  <span className="text-xs text-amber-400 font-bold uppercase tracking-wider">ORIGINAL P&ID DRAWING</span>
+                <div className="bg-[#24272f]/60 backdrop-blur-md p-3.5 flex flex-col justify-between border-r border-white/[0.08]">
+                  <span className="text-[11px] text-amber-400 font-semibold uppercase tracking-wider">ORIGINAL P&ID DRAWING</span>
                   <div className="my-auto text-center font-mono">
-                    <p className="text-neutral-400 font-bold">Scanned Legacy Drawing</p>
-                    <p className="font-bold text-amber-300 mt-1">Raw OCR: PT10l · PCV-101</p>
+                    <p className="text-slate-400 font-medium">Scanned Legacy Drawing</p>
+                    <p className="font-semibold text-amber-300 mt-1">Raw OCR: PT10l · PCV-101</p>
                   </div>
-                  <span className="text-xs text-neutral-500 font-bold">Unstructured symbols & scan skew</span>
+                  <span className="text-[11px] text-slate-400 font-normal">Unstructured symbols & scan skew</span>
                 </div>
 
                 {/* After: Synthesized Process Topology */}
-                <div className="bg-[#1a1a1a] p-4 flex flex-col justify-between">
-                  <span className="text-xs text-emerald-400 font-bold uppercase tracking-wider">RESOLVED TOPOLOGY</span>
+                <div className="bg-[#24272f]/60 backdrop-blur-md p-3.5 flex flex-col justify-between">
+                  <span className="text-[11px] text-emerald-400 font-semibold uppercase tracking-wider">RESOLVED TOPOLOGY</span>
                   <div className="my-auto text-center font-mono">
-                    <p className="text-neutral-400 font-bold">Orthogonal ISA-5.1 Graph</p>
-                    <p className="font-bold text-emerald-300 mt-1">PT-101 (Channel AI-01)</p>
+                    <p className="text-slate-400 font-medium">Orthogonal ISA-5.1 Graph</p>
+                    <p className="font-semibold text-emerald-300 mt-1">PT-101 (Channel AI-01)</p>
                   </div>
-                  <span className="text-xs text-emerald-400 font-bold">ISA-5.1 & DCS Cross-Validated</span>
+                  <span className="text-[11px] text-emerald-400 font-normal">ISA-5.1 & DCS Cross-Validated</span>
                 </div>
               </div>
             </div>

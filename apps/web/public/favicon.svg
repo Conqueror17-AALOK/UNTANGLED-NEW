@@ -1,0 +1,24 @@
+<svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="untangled-cyan-grad" x1="4" y1="4" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#38bdf8" />
+      <stop offset="45%" stop-color="#60a5fa" />
+      <stop offset="100%" stop-color="#c084fc" />
+    </linearGradient>
+    <linearGradient id="untangled-specular" x1="6" y1="6" x2="30" y2="30" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.95" />
+      <stop offset="50%" stop-color="#e0f2fe" stop-opacity="0.6" />
+      <stop offset="100%" stop-color="#38bdf8" stop-opacity="0.2" />
+    </linearGradient>
+    <linearGradient id="untangled-underlap" x1="10" y1="18" x2="26" y2="32" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0284c7" />
+      <stop offset="100%" stop-color="#4f46e5" />
+    </linearGradient>
+  </defs>
+  <rect width="36" height="36" rx="9" fill="#282b33" />
+  <rect width="36" height="36" rx="9" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.2)" stroke-width="1" />
+  <path d="M 10 9 V 19 C 10 26 15 29 18 29 C 21 29 23 27 24.5 24.5 L 26 22" stroke="url(#untangled-underlap)" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round" opacity="0.85" />
+  <path d="M 26 9 V 19 C 26 26 21 29 18 29 C 14.5 29 11.5 26 11.5 22.5 C 11.5 19 14.5 16.5 18 16.5 C 22 16.5 25.5 19.5 25.5 23.5 C 25.5 27 22.5 29 18 29" stroke="url(#untangled-cyan-grad)" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M 10.5 10 V 18 C 10.5 24.5 14.5 27.5 17.5 27.5 M 25.5 10 V 18 C 25.5 24.5 21.5 27.5 18 27.5" stroke="url(#untangled-specular)" stroke-width="1.2" stroke-linecap="round" opacity="0.9" />
+  <polygon points="18,13.5 20.2,16.5 18,19.5 15.8,16.5" fill="#ffffff" opacity="0.95" />
+</svg>
