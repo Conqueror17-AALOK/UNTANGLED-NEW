@@ -4,7 +4,6 @@ interface UntangledLogoProps {
   className?: string;
   size?: 'sm' | 'md' | 'lg';
   showText?: boolean;
-  showSubtitle?: boolean;
   stacked?: boolean;
 }
 
@@ -12,7 +11,6 @@ export const UntangledLogo: React.FC<UntangledLogoProps> = ({
   className = '',
   size = 'md',
   showText = true,
-  showSubtitle = true,
   stacked = false,
 }) => {
   const iconSizes = {
@@ -63,11 +61,6 @@ export const UntangledLogo: React.FC<UntangledLogoProps> = ({
               UNTANGLED
             </span>
           </div>
-          {showSubtitle && (
-            <span className="text-[10px] text-slate-400 font-normal tracking-wide">
-              P&ID Topology & DCS Validation
-            </span>
-          )}
         </div>
       )}
     </div>

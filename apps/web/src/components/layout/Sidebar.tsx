@@ -120,7 +120,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentJobId = 'demo-job-1' })
       <div className="space-y-6">
         <div className="flex items-center justify-between pb-4 border-b border-white/[0.1]">
           <Link to="/" className="group block" title="METAWIZ UNTANGLED Platform">
-            <UntangledLogo size="md" showText={true} showSubtitle={true} stacked={true} />
+            <UntangledLogo size="md" showText={true} stacked={true} />
           </Link>
           {mobileOpen && (
             <button
@@ -234,7 +234,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentJobId = 'demo-job-1' })
       {/* Mobile Top Header (Only on small screens where sidebar is hidden) */}
       <header className="lg:hidden sticky top-0 z-40 bg-[#24272f]/90 backdrop-blur-xl border-b border-white/[0.1] h-14 px-4 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2">
-          <UntangledLogo size="sm" showSubtitle={false} />
+          <UntangledLogo size="sm" />
         </Link>
         <button
           onClick={() => setMobileOpen(true)}
