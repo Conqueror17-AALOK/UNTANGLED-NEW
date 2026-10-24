@@ -17,6 +17,7 @@ Thumbs.db
 *.key
 *.pem
 scripts/
+!infra/scripts/
 
 # Python artifacts
 __pycache__/
@@ -92,4 +93,5 @@ models/florence2*/*.safetensors
 models/florence2*/*.bin
 data/florence_dataset/
 extra datasets/
+new dataset/
 *.zip

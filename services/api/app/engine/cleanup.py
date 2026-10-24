@@ -139,13 +139,25 @@ def extract_pid_tags(text_items: List[dict], io_tags: Optional[List[str]] = None
             tags.append(t)
             used.add(i)
 
-    # 2. Spatially adjacent / stacked split tags (e.g. 'PT' above '101' or '631-FIT' above '0421')
-    known_prefixes = {"PT", "FT", "FIC", "LT", "LIC", "TT", "TI", "PI", "PSV", "XV", "CV", "HV", "CK", "AY", "XSH", "XSL"}
+    # 2. Spatially adjacent / stacked split tags (e.g. 'PT' above '101', '14FIC' above '15701', or '631-FIT' above '0421')
+    known_prefixes = {
+        "PT", "FT", "FIC", "FQIC", "LT", "LIC", "LAX", "LZALL", "LZI",
+        "TT", "TI", "TIC", "PI", "PIC", "PSV", "XV", "CV", "FV", "PV",
+        "LV", "TV", "HV", "CK", "AY", "XSH", "XSL", "XIH", "XIL", "HS", "ML", "ZC"
+    }
     for i, t in enumerate(text_items):
         if i in used:
             continue
         text = t.get("text", "").strip().upper()
-        if text in known_prefixes or any(text.endswith(f"-{kp}") for kp in known_prefixes):
+        
+        m_unit = re.match(r"^(\d{1,4})([A-Z]{2,5})$", text)
+        is_prefix_match = (
+            text in known_prefixes
+            or any(text.endswith(f"-{kp}") for kp in known_prefixes)
+            or (m_unit is not None and m_unit.group(2) in known_prefixes)
+        )
+
+        if is_prefix_match:
             bx = t.get("bbox", [0, 0, 0, 0])
             bcx, bcy = (bx[0] + bx[2]) / 2.0, (bx[1] + bx[3]) / 2.0
 
@@ -167,7 +179,12 @@ def extract_pid_tags(text_items: List[dict], io_tags: Optional[List[str]] = None
             if closest_idx != -1:
                 t2 = text_items[closest_idx]
                 bx2 = t2.get("bbox", [0, 0, 0, 0])
-                combined_text = f"{text}-{t2.get('text', '').strip()}"
+                suffix_val = t2.get('text', '').strip()
+                if m_unit:
+                    combined_text = f"{m_unit.group(1)}-{m_unit.group(2)}-{suffix_val}"
+                else:
+                    combined_text = f"{text}-{suffix_val}"
+
                 combined_bbox = [
                     min(bx[0], bx2[0]),
                     min(bx[1], bx2[1]),

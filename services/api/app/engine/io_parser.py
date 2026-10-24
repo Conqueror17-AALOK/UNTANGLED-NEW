@@ -48,22 +48,23 @@ def parse_io_list(file_path: str) -> IoParseResult:
             if cell is None:
                 continue
             val = str(cell).strip().lower()
+            clean_val = val.replace("&", "").replace("_", " ").strip()
             if val in ["tag", "tag no", "tag number", "tag name", "instrument tag", "device tag"]:
                 tag_col = c_idx
                 header_idx = r_idx
             elif "desc" in val or "service" in val:
                 desc_col = c_idx
-            elif "signal" in val or "io type" in val:
+            elif "signal" in val or "io type" in val or "i/o type" in val:
                 signal_col = c_idx
-            elif "unit" in val:
+            elif "uom" in val or "eng unit" in val or (val in ["unit", "units"] and "area" not in val):
                 units_col = c_idx
-            elif "low" in val or "min" in val:
+            elif ("low" in val or "min" in val) and "terminal" not in val and "admin" not in val:
                 range_l_col = c_idx
             elif "high" in val or "max" in val:
                 range_h_col = c_idx
-            elif "pid" in val or "dwg" in val or "drawing" in val:
+            elif "pid" in clean_val or "dwg" in val or "drawing" in val or "p&id" in val:
                 pid_ref_col = c_idx
-            elif "location" in val or "area" in val:
+            elif "location" in val:
                 loc_col = c_idx
 
         if tag_col != -1:
@@ -84,13 +85,13 @@ def parse_io_list(file_path: str) -> IoParseResult:
 
         item = IoItem(
             tag=raw_tag,
-            description=str(row[desc_col]).strip() if desc_col != -1 and desc_col < len(row) and row[desc_col] else "",
-            signal_type=str(row[signal_col]).strip() if signal_col != -1 and signal_col < len(row) and row[signal_col] else "",
-            units=str(row[units_col]).strip() if units_col != -1 and units_col < len(row) and row[units_col] else "",
-            range_low=row[range_l_col] if range_l_col != -1 and range_l_col < len(row) else None,
-            range_high=row[range_h_col] if range_h_col != -1 and range_h_col < len(row) else None,
-            pid_ref=str(row[pid_ref_col]).strip() if pid_ref_col != -1 and pid_ref_col < len(row) and row[pid_ref_col] else "",
-            location=str(row[loc_col]).strip() if loc_col != -1 and loc_col < len(row) and row[loc_col] else "",
+            description=str(row[desc_col]).strip() if desc_col != -1 and desc_col < len(row) and row[desc_col] is not None else "",
+            signal_type=str(row[signal_col]).strip() if signal_col != -1 and signal_col < len(row) and row[signal_col] is not None else "",
+            units=str(row[units_col]).strip() if units_col != -1 and units_col < len(row) and row[units_col] is not None else "",
+            range_low=row[range_l_col] if range_l_col != -1 and range_l_col < len(row) and row[range_l_col] is not None else None,
+            range_high=row[range_h_col] if range_h_col != -1 and range_h_col < len(row) and row[range_h_col] is not None else None,
+            pid_ref=str(row[pid_ref_col]).strip() if pid_ref_col != -1 and pid_ref_col < len(row) and row[pid_ref_col] is not None else "",
+            location=str(row[loc_col]).strip() if loc_col != -1 and loc_col < len(row) and row[loc_col] is not None else "",
         )
         import re
         norm_key = re.sub(r"[\s_-]+", "-", raw_tag.upper())

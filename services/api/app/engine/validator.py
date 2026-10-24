@@ -174,7 +174,7 @@ class ConnectionValidator:
                     correct_count += 1
 
             # 3. Control Valve Control Loop Continuity
-            elif "valve" in n.category or "CV-" in n.id or "control" in n.type.lower():
+            elif (n.category == "valve" or "valve" in n.type.lower()) and ("control" in n.type.lower() or any(p in n.id for p in ["CV-", "FV-", "PV-", "LV-", "TV-"])):
                 process_lines = [e for e in all_edges if e.line_type == "process"]
                 signal_lines = [e for e in all_edges if e.line_type in ["signal", "electrical", "pneumatic"]]
 
