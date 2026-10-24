@@ -87,20 +87,13 @@ export const UploadPage: React.FC = () => {
     <div className="w-full max-w-[1700px] mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 flex-1 flex flex-col justify-between space-y-4 animate-fade-in font-sans min-h-[calc(100vh-8rem)]">
       
       {/* Expansive Technical Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-1">
-        <div>
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-semibold tracking-tight text-white">
-            P&ID Cross-Validation Studio
-          </h1>
-          <p className="text-xs sm:text-sm text-neutral-400 font-normal mt-0.5 max-w-2xl">
-            Automated ingestion and deterministic validation of physical P&ID drawings against DCS I/O point registers.
-          </p>
-        </div>
-        <div className="flex items-center gap-2 shrink-0">
-          <span className="text-[11px] font-mono font-medium px-3 py-1 rounded-full bg-white/[0.06] text-neutral-300 border border-white/[0.1] backdrop-blur-md">
-            ISA-5.1 · OCR Normalization · DCS 4-Signal
-          </span>
-        </div>
+      <div className="pb-1">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-semibold tracking-tight text-white">
+          P&ID Cross-Validation Studio
+        </h1>
+        <p className="text-xs sm:text-sm text-neutral-400 font-normal mt-0.5 max-w-2xl">
+          Automated ingestion and deterministic validation of physical P&ID drawings against DCS I/O point registers.
+        </p>
       </div>
 
       {/* Main Screen-Filling Upload Container */}
