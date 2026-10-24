@@ -85,7 +85,24 @@
                     "filter",
                     "compressor",
                     "check_valve",
-                    "safety_valve"
+                    "safety_valve",
+                    "instrument_field",
+                    "instrument_dcs",
+                    "instrument_aux",
+                    "instrument_shared",
+                    "instrument_logic",
+                    "valve_gate",
+                    "valve_globe",
+                    "valve_check",
+                    "valve_ball",
+                    "valve_butterfly",
+                    "valve_control_diaphragm",
+                    "valve_safety_psv",
+                    "flange",
+                    "reducer",
+                    "orifice_plate",
+                    "pump_centrifugal",
+                    "tank_vessel"
                   ]
                 },
                 "bbox": {

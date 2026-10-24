@@ -70,10 +70,14 @@ def generate_debug_overlay(
     # 3. Draw Symbols & Ports
     for sym in page.symbols:
         x1, y1, x2, y2 = [int(v) for v in sym.bbox]
-        if "valve" in sym.symbol_class:
-            color = (0, 140, 255)  # Orange
-        elif sym.symbol_class == "instrument_bubble":
-            color = (0, 255, 255)  # Yellow
+        if "instrument" in sym.symbol_class:
+            color = (0, 220, 255)  # Yellow/Gold for instruments
+        elif "valve" in sym.symbol_class:
+            color = (0, 140, 255)  # Orange for valves
+        elif sym.symbol_class in ("flange", "reducer", "orifice_plate"):
+            color = (255, 180, 0)  # Cyan/Blue for piping fittings
+        elif sym.symbol_class in ("pump", "pump_centrifugal", "tank", "tank_vessel"):
+            color = (0, 200, 50)   # Emerald green for major equipment
         else:
             color = (0, 200, 0)    # Green
 
@@ -180,16 +184,24 @@ def run_perception(
             voted_ocr = vote_ocr_results(res_tess, res_sec, page_num, config)
             text_items.extend(voted_ocr)
 
-        # 4. Detect Symbols
+        # 4. Detect Symbols (YOLO11 local neural detector + fallback)
         symbols: List[SymbolItem] = []
-        # Multi-scale OpenCV template matching
-        gray = preprocessor.to_grayscale(deskewed_img)
-        matched_symbols = symbol_matcher.match_symbols(gray, page_num)
+        matched_symbols = symbol_matcher.match_symbols(deskewed_img, page_num, text_items)
         symbols.extend(matched_symbols)
 
-        # Contour-based instrument bubbles
+        # Additional contour-based instrument bubbles if needed
         detected_bubbles = bubble_detector.detect_bubbles(binary_mask, page_num, text_items)
-        symbols.extend(detected_bubbles)
+        # Avoid duplicate bubble additions if YOLO already detected instrument at same location
+        for b in detected_bubbles:
+            bx1, by1, bx2, by2 = b.bbox
+            bcx, bcy = (bx1 + bx2) / 2.0, (by1 + by2) / 2.0
+            overlap = any(
+                m.bbox[0] <= bcx <= m.bbox[2] and m.bbox[1] <= bcy <= m.bbox[3]
+                for m in symbols
+                if "instrument" in m.symbol_class
+            )
+            if not overlap:
+                symbols.append(b)
 
         # 5. Detect Lines
         line_segments: List[LineSegment] = []

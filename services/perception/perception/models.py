@@ -14,18 +14,7 @@ class TextItem(BaseModel):
 class SymbolItem(BaseModel):
     model_config = {"populate_by_name": True}
     id: str
-    symbol_class: Literal[
-        "pump",
-        "tank",
-        "valve_manual",
-        "valve_control",
-        "instrument_bubble",
-        "heat_exchanger",
-        "filter",
-        "compressor",
-        "check_valve",
-        "safety_valve"
-    ] = Field(..., alias="class")
+    symbol_class: str = Field(..., alias="class")
     bbox: List[float] = Field(..., description="[x1, y1, x2, y2]")
     confidence: float = Field(..., ge=0.0, le=1.0)
     ports: List[List[float]] = Field(default_factory=list, description="[[x, y], ...]")

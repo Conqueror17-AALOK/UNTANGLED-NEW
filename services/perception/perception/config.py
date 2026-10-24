@@ -29,6 +29,8 @@ class PerceptionConfig:
     bubble_min_radius: int = 10
     bubble_max_radius: int = 80
     bubble_circularity_thresh: float = 0.75
+    yolo_model_path: str = "models/yolo11_pid.pt"
+    yolo_conf_thresh: float = 0.25
 
     # Line detection
     hough_rho: float = 1.0
