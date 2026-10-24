@@ -86,31 +86,32 @@ export const Navbar: React.FC<NavbarProps> = ({ currentJobId = 'demo-job-1' }) =
 
   return (
     <>
-      <header className="sticky top-0 z-40 bg-industrial-950/90 backdrop-blur-md border-b border-industrial-800">
+      <header className="sticky top-0 z-40 bg-[#090b10]/85 backdrop-blur-xl border-b border-white/[0.08] shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-15">
+          <div className="flex items-center justify-between h-16">
             
             {/* Brand Logo - UNTANGLED with Official Ribbon Emblem */}
-            <Link to="/" className="flex items-center gap-2.5 group shrink-0" title="UNTANGLED Platform">
+            <Link to="/" className="flex items-center gap-3 group shrink-0" title="UNTANGLED Platform">
               <div className="relative flex items-center justify-center">
+                <div className="absolute inset-0 rounded-full bg-cyan-500/20 blur-md group-hover:bg-cyan-400/30 transition-colors" />
                 <img
                   src="/logo-mark.png"
                   alt="UNTANGLED Emblem"
-                  className="w-8 h-8 object-contain drop-shadow-[0_0_10px_rgba(56,189,248,0.5)] group-hover:scale-105 transition-transform"
+                  className="relative w-8 h-8 object-contain drop-shadow-[0_0_12px_rgba(56,189,248,0.6)] group-hover:scale-105 transition-transform"
                 />
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-base font-extrabold tracking-tight text-white font-sans">
+                <span className="text-lg font-heading font-extrabold tracking-tight text-white group-hover:text-cyan-300 transition-colors">
                   UNTANGLED
                 </span>
-                <span className="hidden sm:inline text-[10px] font-mono text-cyan-400 font-medium px-1.5 py-0.5 rounded bg-cyan-950/60 border border-cyan-500/30">
+                <span className="hidden sm:inline text-[10px] font-mono text-cyan-300 font-medium px-2 py-0.5 rounded-full bg-cyan-950/70 border border-cyan-400/40 shadow-[0_0_10px_rgba(6,182,212,0.2)]">
                   P&ID AI
                 </span>
               </div>
             </Link>
 
             {/* Desktop Navigation Tabs - Responsive with adaptive labels */}
-            <nav className="hidden md:flex items-center gap-1 bg-industrial-900/90 p-1 rounded-xl border border-industrial-800/80 mx-2">
+            <nav className="hidden md:flex items-center gap-1.5 bg-[#12151e]/80 p-1.5 rounded-xl border border-white/[0.08] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)] mx-2">
               {navItems.map((item) => {
                 const Icon = item.icon;
                 const active = isActive(item.path);
@@ -118,13 +119,13 @@ export const Navbar: React.FC<NavbarProps> = ({ currentJobId = 'demo-job-1' }) =
                   <Link
                     key={item.label}
                     to={item.path}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                    className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
                       active
-                        ? 'bg-industrial-800 text-cyan-400 font-semibold shadow-sm border border-cyan-500/20'
-                        : 'text-slate-400 hover:text-slate-200 hover:bg-industrial-800/50'
+                        ? 'bg-gradient-to-r from-blue-600/30 to-cyan-500/25 text-cyan-300 font-semibold border border-cyan-400/40 shadow-[0_0_15px_rgba(6,182,212,0.2),inset_0_1px_0_0_rgba(255,255,255,0.15)]'
+                        : 'text-slate-400 hover:text-white hover:bg-white/[0.05]'
                     }`}
                   >
-                    <Icon size={14} className={active ? 'text-cyan-400' : 'text-slate-400'} />
+                    <Icon size={14} className={active ? 'text-cyan-400 drop-shadow-[0_0_6px_rgba(6,182,212,0.6)]' : 'text-slate-400'} />
                     <span className="lg:hidden">{item.label}</span>
                     <span className="hidden lg:inline">{item.fullLabel}</span>
                   </Link>

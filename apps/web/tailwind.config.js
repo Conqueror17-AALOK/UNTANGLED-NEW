@@ -46,13 +46,29 @@ export default {
         },
       },
       fontFamily: {
+        heading: ['Outfit', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
         sans: ['Inter', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'],
         mono: ['JetBrains Mono', 'Fira Code', 'SFMono-Regular', 'Menlo', 'monospace'],
       },
       boxShadow: {
         'cad-subtle': '0 1px 2px 0 rgba(0, 0, 0, 0.4)',
         'cad-panel': '0 4px 20px -2px rgba(0, 0, 0, 0.6)',
-        'cad-glow': '0 0 15px -3px rgba(37, 99, 235, 0.2)',
+        'cad-glow': '0 0 20px -3px rgba(37, 99, 235, 0.25)',
+        'glass': '0 8px 32px 0 rgba(0, 0, 0, 0.45), inset 0 1px 0 0 rgba(255, 255, 255, 0.08)',
+        'glass-hover': '0 12px 40px 0 rgba(0, 0, 0, 0.55), inset 0 1px 0 0 rgba(255, 255, 255, 0.14)',
+        'glow-cyan': '0 0 25px -3px rgba(6, 182, 212, 0.3)',
+        'glow-blue': '0 0 25px -3px rgba(37, 99, 235, 0.35)',
+        'glow-emerald': '0 0 25px -3px rgba(16, 185, 129, 0.3)',
+      },
+      animation: {
+        'pulse-subtle': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'shimmer': 'shimmer 2.5s linear infinite',
+      },
+      keyframes: {
+        shimmer: {
+          '0%': { backgroundPosition: '-200% 0' },
+          '100%': { backgroundPosition: '200% 0' },
+        },
       },
     },
   },
