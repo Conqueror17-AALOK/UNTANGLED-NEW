@@ -81,3 +81,8 @@ tmp/
 temp/
 debug_output/
 *.out
+
+# YOLO Training Runs & Base Weights
+runs/
+yolo11*.pt
+!models/yolo11_pid.pt
