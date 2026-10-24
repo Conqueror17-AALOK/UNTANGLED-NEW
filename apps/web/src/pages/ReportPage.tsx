@@ -382,7 +382,7 @@ export const ReportPage: React.FC = () => {
       </div>
 
       {/* SECTION: AI Detection Preview & Spatial Verification */}
-      <Card variant="glass" className="p-4 sm:p-5 space-y-4 border border-industrial-800">
+      <div className="adobe-card p-5 sm:p-6 space-y-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-industrial-800">
           <div className="flex items-center gap-2.5">
             <div className="p-2 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-cyan-400">
@@ -489,14 +489,12 @@ export const ReportPage: React.FC = () => {
               href={`/api/v1/jobs/${jobId}/detection-preview?page=${previewPage}&download=true`}
               download={`detection_preview_${jobId.slice(0, 8)}_p${previewPage}.png`}
             >
-              <Button
-                variant="secondary"
-                size="sm"
-                className="font-mono text-xs flex items-center gap-1 border-white/[0.1] text-slate-300 hover:bg-white/[0.06]"
+              <button
+                className="h-9 px-4 rounded-full border border-white/20 text-white font-bold hover:bg-white/10 flex items-center gap-1.5 transition-all text-xs"
               >
-                <Download size={12} />
+                <Download size={13} />
                 <span>Download PNG</span>
-              </Button>
+              </button>
             </a>
           </div>
         </div>
@@ -568,7 +566,7 @@ export const ReportPage: React.FC = () => {
             <span className="text-cyan-400 font-semibold">{previewMode === 'overlay' ? 'Detection Overlay View' : 'Original Raw Blueprint'}</span>
           </div>
         </div>
-      </Card>
+      </div>
 
       {/* Discrepancy Breakdown Sections */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
