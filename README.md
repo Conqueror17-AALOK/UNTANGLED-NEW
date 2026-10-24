@@ -1,230 +1,252 @@
-# 🔍 UNTANGLE: Intelligent P&ID Digitization & Cross-Validation Engine
+# UNTANGLE: Industrial P&ID Digitization, Validation, and Topological Graph Engine
 
-> **Win on trust, not feature count.**  
-> Transform messy, cluttered industrial Piping and Instrumentation Diagrams (P&IDs) and DCS IO Lists into clean, verified, operator-friendly interactive process sketches with per-tag multi-signal confidence, NVIDIA NIM LLM reasoning, and human-in-the-loop validation.
-
----
-
-## 🌟 Key Differentiators
-
-1. **Cross-Validation Between Drawing & IO List (Core Value):**  
-   Cross-references extracted tags with engineering DCS IO lists to detect discrepancies:
-   - Tags in IO List but missing from drawing (`missing_in_drawing`).
-   - Tags in drawing but missing from IO List (e.g. manual hand valves flagged under `missing_in_io_list`).
-   - Signal type mismatches (e.g. `PT` mapped to digital input instead of analog 4-20mA).
-2. **NVIDIA NIM LLM Tag Resolution (NeMoTron-3 Ultra 550B & NeMoTron-Bolt):**  
-   High-precision industrial contextual resolution powered by **NVIDIA NIM**:
-   - **Primary Model:** `nvidia/nemotron-3-ultra-550b-a55b` (550B parameters) for comprehensive tag disambiguation, character confusion correction, and ISA-5.1 verification.
-   - **Fast Companion:** `nvidia/nemotron-3.5-bolt-e4b` for low-latency high-throughput resolution fallback.
-   - **Resilient Fallback:** 18-second non-blocking timeout with automatic graceful fallback to deterministic rule normalization and fuzzy IO list matching.
-3. **Multi-Signal Confidence Scoring:**  
-   Combines OCR confidence ($w=0.20$), symbol matching ($w=0.20$), IO fuzzy match ($w=0.30$), ISA-5.1 grammar validity ($w=0.15$), and LLM reasoning ($w=0.15$) into an interpretable score ($0.0 - 1.0$) with transparent breakdown.
-4. **Three-Tier Decision Logic:**  
-   - **High Confidence ($\ge 0.85$):** Auto-accepted without human intervention.
-   - **Medium Confidence ($0.60 - 0.85$):** Resolved via targeted NVIDIA LLM candidate resolution.
-   - **Low Confidence ($< 0.60$):** Dispatched to the Human Review Queue.
-5. **Authentic ISA-5.1 Industrial CAD Symbols:**  
-   Interactive vector graphics conforming strictly to ANSI/ISA-5.1 standards:
-   - Centrifugal pumps with tangential discharge nozzles, control valves with dome diaphragms, manual valves with handwheels, and divided instrument bubbles with confidence halo rings.
-6. **Visual Traceability & Draggable Before/After:**  
-   Clicking any node on the simplified sketch jumps to the high-resolution source crop with bounding box overlay, raw OCR read, and resolution rationale. Draggable comparison slider compares original drawing with untangled schematic.
-7. **Multilingual Audit Reports (English, Hindi, Marathi):**  
-   Instant translation of audit summaries, discrepancy matrices, and tag inventories for regional plant technicians and field operators (`lang=en,hi,mr`).
+An offline, privacy-preserving engineering platform that digitizes complex Piping and Instrumentation Diagrams (P&IDs), cross-validates them against Distributed Control System (DCS) I/O spreadsheets, and reconstructs verified topological process graphs.
 
 ---
 
-## 🏗️ Architecture & Monorepo Ownership
+## Executive Summary
 
-UNTANGLE is built as a modular monorepo with strict directory boundaries:
+Engineering drawings in industrial plants (chemical, oil and gas, power, pharmaceutical) are frequently siloed in scanned, low-resolution, or cluttered vector PDF files. Reconciling these diagrams against instrumentation databases and DCS I/O lists traditionally requires weeks of manual engineering labor.
 
-| Directory | Owner | Responsibility | Status |
-|---|---|---|---|
-| `services/perception/` | **Aalok** | PyMuPDF vector/raster extraction, OpenCV preprocessing, dual OCR voting, symbol templates, line/crossing detection | **Complete** ✅ |
-| `services/api/` | **Indra** | FastAPI backend, SQLite repository, ISA-5.1 grammar cleanup, NVIDIA NIM LLM candidate resolver, Cross-validation engine, Graph builder & SVG layout | **Complete** ✅ |
-| `apps/web/` | **Yash** | Industrial CAD-styled React 18 + Vite SPA, SVG sketch canvas with pan/zoom, live WebSocket 9-stage tracker, Review Queue, Multilingual reports | **Complete** ✅ |
-| `infra/` & `docs/` | **Aalok** | Dockerfiles, Docker Compose, CI/CD, Benchmarks, Runbook, Demo script | **Complete** ✅ |
-| `contracts/` | **Shared** | OpenAPI 3.0 specification (`openapi.yaml`) and strict JSON Schemas | **Complete** ✅ |
+UNTANGLE automates this workflow end-to-end using local computer vision and vision-language models. The system operates entirely on-premise with zero external cloud API dependencies, ensuring confidential engineering assets remain strictly within the local environment.
 
 ---
 
-## 🔄 The 9-Stage Processing Pipeline
+## Key Capabilities
+
+1. **Local Neural Symbol Detection (YOLO11)**:
+   Detects micro-symbols, instrument bubbles, control valves, relief devices, and piping transitions across 17 ISA-5.1 standard classes using a custom fine-tuned YOLO11 model accelerated by Apple Silicon Metal Performance Shaders (MPS). Inference latency is approximately 28 ms per 640x640 tile crop.
+
+2. **Vision-Language Grounding (Florence-2 VLM)**:
+   Integrates a fine-tuned Florence-2 Vision-Language Model that produces simultaneous spatial bounding box coordinates and rich technical descriptions (e.g., tagging a component as a pneumatic diaphragm flow control valve fail-close rather than merely returning a class identifier).
+
+3. **Restoration for Degraded & Blurred Blueprints**:
+   Implements an adaptive image restoration pipeline featuring Contrast-Limited Adaptive Histogram Equalization (CLAHE), Unsharp Masking, and Sauvola adaptive local binarization to recover faint line-work and low-contrast text from degraded historical blueprints.
+
+4. **Bi-Directional Cross-Validation**:
+   Cross-references drawing components against DCS I/O lists to isolate discrepancies:
+   - Items in the I/O list missing from the diagram (`missing_in_drawing`).
+   - Physical equipment on drawings not registered in control databases (`missing_in_io_list`).
+   - Signal type mismatches (e.g., analog 4-20 mA transmitter wired to a discrete digital input channel).
+
+5. **Topological Graph & Port Snapping**:
+   Synthesizes directed process pipeline graphs (`graph.json`) by snapping line endpoints directly to cardinal symbol connection ports (inlet/outlet flanges, pump suction/discharge, actuator stems, and vessel nozzles).
+
+6. **Automated Simplified Schematics**:
+   Generates abstracted, de-cluttered single-line Process Flow Diagrams (`simplified_diagram.svg` and `simplified_diagram.pdf`) to provide operators with an immediate, readable high-level overview.
+
+7. **Multi-Lingual Engineering Audit Reports**:
+   Exports comprehensive discrepancy dossiers and Bill of Materials (BOM) in English, Hindi, and Marathi (`lang=en,hi,mr`) with downloadable JSON and printable PDF packages.
+
+---
+
+## Technical Architecture
 
 ```
-  [PDF Drawing] + [DCS IO List]
-              │
-              ▼
-  ┌─────────────────────────────────────────────────────────────┐
-  │ 1. Perception & Dual OCR Voting (PyMuPDF + Tess / Vector)    │
-  │ 2. IO List Parsing (openpyxl fuzzy header detection)         │
-  │ 3. Rule Cleanup (ISA-5.1 grammar & character confusion)     │
-  │ 4. LLM Resolver (NVIDIA NeMoTron-3 Ultra 550B)               │
-  │ 5. Cross-Validation (Drawing vs IO List discrepancy matrix)  │
-  │ 6. Spatial Graph Assembly (Line-to-port topological snapping)│
-  │ 7. Graph Simplification (Stream alignment & valve collapse) │
-  │ 8. Layered SVG Layout Engine (Deterministic CAD synthesis)  │
-  │ 9. Multilingual Engineering Report (EN / HI / MR + PDF)     │
-  └─────────────────────────────────────────────────────────────┘
-              │
-              ▼
-  [Interactive Simplified Process Sketch & Audit Dossier]
+[Raw P&ID PDF / Scanned Drawing]      [DCS I/O Spreadsheet (.xlsx / .csv)]
+               │                                      │
+               ▼                                      ▼
+    Perception & Restoration Engine            I/O Parser & Normalizer
+    - CLAHE & Unsharp Masking                  - Flexible header detection
+    - PyMuPDF Vector / Rasterizer              - Tag normalization
+    - Dual OCR Voting (Tesseract + Paddle)     - Signal type mapping
+    - YOLO11 Symbol Localization                      │
+    - Florence-2 Vision-Language Grounding            │
+               │                                      │
+               └──────────────────┬───────────────────┘
+                                  ▼
+                   Cross-Validation & Decision Engine
+                   - Multi-signal confidence calculation
+                   - Discrepancy matrix synthesis
+                   - ISA-5.1 syntactic verification
+                                  │
+                                  ▼
+                    Topological Process Graph Synthesis
+                    - Port-constrained line snapping
+                    - Flow direction & arrow propagation
+                    - Multi-sheet off-page connector stitching
+                                  │
+                                  ▼
+                    Downstream Delivery & Artifacts
+                    - Interactive Canvas Workspace (React 18 + Vite)
+                    - Human-in-the-Loop Review Queue
+                    - Simplified PFD Vector Diagram (.svg / .pdf)
+                    - Multi-Lingual Audit Dossier (.json / .pdf)
 ```
 
 ---
 
-## 🚀 Quickstart
+## Machine Learning Specifications
+
+### 1. YOLO11 P&ID Symbol Detector
+- **Architecture**: YOLO11n backbone fine-tuned on tiled industrial drawing crops.
+- **Hardware Acceleration**: Apple Silicon MPS GPU (`device="mps"`).
+- **Inference Speed**: ~28.6 ms per 640x640 tile.
+- **Weights Location**: `models/yolo11_pid.pt` (5.3 MB).
+- **Supported Classes (17 ISA-5.1 Categories)**:
+  - Instruments: `instrument_field`, `instrument_dcs` (divided bubble), `instrument_aux`, `instrument_shared`, `instrument_logic`.
+  - Valves: `valve_gate`, `valve_globe`, `valve_check`, `valve_ball`, `valve_butterfly`, `valve_control_diaphragm`, `valve_safety_psv`.
+  - Piping Details: `flange`, `reducer`, `orifice_plate`.
+  - Equipment: `pump_centrifugal`, `tank_vessel`.
+
+### 2. Florence-2 Vision-Language Model
+- **Architecture**: Sequence-to-Sequence Vision-Language Transformer (`microsoft/Florence-2-base`).
+- **Input**: Image tile + Task Prompt (`<DENSE_REGION_CAPTION>`, `<CAPTION_TO_PHRASE_GROUNDING>`, `<OD>`).
+- **Output**: Quantized spatial coordinate tokens (`<loc_Y1><loc_X1><loc_Y2><loc_X2>`) aligned with technical descriptions.
+- **Model Checkpoint**: `models/florence2_finetuned/`.
+
+---
+
+## Project Structure
+
+```
+UNTANGLED-NEW/
+├── apps/
+│   └── web/                                # React 18 + TypeScript + Vite frontend
+│       ├── src/
+│       │   ├── components/                 # Canvas, Navbar, UI primitives
+│       │   ├── pages/                      # Upload, Job, Workspace, Review, Report
+│       │   └── api/                        # Typed REST client
+│       └── package.json
+├── contracts/
+│   ├── openapi.yaml                        # OpenAPI 3.0 specification
+│   ├── schemas/                            # Strict JSON Schemas (perception, graph)
+│   └── samples/                            # Benchmark drawings and test I/O lists
+├── models/
+│   ├── yolo11_pid.pt                       # Fine-tuned YOLO11 symbol weights
+│   ├── florence2/                          # Base Florence-2 model artifacts
+│   └── florence2_finetuned/                # Fine-tuned Florence-2 VLM checkpoint
+├── services/
+│   ├── api/                                # FastAPI backend gateway
+│   │   └── app/
+│   │       ├── db/                         # SQLite repositories and Pydantic models
+│   │       ├── engine/                     # Graph builder, simplifier, cross-validator
+│   │       └── routes/                     # API endpoint controllers
+│   └── perception/                         # Computer vision & neural detection engine
+│       ├── perception/
+│       │   ├── lines/                      # Line, crossing, and arrow detectors
+│       │   ├── ocr/                        # Tesseract, PaddleOCR adapters and voting
+│       │   ├── symbols/                    # Symbol matcher & contour bubble detector
+│       │   ├── vlm/                        # Florence-2 model, trainer, dataset generator
+│       │   ├── yolo/                       # YOLO11 trainer, detector, dataset generator
+│       │   └── preprocess.py               # CLAHE, deskew, and binarization routines
+│       └── tests/                          # Perception unit & integration tests
+├── infra/
+│   ├── Dockerfile.api                      # API service container definition
+│   ├── Dockerfile.web                      # Web frontend container definition
+│   ├── docker-compose.yml                  # Multi-container local orchestration
+│   └── scripts/                            # Smoke test and validation utilities
+└── pyproject.toml                          # Python project configuration
+```
+
+---
+
+## Getting Started
 
 ### Prerequisites
-- Python 3.11+ (Python 3.12 recommended)
-- Tesseract OCR (`brew install tesseract` on macOS or `apt-get install tesseract-ocr` on Linux)
-- Node.js 20+ & npm
+- Python 3.11 or higher
+- Node.js 20 or higher with npm
+- Tesseract OCR (`brew install tesseract` on macOS, `apt-get install tesseract-ocr` on Debian/Ubuntu)
+
+### Local Environment Setup
+
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/Conqueror17-AALOK/UNTANGLED-NEW.git
+   cd UNTANGLED-NEW
+   ```
+
+2. **Configure Python Virtual Environment**:
+   ```bash
+   python3 -m venv .venv
+   source .venv/bin/activate
+   pip install --upgrade pip
+   pip install -r services/perception/requirements.txt
+   pip install -r services/api/requirements.txt
+   ```
+
+3. **Start the FastAPI Backend Service**:
+   ```bash
+   python -m uvicorn services.api.app.main:app --host 127.0.0.1 --port 8000 --reload
+   ```
+   - API Gateway: `http://127.0.0.1:8000`
+   - Interactive OpenAPI Documentation: `http://127.0.0.1:8000/docs`
+   - Healthcheck: `http://127.0.0.1:8000/api/v1/health`
+
+4. **Start the Frontend Application**:
+   In a separate terminal:
+   ```bash
+   cd apps/web
+   npm install
+   npm run dev -- --host 127.0.0.1 --port 3000
+   ```
+   - Application URL: `http://127.0.0.1:3000`
 
 ---
 
-### Option A: Local Development Setup
+## Containerized Deployment (Docker)
 
-#### 1. Clone & Setup Environment
+To deploy the complete application stack via Docker Compose:
+
 ```bash
-git clone https://github.com/Conqueror17-AALOK/UNTANGLED-NEW.git
-cd UNTANGLED-NEW
-cp .env.example .env
+docker compose -f infra/docker-compose.yml up --build
 ```
 
-#### 2. Backend Setup (Perception & API)
-```bash
-python -m venv .venv
-
-# On Linux/macOS:
-source .venv/bin/activate
-# On Windows PowerShell:
-# .\.venv\Scripts\Activate.ps1
-
-pip install -r services/perception/requirements.txt
-pip install -r services/api/requirements.txt
-```
-
-#### 3. Start FastAPI Backend Gateway
-```bash
-python -m uvicorn services.api.app.main:app --host 127.0.0.1 --port 8000 --reload
-```
-- OpenAPI Swagger UI: `http://localhost:8000/docs`
-- Deep Healthcheck: `http://localhost:8000/api/v1/health`
-- Live WebSocket: `ws://localhost:8000/ws/v1/jobs/{job_id}`
-
-#### 4. Frontend Setup & Launch
-In a new terminal:
-```bash
-cd apps/web
-npm install
-npm run dev
-```
-- Web Application: `http://localhost:3000`
-
-#### 5. One-Click Instant Demo
-Click **"Load Benchmark P&ID"** on the home page or trigger via API:
-```bash
-curl -X POST http://127.0.0.1:8000/api/v1/jobs/load-sample
-```
+- Frontend: `http://localhost:3000`
+- Backend API: `http://localhost:8000`
+- API Health Status: `http://localhost:8000/api/v1/health`
 
 ---
 
-### Option B: Docker Compose (Full Stack)
+## Testing & Verification
 
-Run the entire containerized stack with a single command:
+The test suite covers backend models, perception algorithms, neural detectors, schema contracts, and frontend components.
+
+### Run All Backend Tests (35 Tests Passing)
 ```bash
-docker compose up --build
-```
-- Frontend Web App: `http://localhost:3000`
-- FastAPI Documentation: `http://localhost:8000/docs`
-- Healthcheck: `http://localhost:8000/api/v1/health`
-
----
-
-## 🧪 Testing & Verification
-
-UNTANGLE maintains complete test coverage across backend algorithms and frontend components:
-
-### 1. Backend Pytest Suite (31 Tests Passing - 100%)
-```bash
-# Run all backend tests:
-pytest -v
-
-# Or run by subsystem:
-pytest services/api/tests -v          # 15 tests: Endpoints, LLM resolver, Confidence, IO Parser, Cleanup
-pytest services/perception/tests -v   # 16 tests: Lines, OCR, Symbols, Bubbles, Tiling, End-to-End
+PYTHONPATH=. .venv/bin/pytest services/
 ```
 
-### 2. Frontend Vitest & TypeScript Build
+### Run Subsystem Tests
 ```bash
-cd apps/web
-npm test -- --run     # 3/3 unit tests passing
-npm run build         # Type checking & production bundle synthesis
+# Perception, YOLO11, and Florence-2 VLM tests:
+PYTHONPATH=. .venv/bin/pytest services/perception/tests/
+
+# API, Cross-Validation, and I/O Parser tests:
+PYTHONPATH=. .venv/bin/pytest services/api/tests/
 ```
 
-### 3. Perception CLI Diagnostic Check
+### End-to-End Pipeline Smoke Test
 ```bash
-python -m services.perception.perception.run contracts/samples/sample_pid_01.pdf data/jobs/demo_job
+bash infra/scripts/smoke.sh
 ```
-*Outputs `perception.json` and visual bounding box overlay `debug_overlay_page_1.png` in `data/jobs/demo_job/`.*
+*Validates API health, uploads sample P&ID blueprints and DCS I/O lists, polls job processing, and asserts topological graph generation.*
 
-### 4. Benchmark & Ablation Script
+### Frontend Production Build
 ```bash
-python infra/scripts/benchmark.py
+npm --prefix apps/web run build
 ```
 
 ---
 
-## 🔌 API Endpoints Reference
+## REST API Reference
 
-All endpoints conform strictly to [`contracts/openapi.yaml`](contracts/openapi.yaml):
+All endpoints adhere strictly to the OpenAPI specification defined in `contracts/openapi.yaml`.
 
 | Method | Endpoint | Description |
 |---|---|---|
-| `POST` | `/api/v1/jobs` | Upload P&ID PDF and IO List XLSX, start 9-stage pipeline |
-| `POST` | `/api/v1/jobs/load-sample` | Pre-load benchmark sample P&ID & IO list for instant demo |
-| `GET` | `/api/v1/jobs/{id}` | Real-time status, pipeline stage (1–9), and progress metrics |
-| `GET` | `/api/v1/jobs/{id}/tags` | Extracted and resolved tags with 5-signal confidence breakdown |
-| `PATCH` | `/api/v1/jobs/{id}/tags/{tag_id}` | Human tag correction (updates to 100% confidence, logs audit trail) |
-| `POST` | `/api/v1/jobs/{id}/rebuild` | Sub-second (<400ms) re-simplification of stages 6–9 after human edits |
-| `GET` | `/api/v1/jobs/{id}/graph` | Simplified topological process graph JSON |
-| `GET` | `/api/v1/jobs/{id}/sketch` | Interactive SVG process sketch with confidence badges |
-| `GET` | `/api/v1/jobs/{id}/source/{page}/crop` | High-res source crop with cyan bounding box overlay |
-| `GET` | `/api/v1/jobs/{id}/report` | Cross-validation discrepancy audit report (supports `lang=en,hi,mr`) |
-| `GET` | `/api/v1/jobs/{id}/export` | Export bundled results as JSON, SVG, or printable HTML/PDF |
-| `GET` | `/api/v1/health` | Deep system health check (DB, Storage, OCR, NVIDIA NIM LLM) |
-| `WS` | `/ws/v1/jobs/{id}` | Live WebSocket stage & progress stream |
+| `POST` | `/api/v1/jobs` | Submit P&ID PDF and DCS I/O spreadsheet for processing. |
+| `GET` | `/api/v1/jobs/{id}` | Retrieve job processing status, stage, and completion progress. |
+| `GET` | `/api/v1/jobs/{id}/tags` | Fetch resolved engineering tags and confidence breakdowns. |
+| `PATCH` | `/api/v1/jobs/{id}/tags/{tag_id}` | Submit human-in-the-loop tag corrections and overrides. |
+| `GET` | `/api/v1/jobs/{id}/graph` | Retrieve synthesized topological process connectivity graph. |
+| `GET` | `/api/v1/jobs/{id}/report` | Generate discrepancy audit report with language support (`lang=en,hi,mr`). |
+| `GET` | `/api/v1/jobs/{id}/export` | Export bundled results as JSON, SVG, or printable PDF. |
+| `GET` | `/api/v1/health` | Perform deep health check (database, file storage, OCR, neural models). |
 
 ---
 
-## 📊 Benchmark & Ablation Results
+## License
 
-Evaluated on the benchmark ground truth dataset (`contracts/samples/sample_pid_01.pdf` & `docs/GROUND_TRUTH.md`):
-
-| Pipeline Stage | Tag Acc (%) | Symbol Acc (%) | Connection F1 |
-|---|---|---|---|
-| **1. Raw Perception (OCR / Vector)** | 60.0% | 33.3% | 71.4% |
-| **2. + ISA-5.1 & Rule Cleanup** | 73.3% | 33.3% | 85.7% |
-| **3. + NVIDIA NIM LLM & IO Cross-val** | **100.0%** | **100.0%** | **92.8%** |
-
----
-
-## 📋 Environment Variables
-
-| Variable | Default | Purpose |
-|---|---|---|
-| `API_TOKEN` | *(empty)* | Optional bearer token for deployed demo authentication |
-| `DATABASE_URL` | `sqlite:///./data/untangle.db` | SQLite database connection string |
-| `DATA_DIR` | `./data/jobs` | Local storage directory for jobs, crops, and SVG overlays |
-| `LLM_PROVIDER` | `nvidia` | Active LLM service provider (`nvidia`, `gemini`, or `heuristic`) |
-| `NVIDIA_API_KEY` | *(secret)* | API key for NVIDIA NIM |
-| `NVIDIA_BASE_URL` | `https://integrate.api.nvidia.com/v1` | Base URL for NVIDIA OpenAI-compatible inference endpoint |
-| `LLM_MODEL` | `nvidia/nemotron-3-ultra-550b-a55b` | Primary 550B model for high-precision tag resolution |
-| `LLM_MODEL_FAST` | `nvidia/nemotron-3.5-bolt-e4b` | Fast companion model for low-latency resolution fallback |
-| `CONF_AUTO_THRESHOLD` | `0.85` | Score threshold for auto-acceptance |
-| `CONF_REVIEW_THRESHOLD` | `0.60` | Score threshold for review queue |
-| `VITE_API_BASE_URL` | `http://localhost:8000/api/v1` | Backend API base URL for frontend |
-
----
-
-## 🛡️ License & Acknowledgments
-Built for Hackathon 2026. Designed for chemical, power, and industrial plant process safety and reliability.
-- **Team**: Aalok (Perception & Infra), Indra (API & Engine), Yash (Frontend Web App).
+Proprietary engineering software. All rights reserved.
+Developed for industrial reliability, functional safety, and asset integrity verification.
