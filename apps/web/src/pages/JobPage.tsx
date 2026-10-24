@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { CheckCircle2, Loader2, ArrowRight, Terminal, Cpu, AlertTriangle, Download } from 'lucide-react';
+import { CheckCircle2, Loader2, ArrowRight, Terminal, Cpu, AlertTriangle, Download, Sparkles } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
-import { Badge } from '../components/ui/Badge';
 import { JobStreamClient, PIPELINE_STAGES } from '../api/ws';
 import { apiClient } from '../api/client';
 import { Job, PipelineStage } from '../types';
@@ -112,28 +111,30 @@ export const JobPage: React.FC = () => {
   }, [jobId]);
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6 animate-fade-in">
-      
+    <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6 animate-fade-in">
+      {/* Ambient background glow */}
+      <div className="pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2 w-2/3 h-56 bg-blue-500/10 rounded-full blur-3xl -z-10" />
+
       {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-[#1e222d]">
-        <div className="flex items-start gap-3">
-          <div className="hidden sm:flex shrink-0 w-10 h-10 rounded-xl bg-industrial-900 border border-industrial-800 items-center justify-center shadow-md">
-            <img src="/logo-mark.png" alt="UNTANGLED" className="w-6 h-6 object-contain" />
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-industrial-800/80">
+        <div className="flex items-start gap-3.5">
+          <div className="hidden sm:flex shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-industrial-900 via-industrial-900 to-blue-950/40 border border-blue-500/30 items-center justify-center shadow-lg shadow-blue-950/30">
+            <img src="/logo-mark.png" alt="UNTANGLED" className="w-7 h-7 object-contain" />
           </div>
           <div>
-            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-[11px] font-mono text-cyan-400 bg-cyan-950/40 border border-cyan-800/50 mb-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
-              <span className="truncate max-w-[280px]">Job: {jobId}</span>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-mono text-cyan-400 bg-cyan-950/60 border border-cyan-700/50 mb-2 shadow-sm">
+              <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse shadow-glow-cyan" />
+              <span className="truncate max-w-[280px]">Job UUID: {jobId}</span>
             </div>
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#f1f5f9] flex items-center gap-2.5">
-              <Cpu size={22} className="text-blue-400 shrink-0" />
-              <span>Deterministic 9-Stage Pipeline Execution</span>
+            <h1 className="text-2xl sm:text-3xl font-heading font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-100 to-slate-300 flex items-center gap-2.5">
+              <Cpu size={24} className="text-cyan-400 shrink-0" />
+              <span>Deterministic 9-Stage Pipeline</span>
             </h1>
           </div>
         </div>
 
         {isDone ? (
-          <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 w-full sm:w-auto">
+          <div className="flex flex-wrap sm:flex-nowrap items-center gap-2.5 w-full sm:w-auto">
             <a
               href={`/api/v1/jobs/${jobId}/simplified-diagram/pdf`}
               download={`simplified_diagram_${jobId.slice(0, 8)}.pdf`}
@@ -141,7 +142,7 @@ export const JobPage: React.FC = () => {
               rel="noopener noreferrer"
               className="w-full sm:w-auto"
             >
-              <Button variant="secondary" size="md" className="w-full sm:w-auto font-mono text-xs flex items-center justify-center gap-1.5">
+              <Button variant="secondary" size="md" className="w-full sm:w-auto font-mono text-xs flex items-center justify-center gap-1.5 border-emerald-700/60 text-emerald-300 hover:bg-emerald-950/40">
                 <Download size={13} className="text-emerald-400" />
                 <span>Download Diagram (PDF)</span>
               </Button>
@@ -150,73 +151,88 @@ export const JobPage: React.FC = () => {
               variant="engineering"
               size="md"
               onClick={() => navigate(`/workspace/${jobId}`)}
-              className="w-full sm:w-auto font-mono text-xs flex items-center justify-center gap-1.5"
+              className="w-full sm:w-auto font-mono text-xs flex items-center justify-center gap-2 shadow-glow-cyan"
             >
-              <span>Inspect Process Topology</span>
+              <span>Inspect Topology</span>
               <ArrowRight size={14} />
             </Button>
           </div>
         ) : errorMsg ? (
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded bg-red-950/40 border border-red-800 text-xs font-mono text-red-400">
-            <AlertTriangle size={13} className="text-red-400" />
-            <span>Pipeline Failed: {errorMsg}</span>
+          <div className="flex items-center gap-2.5 px-3.5 py-2 rounded-xl bg-red-950/60 border border-red-500/40 text-xs font-mono text-red-300 shadow-md">
+            <AlertTriangle size={15} className="text-red-400 shrink-0" />
+            <span className="truncate max-w-[320px]">Failed: {errorMsg}</span>
           </div>
         ) : (
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded bg-[#12141c] border border-[#1e222d] text-xs font-mono text-blue-400">
-            <Loader2 size={13} className="animate-spin text-blue-400" />
-            <span>Active: {currentStage}</span>
+          <div className="flex items-center gap-2.5 px-3.5 py-2 rounded-xl bg-industrial-900/90 border border-cyan-500/30 text-xs font-mono text-cyan-300 shadow-md">
+            <Loader2 size={14} className="animate-spin text-cyan-400" />
+            <span>Active Stage: <strong className="text-white uppercase">{currentStage}</strong></span>
           </div>
         )}
       </div>
 
       {/* Progress & Live Telemetry Card */}
-      <Card className="relative bg-[#12141c] border-[#1e222d] p-5 space-y-4 overflow-hidden">
+      <Card variant="glass" className="relative p-6 space-y-5 overflow-hidden">
         {/* Subtle Watermark */}
         <div className="pointer-events-none absolute right-3 bottom-2 opacity-[0.035] select-none z-0">
-          <img src="/logo-mark.png" alt="" className="w-36 h-36 object-contain" />
+          <img src="/logo-mark.png" alt="" className="w-48 h-48 object-contain" />
         </div>
+
         <div className="flex items-center justify-between text-xs font-mono">
-          <span className="text-[#94a3b8] flex items-center gap-2">
-            <Terminal size={14} className="text-[#64748b]" />
-            <span>PIPELINE PROGRESS</span>
+          <span className="text-slate-300 flex items-center gap-2">
+            <Terminal size={14} className="text-cyan-400" />
+            <span className="font-semibold tracking-wider">PIPELINE EXECUTION PROGRESS</span>
           </span>
-          <span className="text-blue-400 font-bold tabular-nums">{Math.round(progress * 100)}%</span>
+          <div className="flex items-center gap-2">
+            {isDone && (
+              <span className="inline-flex items-center gap-1 text-[11px] text-emerald-400 font-mono">
+                <Sparkles size={12} />
+                <span>COMPLETE</span>
+              </span>
+            )}
+            <span className="text-cyan-400 font-bold text-base tabular-nums">{Math.round(progress * 100)}%</span>
+          </div>
         </div>
 
-        <div className="w-full h-2 rounded bg-[#090a0f] overflow-hidden border border-[#1e222d]">
+        {/* High-tech Multi-gradient Progress Bar */}
+        <div className="relative w-full h-3 rounded-full bg-industrial-950 overflow-hidden border border-industrial-800 p-0.5">
           <div
-            className="h-full bg-blue-500 transition-all duration-300"
+            className="h-full rounded-full bg-gradient-to-r from-blue-600 via-indigo-500 to-cyan-400 transition-all duration-500 relative"
             style={{ width: `${Math.min(100, Math.max(5, progress * 100))}%` }}
-          />
+          >
+            <div className="absolute inset-0 bg-white/20 animate-pulse" />
+          </div>
         </div>
 
-        {/* Live Stage Statistics */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3 pt-1 text-center font-mono text-xs">
-          <div className="p-2.5 rounded bg-[#090a0f] border border-[#1e222d]">
-            <span className="text-[10px] text-[#64748b] block">AUTO-RESOLVED</span>
-            <span className="text-emerald-400 font-bold text-sm tabular-nums">{summary.resolved}</span>
+        {/* Live Stage Statistics Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-2 text-center font-mono text-xs">
+          <div className="p-3.5 rounded-xl bg-industrial-950/70 border-t-2 border-t-emerald-500 border border-industrial-800/80 shadow-md">
+            <span className="text-[10px] text-slate-400 uppercase tracking-wider block font-medium">AUTO-RESOLVED TAGS</span>
+            <span className="text-emerald-400 font-bold text-xl tabular-nums mt-0.5 block">{summary.resolved}</span>
+            <span className="text-[10px] text-slate-500 font-mono mt-1 block">Cross-verified</span>
           </div>
-          <div className="p-2.5 rounded bg-[#090a0f] border border-[#1e222d]">
-            <span className="text-[10px] text-[#64748b] block">NEEDS REVIEW</span>
-            <span className="text-amber-400 font-bold text-sm tabular-nums">{summary.needs_review}</span>
+          <div className="p-3.5 rounded-xl bg-industrial-950/70 border-t-2 border-t-amber-500 border border-industrial-800/80 shadow-md">
+            <span className="text-[10px] text-slate-400 uppercase tracking-wider block font-medium">NEEDS REVIEW</span>
+            <span className="text-amber-400 font-bold text-xl tabular-nums mt-0.5 block">{summary.needs_review}</span>
+            <span className="text-[10px] text-slate-500 font-mono mt-1 block">HITL queue</span>
           </div>
-          <div className="p-2.5 rounded bg-[#090a0f] border border-[#1e222d]">
-            <span className="text-[10px] text-[#64748b] block">STAGES EXECUTED</span>
-            <span className="text-[#f1f5f9] font-bold text-sm tabular-nums">
-              {completedStages.size} / 9
+          <div className="p-3.5 rounded-xl bg-industrial-950/70 border-t-2 border-t-cyan-500 border border-industrial-800/80 shadow-md">
+            <span className="text-[10px] text-slate-400 uppercase tracking-wider block font-medium">STAGES EXECUTED</span>
+            <span className="text-slate-100 font-bold text-xl tabular-nums mt-0.5 block">
+              {completedStages.size} <span className="text-xs text-slate-500">/ 9</span>
             </span>
+            <span className="text-[10px] text-slate-500 font-mono mt-1 block">100% deterministic</span>
           </div>
         </div>
       </Card>
 
       {/* 9 Stages List */}
-      <div className="space-y-2.5">
-        <div className="flex items-center justify-between text-[11px] font-mono text-[#64748b] uppercase tracking-wider px-1">
-          <span>Stage Sequence</span>
-          <span>Status</span>
+      <div className="space-y-3">
+        <div className="flex items-center justify-between text-xs font-mono text-slate-400 uppercase tracking-wider px-1">
+          <span className="font-semibold">Pipeline Architecture Sequence</span>
+          <span>Status Verification</span>
         </div>
 
-        <div className="space-y-1.5">
+        <div className="space-y-2">
           {PIPELINE_STAGES.map((s, index) => {
             const isCompleted = completedStages.has(s.id) || isDone;
             const isCurrent = currentStage === s.id && !isDone;
@@ -224,39 +240,49 @@ export const JobPage: React.FC = () => {
             return (
               <div
                 key={s.id}
-                className={`flex items-center justify-between p-3 rounded border transition-colors ${
+                className={`flex items-center justify-between p-3.5 rounded-xl border transition-all duration-200 ${
                   isCurrent
-                    ? 'bg-[#151821] border-blue-500/40 text-[#f1f5f9]'
+                    ? 'bg-gradient-to-r from-blue-950/40 via-cyan-950/20 to-industrial-900 border-cyan-500/50 text-white shadow-glow-cyan'
                     : isCompleted
-                    ? 'bg-[#12141c] border-[#1e222d] text-[#f1f5f9]'
-                    : 'bg-[#090a0f] border-[#1e222d]/60 text-[#64748b]'
+                    ? 'bg-industrial-900/70 border-industrial-800 text-slate-200 hover:border-industrial-700'
+                    : 'bg-industrial-950/60 border-industrial-900 text-slate-500'
                 }`}
               >
-                <div className="flex items-center gap-3">
-                  <div className="w-6 h-6 rounded bg-[#1c202d] border border-[#2b3145] flex items-center justify-center font-mono text-[11px] shrink-0">
+                <div className="flex items-center gap-3.5">
+                  <div className={`w-7 h-7 rounded-lg border flex items-center justify-center font-mono text-xs shrink-0 transition-colors ${
+                    isCompleted
+                      ? 'bg-emerald-950/40 border-emerald-500/40 text-emerald-400 shadow-glow-emerald'
+                      : isCurrent
+                      ? 'bg-cyan-950/60 border-cyan-400 text-cyan-300 shadow-glow-cyan'
+                      : 'bg-industrial-900 border-industrial-800 text-slate-600'
+                  }`}>
                     {isCompleted ? (
-                      <CheckCircle2 size={14} className="text-emerald-400" />
+                      <CheckCircle2 size={16} className="text-emerald-400" />
                     ) : isCurrent ? (
-                      <Loader2 size={13} className="animate-spin text-blue-400" />
+                      <Loader2 size={14} className="animate-spin text-cyan-400" />
                     ) : (
-                      <span className="text-[#64748b]">{index + 1}</span>
+                      <span>{index + 1}</span>
                     )}
                   </div>
                   <div>
-                    <p className={`text-xs font-semibold ${isCurrent ? 'text-blue-300' : isCompleted ? 'text-[#f1f5f9]' : 'text-[#64748b]'}`}>
+                    <p className={`text-xs font-semibold ${isCurrent ? 'text-cyan-300 font-bold' : isCompleted ? 'text-slate-100' : 'text-slate-500'}`}>
                       {s.label}
                     </p>
-                    <p className="text-[11px] text-[#64748b] font-mono hidden sm:block">{s.desc}</p>
+                    <p className="text-[11px] text-slate-400 font-mono hidden sm:block mt-0.5">{s.desc}</p>
                   </div>
                 </div>
 
                 <div>
                   {isCompleted ? (
-                    <Badge variant="high" size="xs">DONE</Badge>
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-950/50 border border-emerald-500/40 text-emerald-400 shadow-sm">
+                      DONE
+                    </span>
                   ) : isCurrent ? (
-                    <Badge variant="blue" size="xs">RUNNING</Badge>
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-cyan-950/60 border border-cyan-400 text-cyan-300 animate-pulse shadow-glow-cyan">
+                      RUNNING
+                    </span>
                   ) : (
-                    <span className="text-[10px] font-mono text-[#64748b]">QUEUED</span>
+                    <span className="text-[10px] font-mono text-slate-600 px-2 py-0.5">QUEUED</span>
                   )}
                 </div>
               </div>
@@ -268,3 +294,4 @@ export const JobPage: React.FC = () => {
     </div>
   );
 };
+
