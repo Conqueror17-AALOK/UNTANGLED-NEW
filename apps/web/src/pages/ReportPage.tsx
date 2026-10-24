@@ -12,6 +12,12 @@ import {
   XCircle,
   GitBranch,
   ShieldCheck,
+  Eye,
+  ZoomIn,
+  ZoomOut,
+  RotateCcw,
+  Sparkles,
+  Layers,
 } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
@@ -25,6 +31,23 @@ export const ReportPage: React.FC = () => {
   const [report, setReport] = useState<ReportData | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
+  // AI Detection Preview States
+  const [previewMode, setPreviewMode] = useState<'overlay' | 'original'>('overlay');
+  const [previewPage, setPreviewPage] = useState<number>(1);
+  const [previewZoom, setPreviewZoom] = useState<number>(1.0);
+  const [previewsInfo, setPreviewsInfo] = useState<{
+    job_id: string;
+    total_pages: number;
+    pages: Array<{
+      page: number;
+      preview_url: string;
+      original_url: string;
+      symbols_detected: number;
+      tags_detected: number;
+      lines_detected: number;
+    }>;
+  } | null>(null);
+
   useEffect(() => {
     setIsLoading(true);
     apiClient.getReport(jobId, lang)
@@ -36,6 +59,10 @@ export const ReportPage: React.FC = () => {
         console.error('Failed to load report:', err);
         setIsLoading(false);
       });
+
+    apiClient.getDetectionPreviewsInfo(jobId)
+      .then(setPreviewsInfo)
+      .catch((err) => console.warn('Could not load previews info:', err));
   }, [jobId, lang]);
 
   if (isLoading || !report) {
@@ -116,17 +143,17 @@ export const ReportPage: React.FC = () => {
 
           <a
             href={`/api/v1/jobs/${jobId}/simplified-diagram/pdf`}
-            download={`diagram_${jobId.slice(0, 8)}.pdf`}
+            download={`smart_vector_diagram_${jobId.slice(0, 8)}.pdf`}
             target="_blank"
             rel="noopener noreferrer"
           >
             <Button
               variant="secondary"
               size="sm"
-              className="font-mono text-xs flex items-center gap-1.5 border-emerald-400/40 text-emerald-300 hover:bg-emerald-500/10"
+              className="font-mono text-xs flex items-center gap-1.5 border-cyan-400/50 text-cyan-300 hover:bg-cyan-500/10 shadow-[0_0_12px_rgba(56,189,248,0.2)]"
             >
-              <Download size={13} />
-              <span>Diagram PDF</span>
+              <Sparkles size={13} className="text-cyan-400" />
+              <span>Smart Vector PDF</span>
             </Button>
           </a>
 
@@ -134,10 +161,10 @@ export const ReportPage: React.FC = () => {
             variant="secondary"
             size="sm"
             onClick={handleDownloadPDF}
-            className="font-mono text-xs flex items-center gap-1.5"
+            className="font-mono text-xs flex items-center gap-1.5 border-blue-500/30 text-blue-300 hover:bg-blue-500/10"
           >
             <FileCheck2 size={13} className="text-blue-400" />
-            <span>Report PDF</span>
+            <span>Audit PDF (with Overlay)</span>
           </Button>
 
           <Button
@@ -362,6 +389,195 @@ export const ReportPage: React.FC = () => {
                 <div style={{ width: `${summary.confidence_breakdown_avg?.grammar ?? 96.0}%` }} className="h-full bg-cyan-500 rounded-full" />
               </div>
             </div>
+          </div>
+        </div>
+      </Card>
+
+      {/* SECTION: AI Detection Preview & Spatial Verification */}
+      <Card variant="glass" className="p-4 sm:p-5 space-y-4 border border-industrial-800">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-industrial-800">
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-cyan-400">
+              <Eye size={18} />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-sm font-heading font-bold text-white tracking-tight">
+                  AI Detection Preview &amp; Spatial Verification
+                </h2>
+                <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-400/30">
+                  100% Traceability
+                </span>
+              </div>
+              <p className="text-[11px] font-mono text-slate-400">
+                Visual proof of neural symbol detections, OCR tag bounding boxes, valves, and piping connections overlaid on the physical drawing
+              </p>
+            </div>
+          </div>
+
+          {/* Interactive Inspection Controls */}
+          <div className="flex flex-wrap items-center gap-2 font-mono text-xs">
+            {/* View Mode Toggle */}
+            <div className="flex items-center bg-white/[0.04] p-1 rounded-xl border border-white/[0.1] backdrop-blur-xl">
+              <button
+                type="button"
+                onClick={() => setPreviewMode('overlay')}
+                className={`px-2.5 py-1 rounded-lg text-[11px] font-medium flex items-center gap-1.5 transition-all ${
+                  previewMode === 'overlay'
+                    ? 'bg-cyan-500/20 text-cyan-300 font-bold border border-cyan-400/40 shadow-[0_0_8px_rgba(6,182,212,0.3)]'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <Sparkles size={12} className={previewMode === 'overlay' ? 'text-cyan-400' : 'text-slate-500'} />
+                <span>AI Detection Overlay</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setPreviewMode('original')}
+                className={`px-2.5 py-1 rounded-lg text-[11px] font-medium flex items-center gap-1.5 transition-all ${
+                  previewMode === 'original'
+                    ? 'bg-white/[0.15] text-white font-bold border border-white/20'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <Layers size={12} className={previewMode === 'original' ? 'text-white' : 'text-slate-500'} />
+                <span>Original Blueprint</span>
+              </button>
+            </div>
+
+            {/* Zoom Controls */}
+            <div className="flex items-center bg-white/[0.04] px-1.5 py-1 rounded-xl border border-white/[0.1] gap-1">
+              <button
+                type="button"
+                title="Zoom Out"
+                onClick={() => setPreviewZoom((z) => Math.max(0.6, z - 0.2))}
+                className="p-1 rounded text-slate-400 hover:text-white hover:bg-white/[0.08] transition-colors"
+              >
+                <ZoomOut size={13} />
+              </button>
+              <span className="text-[10px] text-slate-300 w-9 text-center font-bold">
+                {Math.round(previewZoom * 100)}%
+              </span>
+              <button
+                type="button"
+                title="Zoom In"
+                onClick={() => setPreviewZoom((z) => Math.min(2.5, z + 0.2))}
+                className="p-1 rounded text-slate-400 hover:text-white hover:bg-white/[0.08] transition-colors"
+              >
+                <ZoomIn size={13} />
+              </button>
+              <button
+                type="button"
+                title="Reset Zoom"
+                onClick={() => setPreviewZoom(1.0)}
+                className="p-1 rounded text-slate-400 hover:text-white hover:bg-white/[0.08] transition-colors"
+              >
+                <RotateCcw size={12} />
+              </button>
+            </div>
+
+            {/* Multi-page Selector if > 1 page */}
+            {previewsInfo && previewsInfo.total_pages > 1 && (
+              <div className="flex items-center gap-1 bg-white/[0.04] p-1 rounded-xl border border-white/[0.1]">
+                {previewsInfo.pages.map((p) => (
+                  <button
+                    key={p.page}
+                    type="button"
+                    onClick={() => setPreviewPage(p.page)}
+                    className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                      previewPage === p.page
+                        ? 'bg-blue-500/20 text-blue-300 border border-blue-400/40'
+                        : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    Sheet {p.page}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Direct Download High-Res PNG */}
+            <a
+              href={`/api/v1/jobs/${jobId}/detection-preview?page=${previewPage}&download=true`}
+              download={`detection_preview_${jobId.slice(0, 8)}_p${previewPage}.png`}
+            >
+              <Button
+                variant="secondary"
+                size="sm"
+                className="font-mono text-xs flex items-center gap-1 border-white/[0.1] text-slate-300 hover:bg-white/[0.06]"
+              >
+                <Download size={12} />
+                <span>Download PNG</span>
+              </Button>
+            </a>
+          </div>
+        </div>
+
+        {/* Spatial Color-Coded Detection Legend Bar */}
+        <div className="p-2.5 rounded-xl bg-industrial-950/80 border border-industrial-800 flex flex-wrap items-center justify-between gap-2.5 text-xs font-mono">
+          <div className="flex flex-wrap items-center gap-3 text-[11px]">
+            <span className="text-slate-400 font-semibold uppercase text-[10px]">Legend:</span>
+            <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-cyan-950/40 border border-cyan-500/30 text-cyan-300">
+              <span className="w-2 h-2 rounded-sm bg-cyan-400" />
+              <span>OCR Tag &amp; Text Boxes</span>
+            </span>
+            <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-amber-950/40 border border-amber-500/30 text-amber-300">
+              <span className="w-2 h-2 rounded-full bg-amber-400" />
+              <span>ISA-5.1 Instruments (FIC, PT, LT)</span>
+            </span>
+            <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-orange-950/40 border border-orange-500/30 text-orange-300">
+              <span className="w-2 h-2 rounded-sm bg-orange-500" />
+              <span>Control &amp; Manual Valves</span>
+            </span>
+            <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-950/40 border border-emerald-500/30 text-emerald-300">
+              <span className="w-2 h-2 rounded-sm bg-emerald-400" />
+              <span>Equipment (Pumps, Tanks, Vessels)</span>
+            </span>
+            <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-purple-950/40 border border-purple-500/30 text-purple-300">
+              <span className="w-2 h-2 rounded-sm bg-purple-400" />
+              <span>Off-Page Connectors</span>
+            </span>
+            <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-red-950/40 border border-red-500/30 text-red-300">
+              <span className="w-2 h-2 rounded-full bg-red-500" />
+              <span>Pipe Junctions</span>
+            </span>
+          </div>
+
+          <div className="text-[11px] text-slate-400">
+            <span className="text-cyan-300 font-bold">Model:</span> YOLO11-PID Fine-Tuned (MPS Accelerated)
+          </div>
+        </div>
+
+        {/* High-Resolution Pan/Zoom Canvas Viewport */}
+        <div className="relative w-full rounded-xl overflow-hidden border border-white/[0.08] bg-[#070b14] shadow-inner">
+          <div className="max-h-[620px] overflow-auto p-2 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+            <div
+              style={{
+                transform: `scale(${previewZoom})`,
+                transformOrigin: 'top left',
+                transition: 'transform 0.15s ease',
+              }}
+              className="inline-block min-w-full"
+            >
+              <img
+                src={
+                  previewMode === 'overlay'
+                    ? apiClient.getDetectionPreviewUrl(jobId, previewPage)
+                    : apiClient.getOriginalPageUrl(jobId, previewPage)
+                }
+                alt="P&ID Detection Preview"
+                className="w-full h-auto rounded shadow-2xl block object-contain"
+                loading="eager"
+              />
+            </div>
+          </div>
+
+          {/* Floating Watermark & Badge */}
+          <div className="absolute bottom-3 right-3 bg-industrial-950/90 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/10 text-[10px] font-mono flex items-center gap-2 text-slate-300 shadow-lg">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span>ISA-5.1 Verification Active</span>
+            <span className="text-slate-500">•</span>
+            <span className="text-cyan-400 font-semibold">{previewMode === 'overlay' ? 'Detection Overlay View' : 'Original Raw Blueprint'}</span>
           </div>
         </div>
       </Card>

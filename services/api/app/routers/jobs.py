@@ -39,6 +39,7 @@ from services.api.app.engine.merger import (
 )
 from services.api.app.engine.simplifier import simplify_graph_layout
 from services.api.app.engine.svg_generator import generate_svg_sketch
+from services.api.app.engine.smart_pdf_generator import generate_smart_vector_pdf
 from services.api.app.engine.report_generator import generate_pdf_report, localize_report
 
 router = APIRouter(prefix="/jobs", tags=["jobs"], dependencies=[Depends(verify_api_token)])
@@ -410,10 +411,10 @@ def get_report(
 @router.get("/{job_id}/export")
 def export_job(
     job_id: str,
-    export_format: str = Query(..., alias="format", pattern="^(json|svg|pdf|diagram-pdf)$")
+    export_format: str = Query(..., alias="format", pattern="^(json|svg|pdf|diagram-pdf|smart-pdf)$")
 ):
     """
-    Export processed job artifacts as JSON, SVG, Audit PDF, or Diagram PDF.
+    Export processed job artifacts as JSON, SVG, Audit PDF, or Smart Vector Diagram PDF.
     """
     settings = get_settings()
     job_dir = os.path.join(settings.DATA_DIR, job_id)
@@ -438,25 +439,55 @@ def export_job(
         }
         return bundle
 
-    elif export_format == "diagram-pdf":
+    elif export_format in ("diagram-pdf", "smart-pdf"):
         pdf_path = os.path.join(job_dir, "simplified_diagram.pdf")
+        graph_path = os.path.join(job_dir, "graph.json")
+        res_path = os.path.join(job_dir, "resolved_items.json")
         svg_path = os.path.join(job_dir, "sketch.svg")
-        if not os.path.exists(pdf_path):
-            if os.path.exists(svg_path):
+
+        # Generate or re-generate Smart Vector PDF with interactive annotations if needed
+        if not os.path.exists(pdf_path) or export_format == "smart-pdf":
+            if os.path.exists(graph_path):
+                try:
+                    with open(graph_path, "r", encoding="utf-8") as f:
+                        graph_data = json.load(f)
+                    graph_schema = GraphSchema(**graph_data)
+                    tag_meta = {}
+                    if os.path.exists(res_path):
+                        with open(res_path, "r", encoding="utf-8") as f:
+                            res_data = json.load(f)
+                            items_list = res_data.get("items", []) if isinstance(res_data, dict) else res_data
+                            for it in items_list:
+                                tag_meta[it.get("normalized_tag", "")] = it
+                                tag_meta[it.get("id", "")] = it
+
+                    pdf_bytes = generate_smart_vector_pdf(graph_schema, job_id, tag_meta)
+                    with open(pdf_path, "wb") as f:
+                        f.write(pdf_bytes)
+                except Exception as e:
+                    logger.warning(f"Failed to generate smart pdf: {e}")
+                    if os.path.exists(svg_path):
+                        with open(svg_path, "r", encoding="utf-8") as f:
+                            svg_content = f.read()
+                        svg_doc = fitz.open(stream=svg_content.encode("utf-8"), filetype="svg")
+                        pdf_bytes = svg_doc.convert_to_pdf()
+                    else:
+                        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Simplified diagram artifacts not found")
+            elif os.path.exists(svg_path):
                 with open(svg_path, "r", encoding="utf-8") as f:
                     svg_content = f.read()
                 svg_doc = fitz.open(stream=svg_content.encode("utf-8"), filetype="svg")
                 pdf_bytes = svg_doc.convert_to_pdf()
-                with open(pdf_path, "wb") as f:
-                    f.write(pdf_bytes)
             else:
                 raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Simplified diagram artifacts not found")
-        with open(pdf_path, "rb") as f:
-            pdf_bytes = f.read()
+        else:
+            with open(pdf_path, "rb") as f:
+                pdf_bytes = f.read()
+
         return Response(
             content=pdf_bytes,
             media_type="application/pdf",
-            headers={"Content-Disposition": f"attachment; filename=simplified_diagram_{job_id[:8]}.pdf"}
+            headers={"Content-Disposition": f"attachment; filename=simplified_diagram_smart_vector_{job_id[:8]}.pdf"}
         )
 
     elif export_format == "pdf":
@@ -476,19 +507,30 @@ def export_job(
 @router.get("/{job_id}/simplified-diagram/pdf")
 def download_simplified_diagram_pdf(job_id: str, db: Session = Depends(get_db)):
     """
-    Download the simplified engineering process diagram as a vector PDF document.
+    Download the simplified engineering process diagram as a Smart Vector PDF document
+    with interactive annotations, clickable tag tooltips, and infinite zoom clarity.
     """
     settings = get_settings()
     job_dir = os.path.join(settings.DATA_DIR, job_id)
     pdf_path = os.path.join(job_dir, "simplified_diagram.pdf")
-    svg_path = os.path.join(job_dir, "sketch.svg")
+    graph_path = os.path.join(job_dir, "graph.json")
+    res_path = os.path.join(job_dir, "resolved_items.json")
 
     if not os.path.exists(pdf_path):
-        if os.path.exists(svg_path):
-            with open(svg_path, "r", encoding="utf-8") as f:
-                svg_content = f.read()
-            svg_doc = fitz.open(stream=svg_content.encode("utf-8"), filetype="svg")
-            pdf_bytes = svg_doc.convert_to_pdf()
+        if os.path.exists(graph_path):
+            with open(graph_path, "r", encoding="utf-8") as f:
+                graph_data = json.load(f)
+            graph_schema = GraphSchema(**graph_data)
+            tag_meta = {}
+            if os.path.exists(res_path):
+                with open(res_path, "r", encoding="utf-8") as f:
+                    res_data = json.load(f)
+                    items_list = res_data.get("items", []) if isinstance(res_data, dict) else res_data
+                    for it in items_list:
+                        tag_meta[it.get("normalized_tag", "")] = it
+                        tag_meta[it.get("id", "")] = it
+
+            pdf_bytes = generate_smart_vector_pdf(graph_schema, job_id, tag_meta)
             with open(pdf_path, "wb") as f:
                 f.write(pdf_bytes)
         else:
@@ -496,17 +538,151 @@ def download_simplified_diagram_pdf(job_id: str, db: Session = Depends(get_db)):
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail={"code": "DIAGRAM_NOT_FOUND", "message": "Simplified diagram not yet generated."}
             )
-
-    with open(pdf_path, "rb") as f:
-        content = f.read()
+    else:
+        with open(pdf_path, "rb") as f:
+            pdf_bytes = f.read()
 
     return Response(
-        content=content,
+        content=pdf_bytes,
         media_type="application/pdf",
         headers={
-            "Content-Disposition": f"attachment; filename=simplified_diagram_{job_id[:8]}.pdf"
+            "Content-Disposition": f"attachment; filename=simplified_diagram_smart_vector_{job_id[:8]}.pdf"
         }
     )
+
+
+@router.get("/{job_id}/detection-preview")
+def get_detection_preview(
+    job_id: str,
+    page: int = Query(1, ge=1),
+    download: bool = Query(False),
+    db: Session = Depends(get_db)
+):
+    """
+    Serve high-resolution visual detection overlay image showing all detected labels,
+    tags, equipment, valves, and lines overlaid on top of the original blueprint.
+    """
+    settings = get_settings()
+    job_dir = os.path.join(settings.DATA_DIR, job_id)
+    overlay_path = os.path.join(job_dir, f"debug_overlay_page_{page}.png")
+
+    if not os.path.exists(overlay_path):
+        # Fallback to page 1 overlay
+        fallback_path = os.path.join(job_dir, "debug_overlay_page_1.png")
+        if os.path.exists(fallback_path):
+            overlay_path = fallback_path
+        else:
+            # Dynamically render overlay from perception.json and PDF
+            job = db.query(JobModel).filter(JobModel.id == job_id).first()
+            perc_path = os.path.join(job_dir, "perception.json")
+            if job and os.path.exists(job.pdf_path) and os.path.exists(perc_path):
+                try:
+                    import cv2
+                    import numpy as np
+                    from services.perception.perception.run import generate_debug_overlay
+                    from services.perception.perception.schema import PerceptionOutput
+                    with open(perc_path, "r", encoding="utf-8") as f:
+                        perc_data = json.load(f)
+                    perception_output = PerceptionOutput(**perc_data)
+                    page_perc = next((p for p in perception_output.pages if p.page_number == page), perception_output.pages[0])
+                    doc = fitz.open(job.pdf_path)
+                    pdf_page = doc[max(0, min(page - 1, len(doc) - 1))]
+                    pix = pdf_page.get_pixmap(dpi=150)
+                    bg_img = cv2.imdecode(np.frombuffer(pix.tobytes("png"), dtype=np.uint8), cv2.IMREAD_COLOR)
+                    generate_debug_overlay(bg_img, page_perc, overlay_path)
+                except Exception as e:
+                    logger.warning(f"Could not dynamically render debug overlay: {e}")
+
+    if not os.path.exists(overlay_path):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={"code": "PREVIEW_NOT_FOUND", "message": f"Detection preview image for page {page} not found."}
+        )
+
+    with open(overlay_path, "rb") as f:
+        content = f.read()
+
+    headers = {}
+    if download:
+        headers["Content-Disposition"] = f"attachment; filename=detection_preview_{job_id[:8]}_p{page}.png"
+
+    return Response(content=content, media_type="image/png", headers=headers)
+
+
+@router.get("/{job_id}/original-page")
+def get_original_page(
+    job_id: str,
+    page: int = Query(1, ge=1),
+    db: Session = Depends(get_db)
+):
+    """
+    Render the original unannotated P&ID drawing page for side-by-side inspection.
+    """
+    job = db.query(JobModel).filter(JobModel.id == job_id).first()
+    if not job or not os.path.exists(job.pdf_path):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={"code": "PDF_NOT_FOUND", "message": "Original PDF blueprint not found."}
+        )
+
+    try:
+        doc = fitz.open(job.pdf_path)
+        pdf_page = doc[max(0, min(page - 1, len(doc) - 1))]
+        pix = pdf_page.get_pixmap(dpi=150)
+        return Response(content=pix.tobytes("png"), media_type="image/png")
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={"code": "RENDER_FAILED", "message": str(e)}
+        )
+
+
+@router.get("/{job_id}/detection-previews")
+def get_detection_previews_info(job_id: str, db: Session = Depends(get_db)):
+    """
+    Get summary list of available detection preview pages with symbol and tag counts.
+    """
+    settings = get_settings()
+    job_dir = os.path.join(settings.DATA_DIR, job_id)
+    perc_path = os.path.join(job_dir, "perception.json")
+
+    pages_info = []
+    if os.path.exists(perc_path):
+        try:
+            with open(perc_path, "r", encoding="utf-8") as f:
+                perc_data = json.load(f)
+            for p in perc_data.get("pages", []):
+                p_num = p.get("page_number", 1)
+                pages_info.append({
+                    "page": p_num,
+                    "preview_url": f"/api/v1/jobs/{job_id}/detection-preview?page={p_num}",
+                    "original_url": f"/api/v1/jobs/{job_id}/original-page?page={p_num}",
+                    "symbols_detected": len(p.get("symbols", [])),
+                    "tags_detected": len(p.get("text_items", [])),
+                    "lines_detected": len(p.get("line_segments", [])),
+                    "width": p.get("width", 2000),
+                    "height": p.get("height", 1400)
+                })
+        except Exception:
+            pass
+
+    if not pages_info:
+        pages_info.append({
+            "page": 1,
+            "preview_url": f"/api/v1/jobs/{job_id}/detection-preview?page=1",
+            "original_url": f"/api/v1/jobs/{job_id}/original-page?page=1",
+            "symbols_detected": 0,
+            "tags_detected": 0,
+            "lines_detected": 0,
+            "width": 2000,
+            "height": 1400
+        })
+
+    return {
+        "job_id": job_id,
+        "total_pages": len(pages_info),
+        "pages": pages_info
+    }
 
 
 @router.get("/{job_id}/verification")

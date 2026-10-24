@@ -21,6 +21,7 @@ from services.api.app.engine.llm_resolver import resolve_tag_with_llm_or_heurist
 from services.api.app.engine.report_generator import localize_report
 from services.api.app.engine.simplifier import simplify_graph_layout
 from services.api.app.engine.svg_generator import generate_svg_sketch
+from services.api.app.engine.smart_pdf_generator import generate_smart_vector_pdf
 from services.api.app.engine.merger import RevisionDiffEngine
 from services.perception.perception.run import run_perception
 
@@ -324,15 +325,17 @@ async def execute_untangle_pipeline(job_id: str, db: Session):
         with open(os.path.join(job_dir, "sketch.svg"), "w", encoding="utf-8") as f:
             f.write(svg_content)
 
-        # Generate downloadable Vector PDF of Simplified Diagram
+        # Generate downloadable Smart Vector PDF of Simplified Diagram
         try:
-            svg_doc = fitz.open(stream=svg_content.encode("utf-8"), filetype="svg")
-            pdf_bytes = svg_doc.convert_to_pdf()
+            tag_meta_map = {t["id"]: t for t in resolved_tags_list}
+            for t in resolved_tags_list:
+                tag_meta_map[t["normalized_tag"]] = t
+            pdf_bytes = generate_smart_vector_pdf(simplified_graph, job.id, tag_meta_map)
             with open(os.path.join(job_dir, "simplified_diagram.pdf"), "wb") as f:
                 f.write(pdf_bytes)
-            logger.info(f"Generated simplified_diagram.pdf ({len(pdf_bytes)} bytes) for job {job_id}")
+            logger.info(f"Generated Smart Vector simplified_diagram.pdf ({len(pdf_bytes)} bytes) for job {job_id}")
         except Exception as e:
-            logger.warning(f"Could not convert sketch.svg to PDF: {e}")
+            logger.warning(f"Could not generate Smart Vector PDF: {e}")
 
         # =====================================================================
         # STAGE 9: REPORT (Cross-validation and Connection Verification finalized)
@@ -466,14 +469,16 @@ async def rebuild_graph_and_artifacts(job_id: str, db: Session):
     with open(os.path.join(job_dir, "sketch.svg"), "w", encoding="utf-8") as f:
         f.write(svg_content)
 
-    # Generate downloadable Vector PDF of Simplified Diagram
+    # Generate downloadable Smart Vector PDF of Simplified Diagram
     try:
-        svg_doc = fitz.open(stream=svg_content.encode("utf-8"), filetype="svg")
-        pdf_bytes = svg_doc.convert_to_pdf()
+        tag_meta_map = {t["id"]: t for t in resolved_tags_list}
+        for t in resolved_tags_list:
+            tag_meta_map[t["normalized_tag"]] = t
+        pdf_bytes = generate_smart_vector_pdf(simplified_graph, job.id, tag_meta_map)
         with open(os.path.join(job_dir, "simplified_diagram.pdf"), "wb") as f:
             f.write(pdf_bytes)
     except Exception as e:
-        logger.warning(f"Could not convert sketch.svg to PDF: {e}")
+        logger.warning(f"Could not generate Smart Vector PDF: {e}")
 
     # 7. Stage 9: Report
     await update_job_stage(db, job, "report", 0.98)

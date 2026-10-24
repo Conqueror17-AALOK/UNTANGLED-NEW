@@ -251,12 +251,57 @@ export const apiClient = {
     return await res.json();
   },
 
-  getExportUrl(jobId: string, format: 'json' | 'svg' | 'pdf' | 'diagram-pdf'): string {
+  getExportUrl(jobId: string, format: 'json' | 'svg' | 'pdf' | 'diagram-pdf' | 'smart-pdf'): string {
     return `${API_BASE}/jobs/${jobId}/export?format=${format}`;
   },
 
   getDiagramPdfUrl(jobId: string): string {
     return `${API_BASE}/jobs/${jobId}/simplified-diagram/pdf`;
+  },
+
+  getDetectionPreviewUrl(jobId: string, page = 1): string {
+    return `${API_BASE}/jobs/${jobId}/detection-preview?page=${page}`;
+  },
+
+  getOriginalPageUrl(jobId: string, page = 1): string {
+    return `${API_BASE}/jobs/${jobId}/original-page?page=${page}`;
+  },
+
+  async getDetectionPreviewsInfo(jobId: string): Promise<{
+    job_id: string;
+    total_pages: number;
+    pages: Array<{
+      page: number;
+      preview_url: string;
+      original_url: string;
+      symbols_detected: number;
+      tags_detected: number;
+      lines_detected: number;
+      width: number;
+      height: number;
+    }>;
+  }> {
+    if (USE_MOCKS || jobId.startsWith('mock-') || jobId.startsWith('demo-')) {
+      return {
+        job_id: jobId,
+        total_pages: 1,
+        pages: [
+          {
+            page: 1,
+            preview_url: `${API_BASE}/jobs/${jobId}/detection-preview?page=1`,
+            original_url: `${API_BASE}/jobs/${jobId}/original-page?page=1`,
+            symbols_detected: 42,
+            tags_detected: 58,
+            lines_detected: 112,
+            width: 2000,
+            height: 1400
+          }
+        ]
+      };
+    }
+    const res = await fetch(`${API_BASE}/jobs/${jobId}/detection-previews`);
+    if (!res.ok) throw new ApiError('Failed to fetch detection previews', 'PREVIEWS_FAILED');
+    return await res.json();
   },
 
   async mergeJobs(jobIds: string[], mergedJobName = 'Merged Plant Master'): Promise<MergeJobsResponse> {

@@ -350,10 +350,29 @@ export const WorkspacePage: React.FC = () => {
                     const isMedConf = node.confidence >= 0.60 && node.confidence < 0.85;
                     const haloColor = isHighConf ? '#10b981' : isMedConf ? '#f59e0b' : '#ef4444';
 
-                    // Parse tag prefix and loop number
+                    // Parse ISA-5.1 tag prefix and loop number accurately
+                    let prefix = node.id;
+                    let loopNum = '';
                     const parts = node.id.split('-');
-                    const prefix = parts[0] || node.id;
-                    const loopNum = parts.slice(1).join('-') || '';
+                    if (parts.length >= 3) {
+                      prefix = `${parts[0]}-${parts[1]}`;
+                      loopNum = parts.slice(2).join('-');
+                    } else if (parts.length === 2) {
+                      prefix = parts[0];
+                      loopNum = parts[1];
+                    } else {
+                      const m = node.id.match(/^(\d*[A-Za-z]+)(\d+.*)$/);
+                      if (m) {
+                        prefix = m[1];
+                        loopNum = m[2];
+                      }
+                    }
+
+                    const ntype = node.type.toLowerCase();
+                    const tagUpper = node.id.toUpperCase();
+                    const isVessel = tagUpper.startsWith('V-') || tagUpper.startsWith('C-') || tagUpper.startsWith('D-') || ntype.includes('vessel') || ntype.includes('column') || ntype.includes('separator');
+                    const isTank = tagUpper.startsWith('TK-') || ntype.includes('tank');
+                    const isExchanger = tagUpper.startsWith('E-') || ntype.includes('exchanger') || ntype.includes('cooler') || ntype.includes('reboiler');
 
                     return (
                       <g
@@ -385,8 +404,62 @@ export const WorkspacePage: React.FC = () => {
                           </g>
                         )}
 
+                        {/* EQUIPMENT SYMBOL: VESSEL / COLUMN / SEPARATOR */}
+                        {node.category === 'equipment' && isVessel && (
+                          <g>
+                            <path
+                              d="M -22 -20 C -22 -35, 22 -35, 22 -20 L 22 20 C 22 35, -22 35, -22 20 Z"
+                              fill="#12141c"
+                              stroke={haloColor}
+                              strokeWidth={isSelected ? 2.5 : 1.8}
+                            />
+                            <line x1="-16" y1="-5" x2="16" y2="-5" stroke="#334155" strokeDasharray="3,3" />
+                            <line x1="-16" y1="5" x2="16" y2="5" stroke="#334155" strokeDasharray="3,3" />
+                            <text textAnchor="middle" dy="-8" fontSize="8.5" fontWeight="bold" fontFamily="JetBrains Mono, monospace" fill="#f1f5f9">
+                              {node.id}
+                            </text>
+                            <text textAnchor="middle" dy="14" fontSize="7" fontFamily="JetBrains Mono, monospace" fill="#94a3b8">
+                              VESSEL
+                            </text>
+                          </g>
+                        )}
+
+                        {/* EQUIPMENT SYMBOL: STORAGE TANK */}
+                        {node.category === 'equipment' && isTank && !isVessel && (
+                          <g>
+                            <path
+                              d="M -24 -15 C -12 -28, 12 -28, 24 -15 L 24 25 L -24 25 Z"
+                              fill="#12141c"
+                              stroke={haloColor}
+                              strokeWidth={isSelected ? 2.5 : 1.8}
+                            />
+                            <line x1="-18" y1="0" x2="18" y2="0" stroke="#38bdf8" strokeDasharray="3,3" strokeWidth="1" opacity="0.6" />
+                            <text textAnchor="middle" dy="5" fontSize="8.5" fontWeight="bold" fontFamily="JetBrains Mono, monospace" fill="#f1f5f9">
+                              {node.id}
+                            </text>
+                            <text textAnchor="middle" dy="16" fontSize="7" fontFamily="JetBrains Mono, monospace" fill="#94a3b8">
+                              TANK
+                            </text>
+                          </g>
+                        )}
+
+                        {/* EQUIPMENT SYMBOL: HEAT EXCHANGER */}
+                        {node.category === 'equipment' && isExchanger && !isVessel && !isTank && (
+                          <g>
+                            <rect x="-26" y="-16" width="52" height="32" rx="16" fill="#12141c" stroke={haloColor} strokeWidth={isSelected ? 2.5 : 1.8} />
+                            <line x1="-16" y1="-3" x2="16" y2="-3" stroke="#475569" strokeDasharray="2,2" />
+                            <line x1="-16" y1="3" x2="16" y2="3" stroke="#475569" strokeDasharray="2,2" />
+                            <text textAnchor="middle" dy="-4" fontSize="8" fontWeight="bold" fontFamily="JetBrains Mono, monospace" fill="#f1f5f9">
+                              {node.id}
+                            </text>
+                            <text textAnchor="middle" dy="8" fontSize="6.5" fontFamily="JetBrains Mono, monospace" fill="#94a3b8">
+                              HEX
+                            </text>
+                          </g>
+                        )}
+
                         {/* EQUIPMENT SYMBOL: PUMP */}
-                        {node.category === 'equipment' && (
+                        {node.category === 'equipment' && !isVessel && !isTank && !isExchanger && (
                           <g>
                             {/* Pump Circular Body */}
                             <circle
@@ -435,7 +508,7 @@ export const WorkspacePage: React.FC = () => {
                             <line x1="0" y1="0" x2="0" y2="-12" stroke="#94a3b8" strokeWidth="1.5" />
                             
                             {/* Actuator Dome (Control Valve) vs Handwheel (Manual) */}
-                            {node.id.startsWith('CV') || node.id.startsWith('FV') ? (
+                            {node.id.startsWith('CV') || node.id.startsWith('FV') || node.id.startsWith('LV') || node.id.startsWith('PV') || node.id.startsWith('TV') ? (
                               <path d="M -10 -12 Q 0 -22 10 -12 Z" fill="#1e222d" stroke="#38bdf8" strokeWidth="1.5" />
                             ) : (
                               <line x1="-8" y1="-12" x2="8" y2="-12" stroke="#94a3b8" strokeWidth="2" />
@@ -481,7 +554,7 @@ export const WorkspacePage: React.FC = () => {
                               fontSize="9.5"
                               fontWeight="bold"
                               fontFamily="JetBrains Mono, monospace"
-                              fill="#f1f5f9"
+                              fill="#38bdf8"
                             >
                               {prefix}
                             </text>
@@ -493,7 +566,7 @@ export const WorkspacePage: React.FC = () => {
                               fontSize="8.5"
                               fontWeight="bold"
                               fontFamily="JetBrains Mono, monospace"
-                              fill="#94a3b8"
+                              fill="#f1f5f9"
                             >
                               {loopNum || prefix}
                             </text>
