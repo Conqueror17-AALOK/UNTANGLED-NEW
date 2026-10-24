@@ -104,14 +104,9 @@ export const ReportPage: React.FC = () => {
       {/* Editorial Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-white/[0.12]">
         <div>
-          <div className="flex items-center gap-3 mb-1">
-            <h1 className="text-3xl sm:text-4xl font-display font-black text-white tracking-tight">
-              {labels.report_title || 'Audit Report'}
-            </h1>
-            <span className="adobe-chip text-xs">
-              {jobId.slice(0, 8)}
-            </span>
-          </div>
+          <h1 className="text-3xl sm:text-4xl font-display font-black text-white tracking-tight mb-1">
+            {labels.report_title || 'Audit Report'}
+          </h1>
           <p className="text-sm text-neutral-400 font-bold">
             P&ID Drawing vs DCS IO Register deterministic verification audit.
           </p>

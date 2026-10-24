@@ -20,8 +20,8 @@ export const Badge: React.FC<BadgeProps> = ({
   };
 
   const variantClasses = {
-    // Adobe Firefly Chip (#2b211a dark filled surface)
-    chip: "bg-[#2b211a] text-white border border-white/10 font-bold",
+    // Glass Chip
+    chip: "bg-white/[0.08] text-white border border-white/10 font-bold",
     // Neutral
     neutral: "bg-white/[0.08] text-white border border-white/10 font-bold",
     // Adobe Red (#eb1000) for emphasis/alerts
@@ -34,7 +34,7 @@ export const Badge: React.FC<BadgeProps> = ({
     emerald: "bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 font-bold",
     cyan: "bg-white/[0.1] text-white border border-white/20 font-bold",
     blue: "bg-white/[0.1] text-white border border-white/20 font-bold",
-    purple: "bg-[#2b211a] text-white border border-white/10 font-bold",
+    purple: "bg-white/[0.08] text-white border border-white/10 font-bold",
   };
 
   return (

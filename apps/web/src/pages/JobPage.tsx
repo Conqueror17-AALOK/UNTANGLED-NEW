@@ -113,10 +113,6 @@ export const JobPage: React.FC = () => {
       {/* Editorial Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-white/[0.1]">
         <div>
-          <div className="text-xs font-bold text-slate-400 mb-1 flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#eb1000]" />
-            <span className="font-mono uppercase">JOB {jobId.slice(0, 8)}</span>
-          </div>
           <h1 className="text-2xl sm:text-4xl font-heading font-black tracking-[-0.035em] text-white">
             Pipeline Execution
           </h1>

@@ -97,14 +97,9 @@ export const Navbar: React.FC<NavbarProps> = ({ currentJobId = 'demo-job-1' }) =
                   className="w-8 h-8 object-contain transition-transform group-hover:scale-105"
                 />
               </div>
-              <div className="flex items-center gap-2">
-                <span className="text-xl font-heading font-black tracking-tight text-white">
-                  UNTANGLED
-                </span>
-                <span className="hidden sm:inline text-[11px] font-bold px-2 py-0.5 rounded-md bg-[#2b211a] text-white border border-white/10">
-                  P&ID AI
-                </span>
-              </div>
+              <span className="text-xl font-heading font-black tracking-tight text-white">
+                UNTANGLED
+              </span>
             </Link>
 
             {/* Desktop Navigation - Adobe Docked Selector Strip */}
@@ -130,28 +125,8 @@ export const Navbar: React.FC<NavbarProps> = ({ currentJobId = 'demo-job-1' }) =
               })}
             </nav>
 
-            {/* Right Controls: System Status & Hotkeys Pill */}
+            {/* Right Controls: Hotkeys & Mobile Toggle */}
             <div className="flex items-center gap-2.5 shrink-0">
-              
-              {/* Interactive Status Pill Button */}
-              <button
-                type="button"
-                onClick={() => setStatusModalOpen(true)}
-                className="flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all border border-white/[0.15] bg-[#141414] hover:bg-[#1c1c1c] text-white cursor-pointer"
-                title="Click to view live system engine telemetry"
-              >
-                <span
-                  className={`w-2 h-2 rounded-full ${
-                    isOnline ? 'bg-[#10b981]' : 'bg-[#eb1000]'
-                  }`}
-                />
-                <span className="hidden sm:inline">
-                  {isOnline ? 'Engine Online' : 'Demo Mode'}
-                </span>
-                <span className="sm:hidden">
-                  {isOnline ? 'Online' : 'Demo'}
-                </span>
-              </button>
 
               {/* Hotkeys (?) Button */}
               <Button
@@ -244,7 +219,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentJobId = 'demo-job-1' }) =
                 </p>
               </div>
             </div>
-            <span className="px-2.5 py-1 rounded-full text-[11px] font-mono font-bold bg-[#2b211a] text-white border border-white/10">
+            <span className="px-2.5 py-1 rounded-full text-[11px] font-mono font-bold bg-white/10 text-white border border-white/10">
               v{health.version || '1.0.0'}
             </span>
           </div>

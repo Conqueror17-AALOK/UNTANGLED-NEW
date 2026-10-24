@@ -88,19 +88,11 @@ export const UploadPage: React.FC = () => {
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-12 pb-24 space-y-8 animate-fade-in">
       
-      {/* Editorial Hero (Adobe Clean Display Black, 900 weight, tight tracking) */}
-      <div className="text-center space-y-3">
-        <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-md text-xs font-bold text-white bg-[#2b211a] border border-white/10">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#eb1000]" />
-          <span>ISA-5.1 · DETERMINISTIC CROSS-VALIDATION</span>
-        </div>
-
+      {/* Editorial Hero */}
+      <div className="text-center pt-2">
         <h1 className="text-4xl sm:text-6xl font-heading font-black tracking-[-0.035em] text-white">
           P&ID Cross-Validation
         </h1>
-        <p className="text-base sm:text-lg text-slate-400 font-bold max-w-xl mx-auto leading-relaxed">
-          Upload engineering drawings and DCS schedules to detect discrepancies, resolve port connectivity, and generate clean process topology.
-        </p>
       </div>
 
       {/* Quick 1-Click Benchmark Action Card */}
@@ -112,11 +104,8 @@ export const UploadPage: React.FC = () => {
           <div>
             <div className="flex items-center gap-2.5">
               <span className="text-base font-extrabold text-white">Preloaded Separator Loop</span>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#2b211a] text-white border border-white/10">
-                BENCHMARK READY
-              </span>
             </div>
-            <p className="text-xs text-slate-400 font-bold mt-0.5">
+            <p className="text-xs text-slate-400 font-medium mt-0.5">
               sample_pid_01.pdf & sample_io_list.xlsx (24 I/O Channels)
             </p>
           </div>

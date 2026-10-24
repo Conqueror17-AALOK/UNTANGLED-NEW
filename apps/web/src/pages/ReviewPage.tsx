@@ -120,14 +120,9 @@ export const ReviewPage: React.FC = () => {
       {/* Editorial Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-white/[0.12]">
         <div>
-          <div className="flex items-center gap-3 mb-1">
-            <h1 className="text-3xl sm:text-4xl font-display font-black text-white tracking-tight">
-              Review Queue
-            </h1>
-            <span className="adobe-chip text-xs">
-              {tags.filter((t) => t.status === 'needs_review').length} items to review
-            </span>
-          </div>
+          <h1 className="text-3xl sm:text-4xl font-display font-black text-white tracking-tight mb-1">
+            Review Queue
+          </h1>
           <p className="text-sm text-neutral-400 font-bold">
             Deterministic operator verification and automated topology cross-check.
           </p>
