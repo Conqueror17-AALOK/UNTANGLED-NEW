@@ -20,3 +20,30 @@ def test_cross_validation_discrepancies():
 
     # 2. HV-77 is on drawing, missing from IO list
     assert any(item.tag == "HV-77" for item in report.missing_in_io_list)
+
+
+def test_cross_validation_with_graph_warning_instances():
+    from services.api.app.db.schemas import GraphWarning
+    resolved_tags = [
+        {"id": "tag_0001", "normalized_tag": "TK-101", "type": "Tank", "category": "equipment", "status": "resolved", "source": "auto"},
+    ]
+    io_items = [
+        IoItem(tag="TK-101", description="Tank", signal_type="Equipment"),
+    ]
+    warnings = [
+        GraphWarning(node="A-1", code="FLOATING_EQUIPMENT", message="Equipment has no process or signal lines.")
+    ]
+
+    report = cross_validate_drawing_and_io(resolved_tags, io_items, graph_warnings=warnings)
+    assert len(report.graph_warnings) == 1
+    # Can access via attribute or model_dump()
+    assert (
+        report.graph_warnings[0].node == "A-1"
+        if hasattr(report.graph_warnings[0], "node")
+        else report.graph_warnings[0]["node"] == "A-1"
+    )
+    dumped = report.model_dump()
+    assert dumped["graph_warnings"][0]["node"] == "A-1"
+    assert dumped["graph_warnings"][0]["code"] == "FLOATING_EQUIPMENT"
+
+

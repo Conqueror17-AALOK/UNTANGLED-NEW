@@ -14,7 +14,7 @@ from services.api.app.engine.validator import ConnectionValidator, IoListValidat
 def cross_validate_drawing_and_io(
     resolved_tags: List[Dict[str, Any]],
     io_items: List[IoItem],
-    graph_warnings: Optional[List[Dict[str, Any]]] = None,
+    graph_warnings: Optional[List[Any]] = None,
     graph: Optional[GraphSchema] = None,
 ) -> ReportSchema:
     """
@@ -26,6 +26,11 @@ def cross_validate_drawing_and_io(
     """
     if graph_warnings is None:
         graph_warnings = []
+
+    safe_warnings = [
+        w.model_dump() if hasattr(w, "model_dump") else (w.dict() if hasattr(w, "dict") else w)
+        for w in graph_warnings
+    ]
 
     drawing_tags_map = {}
     for t in resolved_tags:
@@ -143,7 +148,7 @@ def cross_validate_drawing_and_io(
         missing_in_drawing=missing_in_drawing,
         missing_in_io_list=missing_in_io_list,
         type_mismatches=type_mismatches,
-        graph_warnings=graph_warnings,
+        graph_warnings=safe_warnings,
         connection_validation=conn_val,
         io_verification=io_val,
     )
