@@ -99,6 +99,11 @@ class ReportSummary(BaseModel):
     auto_pct: float
     llm_pct: float
     human_pct: float
+    average_confidence: float = 0.0
+    high_confidence_count: int = 0
+    medium_confidence_count: int = 0
+    low_confidence_count: int = 0
+    confidence_breakdown_avg: Dict[str, float] = Field(default_factory=dict)
 
 
 class MissingInDrawingItem(BaseModel):

@@ -101,6 +101,11 @@ export interface ReportSummary {
   auto_pct: number;
   llm_pct: number;
   human_pct: number;
+  average_confidence?: number;
+  high_confidence_count?: number;
+  medium_confidence_count?: number;
+  low_confidence_count?: number;
+  confidence_breakdown_avg?: Record<string, number>;
 }
 
 export interface MissingInDrawing {

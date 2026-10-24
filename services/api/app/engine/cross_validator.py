@@ -96,6 +96,27 @@ def cross_validate_drawing_and_io(
     llm_pct = round((llm_cnt / tags_total * 100), 1) if tags_total > 0 else 0.0
     human_pct = round((human_cnt / tags_total * 100), 1) if tags_total > 0 else 0.0
 
+    # Enhanced Confidence Metrics & Tier Breakdown
+    conf_scores = [float(t.get("confidence", 0.0)) for t in resolved_tags]
+    avg_conf = round((sum(conf_scores) / len(conf_scores) * 100), 1) if conf_scores else 0.0
+    high_conf_cnt = sum(1 for c in conf_scores if c >= 0.85)
+    med_conf_cnt = sum(1 for c in conf_scores if 0.70 <= c < 0.85)
+    low_conf_cnt = sum(1 for c in conf_scores if c < 0.70)
+
+    # Average Breakdown by Signal
+    signal_keys = ["ocr", "symbol", "io_match", "grammar", "llm", "topology"]
+    signal_totals = {k: 0.0 for k in signal_keys}
+    for t in resolved_tags:
+        bd = t.get("conf_breakdown", {})
+        for k in signal_keys:
+            signal_totals[k] += float(bd.get(k, 0.0))
+
+    avg_breakdown = {
+        k: round((signal_totals[k] / tags_total * 100), 1)
+        for k in signal_keys
+        if tags_total > 0 and signal_totals[k] > 0
+    }
+
     # 5. Connection Verification (if topological graph provided)
     conn_val = None
     if graph is not None:
@@ -113,6 +134,11 @@ def cross_validate_drawing_and_io(
             auto_pct=auto_pct,
             llm_pct=llm_pct,
             human_pct=human_pct,
+            average_confidence=avg_conf,
+            high_confidence_count=high_conf_cnt,
+            medium_confidence_count=med_conf_cnt,
+            low_confidence_count=low_conf_cnt,
+            confidence_breakdown_avg=avg_breakdown,
         ),
         missing_in_drawing=missing_in_drawing,
         missing_in_io_list=missing_in_io_list,

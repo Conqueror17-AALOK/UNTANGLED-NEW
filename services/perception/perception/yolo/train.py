@@ -34,28 +34,35 @@ def train_yolo11(
     model = YOLO(model_variant)
 
     # Train
-    print(f"Initiating training for {epochs} epochs on {data_yaml}...")
+    abs_data_yaml = os.path.abspath(data_yaml)
+    print(f"Initiating training for {epochs} epochs on {abs_data_yaml}...")
     results = model.train(
-        data=data_yaml,
+        data=abs_data_yaml,
         epochs=epochs,
         imgsz=imgsz,
         batch=batch,
         device=device,
         project=project,
         name=name,
+        exist_ok=True,
         plots=True,
         save=True,
         verbose=True,
     )
 
     # Save best model to designated output path
-    best_weights = os.path.join(project, name, "weights", "best.pt")
-    if os.path.exists(best_weights):
+    candidates = [
+        os.path.join(getattr(results, "save_dir", ""), "weights", "best.pt"),
+        os.path.join(project, name, "weights", "best.pt"),
+        os.path.join(project, project, name, "weights", "best.pt"),
+    ]
+    best_weights = next((c for c in candidates if os.path.exists(c)), None)
+    if best_weights:
         os.makedirs(os.path.dirname(output_model_path), exist_ok=True)
         shutil.copy(best_weights, output_model_path)
-        print(f"Successfully exported fine-tuned model to: {output_model_path}")
+        print(f"Successfully exported fine-tuned model from {best_weights} to: {output_model_path}")
     else:
-        print(f"Warning: {best_weights} not found, saving current model weights.")
+        print(f"Warning: best.pt not found in candidates, saving current model weights.")
         model.save(output_model_path)
 
     print("=" * 65)

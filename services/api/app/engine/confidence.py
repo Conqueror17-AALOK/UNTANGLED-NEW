@@ -1,4 +1,4 @@
-from typing import Dict, Literal, Tuple
+from typing import Dict, Literal, Optional, Tuple
 from services.api.app.config import get_settings
 
 
@@ -8,11 +8,13 @@ def calculate_confidence(
     io_score: float,
     grammar_score: float,
     llm_score: float,
+    topology_score: Optional[float] = None,
 ) -> Tuple[float, Dict[str, float], Literal["resolved", "needs_review", "rejected"]]:
     """
     Compute multi-signal confidence score and determine decision tier.
     Formula from docs/ARCHITECTURE.md:
     C_final = w_ocr*C_ocr + w_sym*C_sym + w_io*S_io + w_isa*S_isa + w_llm*C_llm
+    Optionally adjusted by topological integrity verification.
     """
     settings = get_settings()
 
@@ -30,7 +32,6 @@ def calculate_confidence(
         settings.W_ISA * s_isa +
         settings.W_LLM * c_llm
     )
-    final_score = round(max(0.0, min(1.0, final_score)), 3)
 
     conf_breakdown = {
         "ocr": round(c_ocr, 3),
@@ -39,6 +40,13 @@ def calculate_confidence(
         "grammar": round(s_isa, 3),
         "llm": round(c_llm, 3),
     }
+
+    if topology_score is not None:
+        c_topo = max(0.0, min(1.0, float(topology_score)))
+        conf_breakdown["topology"] = round(c_topo, 3)
+        final_score = final_score * 0.90 + 0.10 * c_topo
+
+    final_score = round(max(0.0, min(1.0, final_score)), 3)
 
     # Three-Tier Decision Logic
     if final_score >= settings.CONF_AUTO_THRESHOLD:

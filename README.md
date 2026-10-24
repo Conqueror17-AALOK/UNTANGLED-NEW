@@ -208,7 +208,7 @@ docker compose -f infra/docker-compose.yml up --build
 
 The test suite covers backend models, perception algorithms, neural detectors, schema contracts, multi-sheet merger, and revision diff engine.
 
-### Run All Backend Tests (42 Tests Passing)
+### Run All Backend Tests (49 Tests Passing)
 ```bash
 PYTHONPATH=. .venv/bin/pytest services/
 ```
@@ -221,6 +221,25 @@ PYTHONPATH=. .venv/bin/pytest services/perception/tests/
 # API, Cross-Validation, and I/O Parser tests:
 PYTHONPATH=. .venv/bin/pytest services/api/tests/
 ```
+
+### Dataset Ingestion & Local YOLO11 Fine-Tuning
+UNTANGLED supports fine-tuning on real-world industrial P&ID diagram datasets and custom symbol annotations:
+```bash
+# Ingest and convert extra industrial P&ID datasets (mapping to 17 ISA-5.1 classes):
+.venv/bin/python services/perception/perception/yolo/dataset_converter.py
+
+# Fine-tune YOLO11 on Apple Silicon Metal GPU (MPS) / CUDA:
+.venv/bin/python services/perception/perception/yolo/train.py
+```
+*Trained model artifacts are automatically exported to `models/yolo11_pid.pt` with validation mAP metrics and confusion matrices recorded in `runs/detect/`.*
+
+### Multi-Signal Confidence & Model Accuracy Reporting
+The system computes an engineering-calibrated confidence score combining five verification layers:
+1. **OCR Clarity**: Voting agreement between vector text, Tesseract, and PaddleOCR.
+2. **Neural Symbol Detection**: Precision bounding box scores from fine-tuned YOLO11 models.
+3. **DCS I/O Alignment**: Tag presence, signal type, and calibration span verification in DCS registers.
+4. **ISA-5.1 Grammar**: Deterministic syntax validation for functional letter codes and loop numerals.
+5. **Topological Integrity**: Graph connectivity validation checking for floating equipment or invalid line routings.
 
 ### End-to-End Pipeline Smoke Test
 ```bash
