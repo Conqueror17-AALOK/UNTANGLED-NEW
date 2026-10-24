@@ -27,10 +27,10 @@ export const Button: React.FC<ButtonProps> = ({
   const variantClasses = {
     primary: "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold shadow-[0_4px_16px_rgba(37,99,235,0.35)] border border-blue-400/30 active:scale-[0.98] hover:shadow-[0_6px_24px_rgba(37,99,235,0.5)]",
     engineering: "bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-semibold shadow-[0_4px_20px_rgba(6,182,212,0.35)] border border-cyan-400/40 active:scale-[0.98] hover:shadow-[0_6px_28px_rgba(6,182,212,0.5)]",
-    secondary: "bg-[#151821]/90 hover:bg-[#202534] text-[#f1f5f9] border border-white/10 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)] active:scale-[0.98] hover:border-white/20",
-    outline: "border border-white/10 hover:border-cyan-500/40 text-[#94a3b8] hover:text-cyan-300 hover:bg-cyan-500/[0.05] active:scale-[0.98]",
-    danger: "bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 active:scale-[0.98]",
-    ghost: "text-[#94a3b8] hover:text-[#f1f5f9] hover:bg-white/[0.06]",
+    secondary: "bg-white/[0.04] hover:bg-white/[0.08] text-[#f1f5f9] border border-white/[0.12] shadow-[0_2px_10px_rgba(0,0,0,0.3),inset_0_1px_0_0_rgba(255,255,255,0.14)] active:scale-[0.98] hover:border-white/25 backdrop-blur-md",
+    outline: "border border-white/[0.12] hover:border-cyan-400/40 text-[#94a3b8] hover:text-cyan-300 bg-white/[0.02] hover:bg-cyan-500/[0.06] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.08)] backdrop-blur-sm active:scale-[0.98]",
+    danger: "bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 active:scale-[0.98] backdrop-blur-sm",
+    ghost: "text-[#94a3b8] hover:text-[#f1f5f9] hover:bg-white/[0.06] active:scale-[0.98]",
   };
 
   return (

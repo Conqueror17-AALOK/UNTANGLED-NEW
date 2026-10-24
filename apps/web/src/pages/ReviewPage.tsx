@@ -159,8 +159,8 @@ export const ReviewPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Filter Tabs */}
-      <div className="flex rounded-lg bg-industrial-950 p-1 border border-industrial-800 text-xs font-mono max-w-fit">
+      {/* Filter Tabs - Frosted Glass Bar */}
+      <div className="flex rounded-xl bg-white/[0.04] p-1 border border-white/[0.1] backdrop-blur-xl shadow-[inset_0_1px_0_0_rgba(255,255,255,0.08)] text-xs font-mono max-w-fit">
         {(['needs_review', 'resolved', 'all'] as const).map((tab) => {
           const count =
             tab === 'needs_review'
@@ -173,17 +173,17 @@ export const ReviewPage: React.FC = () => {
             <button
               key={tab}
               onClick={() => setFilter(tab)}
-              className={`px-3 py-1 rounded transition-all flex items-center gap-2 ${
+              className={`px-3.5 py-1.5 rounded-lg transition-all duration-150 flex items-center gap-2 ${
                 filter === tab
-                  ? 'bg-industrial-800 text-white font-semibold'
-                  : 'text-slate-400 hover:text-white'
+                  ? 'bg-white/[0.14] text-white font-bold border border-white/20 shadow-[0_2px_8px_rgba(0,0,0,0.3),inset_0_1px_0_0_rgba(255,255,255,0.25)]'
+                  : 'text-slate-400 hover:text-white hover:bg-white/[0.03]'
               }`}
             >
               <span>{tab === 'needs_review' ? 'Needs Review' : tab === 'resolved' ? 'Resolved' : 'All Tags'}</span>
               <span className={`text-[10px] px-1.5 py-0.2 rounded font-bold ${
                 filter === tab
-                  ? 'bg-industrial-900 text-cyan-400'
-                  : 'bg-industrial-900 text-slate-500'
+                  ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-400/30'
+                  : 'bg-white/[0.05] text-slate-500'
               }`}>
                 {count}
               </span>
@@ -200,7 +200,7 @@ export const ReviewPage: React.FC = () => {
           <Card variant="glass" className="p-0 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs font-mono">
-                <thead className="bg-industrial-950 text-slate-400 text-[10px] uppercase tracking-wider border-b border-industrial-800/80">
+                <thead className="bg-white/[0.04] text-slate-400 text-[10px] uppercase tracking-wider border-b border-white/[0.08]">
                   <tr>
                     <th className="py-3 px-4">Raw Read</th>
                     <th className="py-3 px-4">Target Tag</th>
@@ -210,7 +210,7 @@ export const ReviewPage: React.FC = () => {
                     <th className="py-3 px-4 text-right">Edit</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-industrial-800/60 bg-industrial-900/40">
+                <tbody className="divide-y divide-white/[0.05] bg-transparent">
                   {displayedTags.length > 0 ? (
                     displayedTags.map((tag) => {
                       const isEditing = editingTagId === tag.id;

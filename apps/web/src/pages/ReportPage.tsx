@@ -96,17 +96,17 @@ export const ReportPage: React.FC = () => {
         {/* Action Controls & Multi-lingual Switcher */}
         <div className="flex flex-wrap items-center gap-2.5 print:hidden">
           {/* Language Selector */}
-          <div className="flex items-center bg-industrial-950 p-1 rounded-lg border border-industrial-800 text-xs font-mono">
+          <div className="flex items-center bg-white/[0.04] p-1 rounded-xl border border-white/[0.1] backdrop-blur-xl shadow-[inset_0_1px_0_0_rgba(255,255,255,0.08)] text-xs font-mono">
             <Globe size={13} className="text-slate-400 ml-1.5 mr-1" />
             {(['en', 'hi', 'mr'] as const).map((l) => (
               <button
                 key={l}
                 id={`lang-${l}-btn`}
                 onClick={() => setLang(l)}
-                className={`px-2 py-0.5 rounded text-[11px] font-medium transition-all ${
+                className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all ${
                   lang === l
-                    ? 'bg-industrial-800 text-white font-semibold'
-                    : 'text-slate-400 hover:text-white'
+                    ? 'bg-white/[0.14] text-white font-bold border border-white/20 shadow-[0_2px_8px_rgba(0,0,0,0.3),inset_0_1px_0_0_rgba(255,255,255,0.25)]'
+                    : 'text-slate-400 hover:text-white hover:bg-white/[0.03]'
                 }`}
               >
                 {l === 'en' ? 'EN' : l === 'hi' ? 'HI' : 'MR'}
@@ -123,7 +123,7 @@ export const ReportPage: React.FC = () => {
             <Button
               variant="secondary"
               size="sm"
-              className="font-mono text-xs flex items-center gap-1.5 border-emerald-700/60 text-emerald-300 hover:bg-emerald-950/40"
+              className="font-mono text-xs flex items-center gap-1.5 border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/10"
             >
               <Download size={13} />
               <span>Diagram PDF</span>
@@ -162,16 +162,16 @@ export const ReportPage: React.FC = () => {
         </div>
       </div>
 
-      {/* KPI Cards */}
+      {/* KPI Cards - Glowing Frosted Glass */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 font-mono">
-        <Card variant="glass" className="p-4 space-y-1">
-          <span className="text-[10px] text-slate-400 uppercase tracking-wider block font-semibold">
+        <Card variant="glass" className="p-4 space-y-1 border-t-2 border-t-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.1),inset_0_1px_0_0_rgba(255,255,255,0.15)]">
+          <span className="text-[10px] text-cyan-400 uppercase tracking-wider block font-semibold">
             {labels.total_tags_title || 'Total Tags'}
           </span>
           <p className="text-2xl font-heading font-bold text-white tabular-nums">{summary.tags_total}</p>
         </Card>
 
-        <Card variant="glass" className="p-4 space-y-1">
+        <Card variant="glass" className="p-4 space-y-1 border-t-2 border-t-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.1),inset_0_1px_0_0_rgba(255,255,255,0.15)]">
           <span className="text-[10px] text-emerald-400 uppercase tracking-wider block font-semibold">
             {labels.resolved_title || 'Verified'}
           </span>
@@ -181,7 +181,7 @@ export const ReportPage: React.FC = () => {
           </span>
         </Card>
 
-        <Card variant="glass" className="p-4 space-y-1">
+        <Card variant="glass" className="p-4 space-y-1 border-t-2 border-t-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.1),inset_0_1px_0_0_rgba(255,255,255,0.15)]">
           <span className="text-[10px] text-amber-400 uppercase tracking-wider block font-semibold">
             {labels.review_req_title || 'Needs Review'}
           </span>
@@ -191,7 +191,7 @@ export const ReportPage: React.FC = () => {
           </span>
         </Card>
 
-        <Card variant="glass" className="p-4 space-y-1">
+        <Card variant="glass" className="p-4 space-y-1 border-t-2 border-t-purple-400 shadow-[0_0_20px_rgba(168,85,247,0.1),inset_0_1px_0_0_rgba(255,255,255,0.15)]">
           <span className="text-[10px] text-purple-400 uppercase tracking-wider block font-semibold">
             Decision Split
           </span>

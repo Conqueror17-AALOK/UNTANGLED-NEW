@@ -177,16 +177,16 @@ export const JobPage: React.FC = () => {
 
         {/* Compact Stats */}
         <div className="grid grid-cols-3 gap-3 pt-1 text-center font-mono text-xs">
-          <div className="p-3 rounded-lg bg-industrial-950/60 border border-industrial-800/80">
-            <span className="text-[10px] text-slate-400 block">RESOLVED</span>
+          <div className="p-3 rounded-xl bg-emerald-950/20 border border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.1),inset_0_1px_0_0_rgba(255,255,255,0.1)] backdrop-blur-md">
+            <span className="text-[10px] text-emerald-400/80 block font-semibold">RESOLVED</span>
             <span className="text-emerald-400 font-bold text-lg tabular-nums mt-0.5 block">{summary.resolved}</span>
           </div>
-          <div className="p-3 rounded-lg bg-industrial-950/60 border border-industrial-800/80">
-            <span className="text-[10px] text-slate-400 block">REVIEW</span>
+          <div className="p-3 rounded-xl bg-amber-950/20 border border-amber-500/30 shadow-[0_0_15px_rgba(245,158,11,0.1),inset_0_1px_0_0_rgba(255,255,255,0.1)] backdrop-blur-md">
+            <span className="text-[10px] text-amber-400/80 block font-semibold">REVIEW</span>
             <span className="text-amber-400 font-bold text-lg tabular-nums mt-0.5 block">{summary.needs_review}</span>
           </div>
-          <div className="p-3 rounded-lg bg-industrial-950/60 border border-industrial-800/80">
-            <span className="text-[10px] text-slate-400 block">STAGES</span>
+          <div className="p-3 rounded-xl bg-blue-950/20 border border-blue-500/30 shadow-[0_0_15px_rgba(37,99,235,0.1),inset_0_1px_0_0_rgba(255,255,255,0.1)] backdrop-blur-md">
+            <span className="text-[10px] text-blue-400/80 block font-semibold">STAGES</span>
             <span className="text-white font-bold text-lg tabular-nums mt-0.5 block">
               {completedStages.size} / 9
             </span>
@@ -194,7 +194,7 @@ export const JobPage: React.FC = () => {
         </div>
       </Card>
 
-      {/* Clean 9-Stage Sequence */}
+      {/* Clean 9-Stage Sequence with Frosted Glass Panels */}
       <div className="space-y-1.5">
         {PIPELINE_STAGES.map((s, index) => {
           const isCompleted = completedStages.has(s.id) || isDone;
@@ -203,12 +203,12 @@ export const JobPage: React.FC = () => {
           return (
             <div
               key={s.id}
-              className={`flex items-center justify-between px-3.5 py-2.5 rounded-lg border text-xs transition-colors ${
+              className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl border text-xs transition-all duration-200 ${
                 isCurrent
-                  ? 'bg-industrial-900 border-cyan-500/50 text-white'
+                  ? 'bg-gradient-to-r from-cyan-950/40 via-blue-950/30 to-cyan-950/20 border-cyan-400/50 shadow-[0_0_25px_rgba(6,182,212,0.2),inset_0_1px_0_0_rgba(255,255,255,0.2)] text-white backdrop-blur-lg scale-[1.01]'
                   : isCompleted
-                  ? 'bg-industrial-950/60 border-industrial-800/80 text-slate-300'
-                  : 'bg-industrial-950/30 border-industrial-900 text-slate-600'
+                  ? 'bg-white/[0.03] hover:bg-white/[0.06] border-white/[0.08] text-slate-300 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)] backdrop-blur-md'
+                  : 'bg-white/[0.01] border-white/[0.04] text-slate-600'
               }`}
             >
               <div className="flex items-center gap-3">

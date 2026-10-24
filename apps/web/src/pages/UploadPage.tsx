@@ -116,8 +116,8 @@ export const UploadPage: React.FC = () => {
                 htmlFor="pdf-upload"
                 className={`group relative flex flex-col items-center justify-center p-8 rounded-xl border border-dashed cursor-pointer transition-all duration-200 ${
                   pdfFile
-                    ? 'border-emerald-500/50 bg-emerald-950/20'
-                    : 'border-industrial-700/80 hover:border-cyan-500/60 bg-industrial-950/60 hover:bg-industrial-900/60'
+                    ? 'border-emerald-400/50 bg-emerald-950/25 shadow-[0_0_20px_rgba(16,185,129,0.15)] backdrop-blur-md'
+                    : 'border-white/[0.12] hover:border-cyan-400/60 bg-white/[0.02] hover:bg-cyan-500/[0.04] backdrop-blur-md shadow-[inset_0_1px_0_0_rgba(255,255,255,0.08)]'
                 }`}
               >
                 <input
@@ -145,7 +145,7 @@ export const UploadPage: React.FC = () => {
                   </div>
                 ) : (
                   <div className="text-center space-y-2 py-2">
-                    <div className="w-10 h-10 mx-auto rounded-lg bg-industrial-900 text-slate-400 group-hover:text-cyan-400 flex items-center justify-center transition-colors">
+                    <div className="w-10 h-10 mx-auto rounded-lg bg-white/[0.04] border border-white/[0.08] text-slate-400 group-hover:text-cyan-400 flex items-center justify-center transition-colors shadow-sm">
                       <UploadCloud size={20} />
                     </div>
                     <div>
@@ -173,8 +173,8 @@ export const UploadPage: React.FC = () => {
                 htmlFor="xlsx-upload"
                 className={`group relative flex flex-col items-center justify-center p-8 rounded-xl border border-dashed cursor-pointer transition-all duration-200 ${
                   xlsxFile
-                    ? 'border-emerald-500/50 bg-emerald-950/20'
-                    : 'border-industrial-700/80 hover:border-emerald-500/60 bg-industrial-950/60 hover:bg-industrial-900/60'
+                    ? 'border-emerald-400/50 bg-emerald-950/25 shadow-[0_0_20px_rgba(16,185,129,0.15)] backdrop-blur-md'
+                    : 'border-white/[0.12] hover:border-emerald-400/60 bg-white/[0.02] hover:bg-emerald-500/[0.04] backdrop-blur-md shadow-[inset_0_1px_0_0_rgba(255,255,255,0.08)]'
                 }`}
               >
                 <input

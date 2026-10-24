@@ -178,8 +178,8 @@ export const WorkspacePage: React.FC = () => {
         {/* Canvas Area (Col span 2) */}
         <div className="lg:col-span-2 space-y-3">
           
-          {/* Controls Bar */}
-          <div className="flex flex-wrap items-center justify-between gap-2 p-2 rounded-lg bg-industrial-900/90 border border-industrial-800 text-xs">
+          {/* Controls Bar - Frosted Glass Panel */}
+          <div className="flex flex-wrap items-center justify-between gap-2 p-2 rounded-xl bg-white/[0.03] backdrop-blur-xl border border-white/[0.1] shadow-[0_4px_20px_rgba(0,0,0,0.35),inset_0_1px_0_0_rgba(255,255,255,0.12)] text-xs">
             
             {/* Layer Toggles */}
             <div className="flex items-center gap-1">
@@ -190,10 +190,10 @@ export const WorkspacePage: React.FC = () => {
                 <button
                   key={layer}
                   onClick={() => setActiveLayer(layer)}
-                  className={`px-2.5 py-1 rounded text-[11px] font-mono uppercase transition-colors ${
+                  className={`px-2.5 py-1 rounded-lg text-[11px] font-mono uppercase transition-all duration-150 ${
                     activeLayer === layer
-                      ? 'bg-industrial-800 text-white font-semibold'
-                      : 'text-slate-400 hover:text-white'
+                      ? 'bg-white/[0.14] text-white font-bold border border-white/20 shadow-[0_2px_8px_rgba(0,0,0,0.3),inset_0_1px_0_0_rgba(255,255,255,0.25)]'
+                      : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
                   }`}
                 >
                   {layer}
@@ -205,34 +205,34 @@ export const WorkspacePage: React.FC = () => {
             <div className="flex items-center gap-1">
               <button
                 onClick={() => setZoom((z) => Math.min(z + 0.15, 2.5))}
-                className="p-1.5 rounded-lg bg-industrial-800/80 hover:bg-industrial-700 text-slate-300 hover:text-white border border-industrial-700 transition-colors shadow-sm"
+                className="p-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.09] text-slate-300 hover:text-white border border-white/[0.1] transition-all shadow-sm backdrop-blur-md"
                 title="Zoom In (+)"
               >
                 <ZoomIn size={14} />
               </button>
               <button
                 onClick={() => setZoom((z) => Math.max(z - 0.15, 0.5))}
-                className="p-1.5 rounded-lg bg-industrial-800/80 hover:bg-industrial-700 text-slate-300 hover:text-white border border-industrial-700 transition-colors shadow-sm"
+                className="p-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.09] text-slate-300 hover:text-white border border-white/[0.1] transition-all shadow-sm backdrop-blur-md"
                 title="Zoom Out (-)"
               >
                 <ZoomOut size={14} />
               </button>
               <button
                 onClick={resetViewport}
-                className="p-1.5 rounded-lg bg-industrial-800/80 hover:bg-industrial-700 text-slate-300 hover:text-white border border-industrial-700 transition-colors shadow-sm"
+                className="p-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.09] text-slate-300 hover:text-white border border-white/[0.1] transition-all shadow-sm backdrop-blur-md"
                 title="Reset View (0)"
               >
                 <RotateCcw size={14} />
               </button>
-              <span className="text-[11px] font-mono text-cyan-400 px-2 font-bold tabular-nums">
+              <span className="text-[11px] font-mono text-cyan-300 px-2 font-bold tabular-nums drop-shadow-[0_0_6px_rgba(6,182,212,0.4)]">
                 {Math.round(zoom * 100)}%
               </span>
             </div>
 
           </div>
 
-          {/* SVG CAD Canvas Box */}
-          <div className="h-[400px] sm:h-[480px] lg:h-[560px] relative overflow-hidden bg-[#08090d] border border-[#1e222d] rounded-lg select-none">
+          {/* SVG CAD Canvas Box with Frosted Glass Border */}
+          <div className="h-[400px] sm:h-[480px] lg:h-[560px] relative overflow-hidden bg-[#06080d]/80 backdrop-blur-md border border-white/[0.1] rounded-xl shadow-[0_12px_40px_rgba(0,0,0,0.6),inset_0_1px_0_0_rgba(255,255,255,0.1)] select-none">
             {/* Coordinate Grid & Interactive Canvas */}
             <div
               className="absolute inset-0 cursor-grab active:cursor-grabbing bg-cad-grid touch-none z-0"

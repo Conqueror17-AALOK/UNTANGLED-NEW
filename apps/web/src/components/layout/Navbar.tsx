@@ -86,7 +86,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentJobId = 'demo-job-1' }) =
 
   return (
     <>
-      <header className="sticky top-0 z-40 bg-[#090b10]/85 backdrop-blur-xl border-b border-white/[0.08] shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
+      <header className="sticky top-0 z-40 bg-[#07090e]/80 backdrop-blur-2xl border-b border-white/[0.09] shadow-[0_4px_30px_rgba(0,0,0,0.5),inset_0_-1px_0_0_rgba(255,255,255,0.04)]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             
@@ -104,14 +104,14 @@ export const Navbar: React.FC<NavbarProps> = ({ currentJobId = 'demo-job-1' }) =
                 <span className="text-lg font-heading font-extrabold tracking-tight text-white group-hover:text-cyan-300 transition-colors">
                   UNTANGLED
                 </span>
-                <span className="hidden sm:inline text-[10px] font-mono text-cyan-300 font-medium px-2 py-0.5 rounded-full bg-cyan-950/70 border border-cyan-400/40 shadow-[0_0_10px_rgba(6,182,212,0.2)]">
+                <span className="hidden sm:inline text-[10px] font-mono text-cyan-300 font-semibold px-2 py-0.5 rounded-full bg-cyan-950/60 border border-cyan-400/40 shadow-[0_0_12px_rgba(6,182,212,0.25),inset_0_1px_0_0_rgba(255,255,255,0.15)]">
                   P&ID AI
                 </span>
               </div>
             </Link>
 
             {/* Desktop Navigation Tabs - Responsive with adaptive labels */}
-            <nav className="hidden md:flex items-center gap-1.5 bg-[#12151e]/80 p-1.5 rounded-xl border border-white/[0.08] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)] mx-2">
+            <nav className="hidden md:flex items-center gap-1.5 bg-white/[0.03] backdrop-blur-2xl p-1.5 rounded-xl border border-white/[0.09] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.1)] mx-2">
               {navItems.map((item) => {
                 const Icon = item.icon;
                 const active = isActive(item.path);
@@ -119,10 +119,10 @@ export const Navbar: React.FC<NavbarProps> = ({ currentJobId = 'demo-job-1' }) =
                   <Link
                     key={item.label}
                     to={item.path}
-                    className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                    className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${
                       active
-                        ? 'bg-gradient-to-r from-blue-600/30 to-cyan-500/25 text-cyan-300 font-semibold border border-cyan-400/40 shadow-[0_0_15px_rgba(6,182,212,0.2),inset_0_1px_0_0_rgba(255,255,255,0.15)]'
-                        : 'text-slate-400 hover:text-white hover:bg-white/[0.05]'
+                        ? 'bg-gradient-to-r from-blue-600/35 to-cyan-500/30 text-cyan-200 font-bold border border-cyan-400/45 shadow-[0_0_20px_rgba(6,182,212,0.25),inset_0_1px_0_0_rgba(255,255,255,0.25)]'
+                        : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
                     }`}
                   >
                     <Icon size={14} className={active ? 'text-cyan-400 drop-shadow-[0_0_6px_rgba(6,182,212,0.6)]' : 'text-slate-400'} />
@@ -140,10 +140,10 @@ export const Navbar: React.FC<NavbarProps> = ({ currentJobId = 'demo-job-1' }) =
               <button
                 type="button"
                 onClick={() => setStatusModalOpen(true)}
-                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-mono transition-all border cursor-pointer ${
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-mono transition-all border cursor-pointer backdrop-blur-md ${
                   isOnline
-                    ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20'
-                    : 'bg-cyan-500/10 border-cyan-500/30 text-cyan-300 hover:bg-cyan-500/20'
+                    ? 'bg-emerald-500/15 border-emerald-400/35 text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.15),inset_0_1px_0_0_rgba(255,255,255,0.12)] hover:bg-emerald-500/25'
+                    : 'bg-cyan-500/15 border-cyan-400/35 text-cyan-200 shadow-[0_0_15px_rgba(6,182,212,0.15),inset_0_1px_0_0_rgba(255,255,255,0.12)] hover:bg-cyan-500/25'
                 }`}
                 title="Click to view live system engine telemetry"
               >
@@ -165,12 +165,12 @@ export const Navbar: React.FC<NavbarProps> = ({ currentJobId = 'demo-job-1' }) =
                 variant="ghost"
                 size="xs"
                 onClick={() => setShortcutsOpen(true)}
-                className="hidden sm:flex items-center gap-1 text-xs text-slate-400 hover:text-slate-200 border border-industrial-800 hover:border-industrial-700"
+                className="hidden sm:flex items-center gap-1 text-xs text-slate-300 hover:text-white border border-white/[0.09] bg-white/[0.03] backdrop-blur-md shadow-sm"
                 title="Keyboard Shortcuts & Reference (?)"
               >
                 <Keyboard size={13} className="text-slate-400" />
                 <span className="hidden lg:inline">Hotkeys</span>
-                <kbd className="px-1 py-0.2 rounded bg-industrial-800 text-[10px] text-cyan-300 font-mono">?</kbd>
+                <kbd className="px-1 py-0.2 rounded bg-white/[0.08] text-[10px] text-cyan-300 font-mono">?</kbd>
               </Button>
 
               {/* Mobile Hamburger Toggle */}
