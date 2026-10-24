@@ -34,6 +34,12 @@ def test_florence2_vlm_grounding():
     if not os.path.exists(model_dir):
         return
 
+    try:
+        import torch
+        from transformers import AutoProcessor
+    except ImportError:
+        return
+
     vlm = Florence2VLM(model_dir=model_dir)
     assert vlm is not None
 

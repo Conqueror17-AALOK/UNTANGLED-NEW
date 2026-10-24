@@ -44,8 +44,11 @@ class Florence2VLM:
         self.model = None
 
         if device is None:
-            import torch
-            self.device = "mps" if torch.backends.mps.is_available() else "cpu"
+            try:
+                import torch
+                self.device = "mps" if torch.backends.mps.is_available() else "cpu"
+            except ImportError:
+                self.device = "cpu"
         else:
             self.device = device
 
