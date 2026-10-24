@@ -67,6 +67,21 @@ export const WorkspacePage: React.FC = () => {
 
   const handleMouseUp = () => setIsDragging(false);
 
+  // Touch Handlers for Mobile & Tablet Viewports
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length === 1) {
+      setIsDragging(true);
+      setDragStart({ x: e.touches[0].clientX - pan.x, y: e.touches[0].clientY - pan.y });
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging || e.touches.length !== 1) return;
+    setPan({ x: e.touches[0].clientX - dragStart.x, y: e.touches[0].clientY - dragStart.y });
+  };
+
+  const handleTouchEnd = () => setIsDragging(false);
+
   const resetViewport = () => {
     setZoom(1);
     setPan({ x: 0, y: 0 });
@@ -112,10 +127,9 @@ export const WorkspacePage: React.FC = () => {
       {/* Top Engineering Action Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-[#1e222d]">
         <div>
-          <div className="flex items-center gap-2 text-[11px] font-mono text-[#64748b] mb-0.5">
-            <span>PROCESS TOPOLOGY WORKSPACE</span>
-            <span>/</span>
-            <span className="text-blue-400 font-semibold">GRAPH V{graph?.version || 1}</span>
+          <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-[11px] font-mono text-cyan-400 bg-cyan-950/40 border border-cyan-800/50 mb-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+            <span>Process Topology • Graph v{graph?.version || 1}</span>
           </div>
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#f1f5f9] flex items-center gap-2.5">
             <span>Simplified Process Topology Canvas</span>
@@ -221,15 +235,19 @@ export const WorkspacePage: React.FC = () => {
           </div>
 
           {/* SVG CAD Canvas Box */}
-          <div className="h-[560px] relative overflow-hidden bg-[#08090d] border border-[#1e222d] rounded-lg select-none">
+          <div className="h-[400px] sm:h-[480px] lg:h-[560px] relative overflow-hidden bg-[#08090d] border border-[#1e222d] rounded-lg select-none">
             
             {/* Coordinate Grid & Interactive Canvas */}
             <div
-              className="absolute inset-0 cursor-grab active:cursor-grabbing bg-cad-grid"
+              className="absolute inset-0 cursor-grab active:cursor-grabbing bg-cad-grid touch-none"
               onMouseDown={handleMouseDown}
               onMouseMove={handleMouseMove}
               onMouseUp={handleMouseUp}
               onMouseLeave={handleMouseUp}
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+              onTouchCancel={handleTouchEnd}
             >
               <svg className="w-full h-full">
                 <defs>

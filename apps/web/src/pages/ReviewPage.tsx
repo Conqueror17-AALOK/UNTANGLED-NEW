@@ -124,11 +124,10 @@ export const ReviewPage: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b border-[#1e222d]">
         <div>
-          <div className="flex items-center gap-2 text-[11px] font-mono text-[#64748b] mb-1">
-            <span>OPERATOR VERIFICATION</span>
-            <span>/</span>
-            <span className="text-amber-400 font-semibold">
-              {tags.filter((t) => t.status === 'needs_review').length} ITEMS REQUIRING REVIEW
+          <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-[11px] font-mono text-amber-400 bg-amber-950/40 border border-amber-800/50 mb-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+            <span>
+              {tags.filter((t) => t.status === 'needs_review').length} Items Requiring Review
             </span>
           </div>
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#f1f5f9] flex items-center gap-2.5">
@@ -136,7 +135,7 @@ export const ReviewPage: React.FC = () => {
           </h1>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex flex-wrap sm:flex-nowrap items-center gap-2.5">
           <Button
             variant="engineering"
             size="sm"
@@ -160,7 +159,7 @@ export const ReviewPage: React.FC = () => {
       </div>
 
       {/* Filter Tabs */}
-      <div className="flex items-center gap-1.5 font-mono text-xs">
+      <div className="flex flex-wrap items-center gap-1.5 font-mono text-xs">
         {(['needs_review', 'resolved', 'all'] as const).map((tab) => {
           const count =
             tab === 'needs_review'

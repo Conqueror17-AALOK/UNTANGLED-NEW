@@ -77,12 +77,9 @@ export const ReportPage: React.FC = () => {
       {/* Official Audit Document Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#1e222d]">
         <div>
-          <div className="flex items-center gap-2 text-[11px] font-mono text-[#64748b] mb-1">
-            <span>OFFICIAL AUDIT REPORT</span>
-            <span>/</span>
-            <span>DOC-ID: AUD-UNT-{jobId.slice(0, 8).toUpperCase()}</span>
-            <span>/</span>
-            <span className="text-emerald-400 font-semibold">ISA-5.1 CERTIFIED</span>
+          <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-[11px] font-mono text-emerald-400 bg-emerald-950/40 border border-emerald-800/50 mb-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <span>Audit Report • Doc {jobId.slice(0, 8).toUpperCase()}</span>
           </div>
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#f1f5f9]">
             {labels.report_title || 'P&ID Drawing vs IO List Cross-Validation Report'}
@@ -117,7 +114,7 @@ export const ReportPage: React.FC = () => {
             ))}
           </div>
 
-          <div className="flex items-center gap-1.5">
+          <div className="flex flex-wrap items-center gap-1.5">
             <a
               href={`/api/v1/jobs/${jobId}/simplified-diagram/pdf`}
               download={`simplified_diagram_${jobId.slice(0, 8)}.pdf`}

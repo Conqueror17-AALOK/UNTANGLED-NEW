@@ -24,6 +24,18 @@ let mockTags: Tag[] = [...INITIAL_TAGS];
 let mockGraph: GraphData = JSON.parse(JSON.stringify(MOCK_GRAPH));
 
 export const apiClient = {
+  async getHealth(): Promise<{ status: string; version: string; checks?: Record<string, string> }> {
+    try {
+      const res = await fetch(`${API_BASE}/health`);
+      if (res.ok) {
+        return await res.json();
+      }
+      return { status: 'degraded', version: '1.0.0' };
+    } catch {
+      return { status: 'offline', version: '1.0.0' };
+    }
+  },
+
   async loadSampleJob(): Promise<{ job_id: string; status: string }> {
     if (USE_MOCKS) {
       await new Promise((r) => setTimeout(r, 600));

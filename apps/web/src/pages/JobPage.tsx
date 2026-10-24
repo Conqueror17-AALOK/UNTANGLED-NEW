@@ -117,26 +117,26 @@ export const JobPage: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-[#1e222d]">
         <div>
-          <div className="flex items-center gap-2 text-[11px] font-mono text-[#64748b] mb-1">
-            <span>PIPELINE MONITOR</span>
-            <span>/</span>
-            <span className="text-blue-400 font-semibold">JOB: {jobId}</span>
+          <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-[11px] font-mono text-cyan-400 bg-cyan-950/40 border border-cyan-800/50 mb-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+            <span className="truncate max-w-[280px]">Job: {jobId}</span>
           </div>
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#f1f5f9] flex items-center gap-2.5">
-            <Cpu size={22} className="text-blue-400" />
+            <Cpu size={22} className="text-blue-400 shrink-0" />
             <span>Deterministic 9-Stage Pipeline Execution</span>
           </h1>
         </div>
 
         {isDone ? (
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 w-full sm:w-auto">
             <a
               href={`/api/v1/jobs/${jobId}/simplified-diagram/pdf`}
               download={`simplified_diagram_${jobId.slice(0, 8)}.pdf`}
               target="_blank"
               rel="noopener noreferrer"
+              className="w-full sm:w-auto"
             >
-              <Button variant="secondary" size="md" className="font-mono text-xs flex items-center gap-1.5">
+              <Button variant="secondary" size="md" className="w-full sm:w-auto font-mono text-xs flex items-center justify-center gap-1.5">
                 <Download size={13} className="text-emerald-400" />
                 <span>Download Diagram (PDF)</span>
               </Button>
@@ -145,7 +145,7 @@ export const JobPage: React.FC = () => {
               variant="engineering"
               size="md"
               onClick={() => navigate(`/workspace/${jobId}`)}
-              className="font-mono text-xs flex items-center gap-1.5"
+              className="w-full sm:w-auto font-mono text-xs flex items-center justify-center gap-1.5"
             >
               <span>Inspect Process Topology</span>
               <ArrowRight size={14} />
@@ -182,7 +182,7 @@ export const JobPage: React.FC = () => {
         </div>
 
         {/* Live Stage Statistics */}
-        <div className="grid grid-cols-3 gap-3 pt-1 text-center font-mono text-xs">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3 pt-1 text-center font-mono text-xs">
           <div className="p-2.5 rounded bg-[#090a0f] border border-[#1e222d]">
             <span className="text-[10px] text-[#64748b] block">AUTO-RESOLVED</span>
             <span className="text-emerald-400 font-bold text-sm tabular-nums">{summary.resolved}</span>

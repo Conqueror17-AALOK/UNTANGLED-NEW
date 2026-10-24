@@ -93,12 +93,9 @@ export const UploadPage: React.FC = () => {
       {/* Engineering Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-4 border-b border-[#1e222d]">
         <div>
-          <div className="flex items-center gap-2 text-[11px] font-mono text-[#64748b] mb-1">
-            <span>INGESTION CONSOLE</span>
-            <span>/</span>
-            <span>SPEC: ISA-5.1-2009</span>
-            <span>/</span>
-            <span className="text-emerald-400">ENGINE IDLE</span>
+          <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-[11px] font-mono text-cyan-400 bg-cyan-950/40 border border-cyan-800/50 mb-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+            <span>Ingestion Console</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#f1f5f9]">
             P&ID Drawing & DCS IO Ingestion
@@ -251,12 +248,13 @@ export const UploadPage: React.FC = () => {
               type="button"
               onClick={loadSampleFiles}
               disabled={isSubmitting}
-              className="text-xs font-mono text-[#94a3b8] hover:text-[#f1f5f9] flex items-center gap-2 p-1.5 rounded hover:bg-[#151821] transition-colors"
+              className="w-full sm:w-auto text-xs font-mono text-[#94a3b8] hover:text-[#f1f5f9] flex items-center justify-center sm:justify-start gap-2 p-2 rounded hover:bg-[#151821] transition-colors border border-transparent hover:border-[#1e222d]"
             >
-              <div className="w-5 h-5 rounded bg-[#1c202d] border border-[#2b3145] flex items-center justify-center text-blue-400">
+              <div className="w-5 h-5 rounded bg-[#1c202d] border border-[#2b3145] flex items-center justify-center text-blue-400 shrink-0">
                 <Binary size={11} />
               </div>
-              <span>Load Reference Benchmark (sample_pid_01.pdf & sample_io_list.xlsx)</span>
+              <span className="hidden sm:inline">Load Reference Benchmark (sample_pid_01.pdf & sample_io_list.xlsx)</span>
+              <span className="sm:hidden">Load Sample Benchmark Files</span>
             </button>
 
             <Button
