@@ -123,7 +123,7 @@ export const WorkspacePage: React.FC = () => {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-4 animate-fade-in">
       
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b border-industrial-800">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b border-white/[0.08]">
         <div>
           <h1 className="text-2xl sm:text-3xl font-heading font-bold text-white">
             Process Topology
@@ -521,10 +521,10 @@ export const WorkspacePage: React.FC = () => {
                 </h3>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 h-40 rounded-lg border border-industrial-800 overflow-hidden text-xs">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 h-40 rounded-xl border border-white/[0.08] overflow-hidden text-xs">
                 {/* Before: Raw Drawing */}
-                <div className="bg-industrial-950 p-4 flex flex-col justify-between border-r border-industrial-800">
-                  <span className="font-mono text-[10px] text-amber-400">ORIGINAL P&ID</span>
+                <div className="bg-white/[0.03] backdrop-blur-md p-4 flex flex-col justify-between border-r border-white/[0.08]">
+                  <span className="font-mono text-[10px] text-amber-400 font-semibold">ORIGINAL P&ID</span>
                   <div className="my-auto text-center font-mono">
                     <p className="text-slate-400">Scanned Engineering Drawing</p>
                     <p className="font-bold text-amber-300 mt-1">Raw OCR: PT10l · PCV-101</p>
@@ -533,8 +533,8 @@ export const WorkspacePage: React.FC = () => {
                 </div>
 
                 {/* After: Synthesized Process Topology */}
-                <div className="bg-industrial-900/60 p-4 flex flex-col justify-between">
-                  <span className="font-mono text-[10px] text-emerald-400">RESOLVED TOPOLOGY</span>
+                <div className="bg-white/[0.05] backdrop-blur-md p-4 flex flex-col justify-between">
+                  <span className="font-mono text-[10px] text-emerald-400 font-semibold">RESOLVED TOPOLOGY</span>
                   <div className="my-auto text-center font-mono">
                     <p className="text-slate-400">Clean Orthogonal Graph</p>
                     <p className="font-bold text-emerald-300 mt-1">PT-101 (Channel AI-01)</p>
@@ -552,7 +552,7 @@ export const WorkspacePage: React.FC = () => {
           <Card variant="glass" className="p-4 space-y-4">
             
             {/* Header */}
-            <div className="flex items-center justify-between pb-3 border-b border-industrial-800">
+            <div className="flex items-center justify-between pb-3 border-b border-white/[0.08]">
               <h2 className="text-xs font-bold uppercase tracking-wider text-slate-200">
                 Tag Details
               </h2>
@@ -576,7 +576,7 @@ export const WorkspacePage: React.FC = () => {
               <div className="space-y-4 text-xs font-mono">
                 
                 {/* Tag Identity Block */}
-                <div className="p-3 rounded-lg bg-industrial-950 border border-industrial-800 flex items-center justify-between">
+                <div className="p-3.5 rounded-xl bg-white/[0.03] border border-white/[0.08] backdrop-blur-md flex items-center justify-between shadow-[inset_0_1px_0_0_rgba(255,255,255,0.08)]">
                   <div>
                     <span className="text-base font-bold text-white block">
                       {selectedTag.normalized_tag}
@@ -589,12 +589,12 @@ export const WorkspacePage: React.FC = () => {
                 </div>
 
                 {/* Tab Selector */}
-                <div className="flex rounded-lg bg-industrial-950 p-1 border border-industrial-800 text-[11px]">
+                <div className="flex rounded-xl bg-white/[0.04] p-1 border border-white/[0.08] backdrop-blur-md text-[11px]">
                   <button
                     onClick={() => setInspectorTab('telemetry')}
-                    className={`flex-1 py-1 rounded transition-colors ${
+                    className={`flex-1 py-1 rounded-lg transition-all ${
                       inspectorTab === 'telemetry'
-                        ? 'bg-industrial-800 text-white font-semibold'
+                        ? 'bg-gradient-to-r from-cyan-500/25 to-blue-600/25 border border-cyan-400/40 text-white font-semibold shadow-[0_0_12px_rgba(6,182,212,0.25)]'
                         : 'text-slate-400 hover:text-white'
                     }`}
                   >
@@ -602,9 +602,9 @@ export const WorkspacePage: React.FC = () => {
                   </button>
                   <button
                     onClick={() => setInspectorTab('confidence')}
-                    className={`flex-1 py-1 rounded transition-colors ${
+                    className={`flex-1 py-1 rounded-lg transition-all ${
                       inspectorTab === 'confidence'
-                        ? 'bg-industrial-800 text-white font-semibold'
+                        ? 'bg-gradient-to-r from-cyan-500/25 to-blue-600/25 border border-cyan-400/40 text-white font-semibold shadow-[0_0_12px_rgba(6,182,212,0.25)]'
                         : 'text-slate-400 hover:text-white'
                     }`}
                   >
@@ -612,9 +612,9 @@ export const WorkspacePage: React.FC = () => {
                   </button>
                   <button
                     onClick={() => setInspectorTab('traceability')}
-                    className={`flex-1 py-1 rounded transition-colors ${
+                    className={`flex-1 py-1 rounded-lg transition-all ${
                       inspectorTab === 'traceability'
-                        ? 'bg-industrial-800 text-white font-semibold'
+                        ? 'bg-gradient-to-r from-cyan-500/25 to-blue-600/25 border border-cyan-400/40 text-white font-semibold shadow-[0_0_12px_rgba(6,182,212,0.25)]'
                         : 'text-slate-400 hover:text-white'
                     }`}
                   >
@@ -625,7 +625,7 @@ export const WorkspacePage: React.FC = () => {
                 {/* Tab 1: Telemetry */}
                 {inspectorTab === 'telemetry' && (
                   <div className="space-y-2 text-[11px]">
-                    <div className="p-2.5 rounded-lg bg-industrial-950 border border-industrial-800 space-y-1.5">
+                    <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.08] backdrop-blur-md space-y-1.5 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]">
                       <div className="flex justify-between">
                         <span className="text-slate-400">Raw Read:</span>
                         <span className="text-amber-300 font-bold">{selectedTag.raw_text}</span>
@@ -640,12 +640,12 @@ export const WorkspacePage: React.FC = () => {
                       </div>
                       <div className="flex justify-between">
                         <span className="text-slate-400">Status:</span>
-                        <span className="text-cyan-400 uppercase">{selectedTag.status}</span>
+                        <span className="text-cyan-400 uppercase font-semibold">{selectedTag.status}</span>
                       </div>
                     </div>
 
                     {selectedTag.reasoning && (
-                      <div className="p-2.5 rounded-lg bg-industrial-950/60 border border-industrial-800 text-slate-400 text-[11px] leading-relaxed">
+                      <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.08] backdrop-blur-md text-slate-300 text-[11px] leading-relaxed shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]">
                         {selectedTag.reasoning}
                       </div>
                     )}
@@ -654,36 +654,36 @@ export const WorkspacePage: React.FC = () => {
 
                 {/* Tab 2: Confidence Breakdown */}
                 {inspectorTab === 'confidence' && (
-                  <div className="space-y-2.5 text-[11px]">
+                  <div className="space-y-3 text-[11px]">
                     {selectedTag.conf_breakdown ? (
-                      <div className="space-y-2">
+                      <div className="space-y-2.5 p-3 rounded-xl bg-white/[0.03] border border-white/[0.08] backdrop-blur-md shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]">
                         <div>
                           <div className="flex justify-between text-slate-300 text-[10px] mb-1">
                             <span>OCR Consensus</span>
-                            <span className="font-bold text-cyan-400">{Math.round((selectedTag.conf_breakdown.ocr || 0) * 100)}%</span>
+                            <span className="font-bold text-cyan-300">{Math.round((selectedTag.conf_breakdown.ocr || 0) * 100)}%</span>
                           </div>
-                          <div className="w-full h-1.5 bg-industrial-950 rounded-full overflow-hidden">
-                            <div className="h-full bg-cyan-400 rounded-full" style={{ width: `${(selectedTag.conf_breakdown.ocr || 0) * 100}%` }} />
+                          <div className="w-full h-2 bg-white/[0.06] rounded-full overflow-hidden p-0.5 border border-white/[0.08]">
+                            <div className="h-full bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full shadow-[0_0_10px_rgba(6,182,212,0.5)]" style={{ width: `${(selectedTag.conf_breakdown.ocr || 0) * 100}%` }} />
                           </div>
                         </div>
 
                         <div>
                           <div className="flex justify-between text-slate-300 text-[10px] mb-1">
                             <span>Symbol Match</span>
-                            <span className="font-bold text-emerald-400">{Math.round((selectedTag.conf_breakdown.symbol || 0) * 100)}%</span>
+                            <span className="font-bold text-emerald-300">{Math.round((selectedTag.conf_breakdown.symbol || 0) * 100)}%</span>
                           </div>
-                          <div className="w-full h-1.5 bg-industrial-950 rounded-full overflow-hidden">
-                            <div className="h-full bg-emerald-400 rounded-full" style={{ width: `${(selectedTag.conf_breakdown.symbol || 0) * 100}%` }} />
+                          <div className="w-full h-2 bg-white/[0.06] rounded-full overflow-hidden p-0.5 border border-white/[0.08]">
+                            <div className="h-full bg-gradient-to-r from-emerald-400 to-teal-500 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.5)]" style={{ width: `${(selectedTag.conf_breakdown.symbol || 0) * 100}%` }} />
                           </div>
                         </div>
 
                         <div>
                           <div className="flex justify-between text-slate-300 text-[10px] mb-1">
                             <span>DCS Verification</span>
-                            <span className="font-bold text-sky-400">{Math.round((selectedTag.conf_breakdown.io_match || 0) * 100)}%</span>
+                            <span className="font-bold text-sky-300">{Math.round((selectedTag.conf_breakdown.io_match || 0) * 100)}%</span>
                           </div>
-                          <div className="w-full h-1.5 bg-industrial-950 rounded-full overflow-hidden">
-                            <div className="h-full bg-sky-400 rounded-full" style={{ width: `${(selectedTag.conf_breakdown.io_match || 0) * 100}%` }} />
+                          <div className="w-full h-2 bg-white/[0.06] rounded-full overflow-hidden p-0.5 border border-white/[0.08]">
+                            <div className="h-full bg-gradient-to-r from-blue-400 to-indigo-500 rounded-full shadow-[0_0_10px_rgba(59,130,246,0.5)]" style={{ width: `${(selectedTag.conf_breakdown.io_match || 0) * 100}%` }} />
                           </div>
                         </div>
                       </div>
@@ -695,8 +695,8 @@ export const WorkspacePage: React.FC = () => {
 
                 {/* Tab 3: Traceability Crop */}
                 {inspectorTab === 'traceability' && (
-                  <div className="space-y-2.5">
-                    <div className="h-24 rounded-lg bg-industrial-950 border border-industrial-800 flex items-center justify-center p-3 text-center">
+                  <div className="space-y-3">
+                    <div className="h-24 rounded-xl bg-white/[0.03] border border-white/[0.08] backdrop-blur-md flex items-center justify-center p-3 text-center shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]">
                       <div>
                         <span className="font-mono font-bold text-amber-300 text-sm block">
                           {selectedTag.raw_text}

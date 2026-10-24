@@ -50,7 +50,6 @@ export const Navbar: React.FC<NavbarProps> = ({ currentJobId = 'demo-job-1' }) =
     return false;
   };
 
-  // Poll system health on mount and periodically
   useEffect(() => {
     let mounted = true;
     const checkHealth = async () => {
@@ -70,7 +69,6 @@ export const Navbar: React.FC<NavbarProps> = ({ currentJobId = 'demo-job-1' }) =
     };
   }, []);
 
-  // Keyboard shortcut listener: '?' opens shortcuts modal
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === '?' && !['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement)?.tagName)) {
@@ -86,32 +84,32 @@ export const Navbar: React.FC<NavbarProps> = ({ currentJobId = 'demo-job-1' }) =
 
   return (
     <>
-      <header className="sticky top-0 z-40 bg-[#07090e]/80 backdrop-blur-2xl border-b border-white/[0.09] shadow-[0_4px_30px_rgba(0,0,0,0.5),inset_0_-1px_0_0_rgba(255,255,255,0.04)]">
+      <header className="sticky top-0 z-40 bg-[#030712]/50 backdrop-blur-2xl border-b border-white/[0.08] shadow-[0_4px_30px_rgba(0,0,0,0.5),inset_0_-1px_0_0_rgba(255,255,255,0.04)]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             
-            {/* Brand Logo - UNTANGLED with Official Ribbon Emblem */}
+            {/* Brand Logo - UNTANGLED */}
             <Link to="/" className="flex items-center gap-3 group shrink-0" title="UNTANGLED Platform">
               <div className="relative flex items-center justify-center">
-                <div className="absolute inset-0 rounded-full bg-cyan-500/20 blur-md group-hover:bg-cyan-400/30 transition-colors" />
+                <div className="absolute inset-0 rounded-full bg-cyan-500/25 blur-md group-hover:bg-cyan-400/40 transition-colors" />
                 <img
                   src="/logo-mark.png"
                   alt="UNTANGLED Emblem"
-                  className="relative w-8 h-8 object-contain drop-shadow-[0_0_12px_rgba(56,189,248,0.6)] group-hover:scale-105 transition-transform"
+                  className="relative w-8 h-8 object-contain drop-shadow-[0_0_12px_rgba(56,189,248,0.7)] group-hover:scale-105 transition-transform"
                 />
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-lg font-heading font-extrabold tracking-tight text-white group-hover:text-cyan-300 transition-colors">
                   UNTANGLED
                 </span>
-                <span className="hidden sm:inline text-[10px] font-mono text-cyan-300 font-semibold px-2 py-0.5 rounded-full bg-cyan-950/60 border border-cyan-400/40 shadow-[0_0_12px_rgba(6,182,212,0.25),inset_0_1px_0_0_rgba(255,255,255,0.15)]">
+                <span className="hidden sm:inline text-[10px] font-mono text-cyan-300 font-semibold px-2 py-0.5 rounded-full bg-cyan-950/60 border border-cyan-400/40 shadow-[0_0_12px_rgba(6,182,212,0.25),inset_0_1px_0_0_rgba(255,255,255,0.15)] backdrop-blur-md">
                   P&ID AI
                 </span>
               </div>
             </Link>
 
-            {/* Desktop Navigation Tabs - Responsive with adaptive labels */}
-            <nav className="hidden md:flex items-center gap-1.5 bg-white/[0.03] backdrop-blur-2xl p-1.5 rounded-xl border border-white/[0.09] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.1)] mx-2">
+            {/* Desktop Navigation Floating Glass Pill Dock */}
+            <nav className="hidden md:flex items-center gap-1.5 bg-white/[0.03] backdrop-blur-2xl p-1.5 rounded-2xl border border-white/[0.1] shadow-[inset_0_1px_1px_0_rgba(255,255,255,0.15),0_10px_30px_rgba(0,0,0,0.4)] mx-2">
               {navItems.map((item) => {
                 const Icon = item.icon;
                 const active = isActive(item.path);
@@ -119,10 +117,10 @@ export const Navbar: React.FC<NavbarProps> = ({ currentJobId = 'demo-job-1' }) =
                   <Link
                     key={item.label}
                     to={item.path}
-                    className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${
+                    className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-medium transition-all duration-200 ${
                       active
-                        ? 'bg-gradient-to-r from-blue-600/35 to-cyan-500/30 text-cyan-200 font-bold border border-cyan-400/45 shadow-[0_0_20px_rgba(6,182,212,0.25),inset_0_1px_0_0_rgba(255,255,255,0.25)]'
-                        : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
+                        ? 'bg-gradient-to-r from-cyan-500/25 via-blue-600/30 to-indigo-600/25 text-white font-bold border border-cyan-400/40 shadow-[0_0_20px_rgba(6,182,212,0.3),inset_0_1px_1px_0_rgba(255,255,255,0.3)]'
+                        : 'text-slate-400 hover:text-white hover:bg-white/[0.05]'
                     }`}
                   >
                     <Icon size={14} className={active ? 'text-cyan-400 drop-shadow-[0_0_6px_rgba(6,182,212,0.6)]' : 'text-slate-400'} />
@@ -136,14 +134,14 @@ export const Navbar: React.FC<NavbarProps> = ({ currentJobId = 'demo-job-1' }) =
             {/* Right Controls: Interactive Live Status & Hotkeys */}
             <div className="flex items-center gap-2 shrink-0">
               
-              {/* Interactive System Health Badge (Replaces confusing static text) */}
+              {/* Interactive System Health Badge */}
               <button
                 type="button"
                 onClick={() => setStatusModalOpen(true)}
-                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-mono transition-all border cursor-pointer backdrop-blur-md ${
+                className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono transition-all border cursor-pointer backdrop-blur-md ${
                   isOnline
-                    ? 'bg-emerald-500/15 border-emerald-400/35 text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.15),inset_0_1px_0_0_rgba(255,255,255,0.12)] hover:bg-emerald-500/25'
-                    : 'bg-cyan-500/15 border-cyan-400/35 text-cyan-200 shadow-[0_0_15px_rgba(6,182,212,0.15),inset_0_1px_0_0_rgba(255,255,255,0.12)] hover:bg-cyan-500/25'
+                    ? 'bg-emerald-500/15 border-emerald-400/35 text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.2),inset_0_1px_0_0_rgba(255,255,255,0.18)] hover:bg-emerald-500/25'
+                    : 'bg-cyan-500/15 border-cyan-400/35 text-cyan-200 shadow-[0_0_15px_rgba(6,182,212,0.2),inset_0_1px_0_0_rgba(255,255,255,0.18)] hover:bg-cyan-500/25'
                 }`}
                 title="Click to view live system engine telemetry"
               >
@@ -162,24 +160,24 @@ export const Navbar: React.FC<NavbarProps> = ({ currentJobId = 'demo-job-1' }) =
 
               {/* Hotkeys (?) Button */}
               <Button
-                variant="ghost"
+                variant="secondary"
                 size="xs"
                 onClick={() => setShortcutsOpen(true)}
-                className="hidden sm:flex items-center gap-1 text-xs text-slate-300 hover:text-white border border-white/[0.09] bg-white/[0.03] backdrop-blur-md shadow-sm"
+                className="hidden sm:flex items-center gap-1.5 text-xs text-slate-300 hover:text-white"
                 title="Keyboard Shortcuts & Reference (?)"
               >
                 <Keyboard size={13} className="text-slate-400" />
                 <span className="hidden lg:inline">Hotkeys</span>
-                <kbd className="px-1 py-0.2 rounded bg-white/[0.08] text-[10px] text-cyan-300 font-mono">?</kbd>
+                <kbd className="px-1 py-0.2 rounded bg-white/[0.1] text-[10px] text-cyan-300 font-mono border border-white/[0.15]">?</kbd>
               </Button>
 
               {/* Mobile Hamburger Toggle */}
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="md:hidden text-slate-400 hover:text-slate-200 p-1.5 rounded-lg bg-industrial-900 border border-industrial-800"
+                className="md:hidden text-slate-400 hover:text-white p-2 rounded-xl bg-white/[0.04] border border-white/[0.1] backdrop-blur-md"
                 aria-label="Toggle navigation menu"
               >
-                {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+                {mobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
               </button>
             </div>
 
@@ -188,7 +186,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentJobId = 'demo-job-1' }) =
 
         {/* Mobile Dropdown Drawer */}
         {mobileMenuOpen && (
-          <div className="md:hidden border-b border-industrial-800 bg-industrial-950/95 backdrop-blur-xl px-4 py-3 space-y-1.5 animate-fade-in">
+          <div className="md:hidden border-b border-white/[0.08] bg-[#030712]/90 backdrop-blur-2xl px-4 py-3 space-y-1.5 animate-fade-in">
             {navItems.map((item) => {
               const Icon = item.icon;
               const active = isActive(item.path);
@@ -197,10 +195,10 @@ export const Navbar: React.FC<NavbarProps> = ({ currentJobId = 'demo-job-1' }) =
                   key={item.label}
                   to={item.path}
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                  className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors ${
                     active
-                      ? 'bg-industrial-800 text-cyan-400 font-semibold border border-cyan-500/20'
-                      : 'text-slate-300 hover:text-white hover:bg-industrial-900'
+                      ? 'bg-gradient-to-r from-cyan-500/20 to-blue-600/20 text-white font-semibold border border-cyan-400/40 shadow-[0_0_15px_rgba(6,182,212,0.2)]'
+                      : 'text-slate-300 hover:text-white hover:bg-white/[0.05]'
                   }`}
                 >
                   <Icon size={16} className={active ? 'text-cyan-400' : 'text-slate-400'} />
@@ -209,13 +207,13 @@ export const Navbar: React.FC<NavbarProps> = ({ currentJobId = 'demo-job-1' }) =
               );
             })}
 
-            <div className="pt-2 border-t border-industrial-800 flex items-center justify-between">
+            <div className="pt-2 border-t border-white/[0.08] flex items-center justify-between">
               <button
                 onClick={() => {
                   setMobileMenuOpen(false);
                   setStatusModalOpen(true);
                 }}
-                className="flex items-center gap-2 text-xs font-mono text-slate-400 hover:text-cyan-400 py-1"
+                className="flex items-center gap-2 text-xs font-mono text-slate-300 hover:text-cyan-300 py-1"
               >
                 <Activity size={14} className="text-cyan-400" />
                 <span>View Engine Status</span>
@@ -226,7 +224,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentJobId = 'demo-job-1' }) =
                   setMobileMenuOpen(false);
                   setShortcutsOpen(true);
                 }}
-                className="flex items-center gap-1.5 text-xs font-mono text-slate-400 hover:text-cyan-400 py-1"
+                className="flex items-center gap-1.5 text-xs font-mono text-slate-300 hover:text-cyan-300 py-1"
               >
                 <Keyboard size={14} />
                 <span>Shortcuts (?)</span>
@@ -239,11 +237,11 @@ export const Navbar: React.FC<NavbarProps> = ({ currentJobId = 'demo-job-1' }) =
       {/* Interactive System Status Modal */}
       <Modal isOpen={statusModalOpen} onClose={() => setStatusModalOpen(false)} title="System Engine Telemetry & Status">
         <div className="space-y-4 text-xs text-slate-300">
-          <div className="p-3.5 rounded-xl bg-industrial-950 border border-industrial-800 flex items-center justify-between">
+          <div className="p-4 rounded-xl bg-white/[0.03] border border-white/[0.08] backdrop-blur-md flex items-center justify-between shadow-[inset_0_1px_0_0_rgba(255,255,255,0.1)]">
             <div className="flex items-center gap-2.5">
               <span className={`w-3 h-3 rounded-full ${isOnline ? 'bg-emerald-400 animate-pulse' : 'bg-cyan-400'}`} />
               <div>
-                <p className="font-semibold text-slate-200">
+                <p className="font-semibold text-white">
                   {isOnline ? 'FastAPI Gateway Connected' : 'Standalone Demo Mode'}
                 </p>
                 <p className="text-[11px] text-slate-400">
@@ -251,7 +249,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentJobId = 'demo-job-1' }) =
                 </p>
               </div>
             </div>
-            <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-industrial-800 text-slate-300 border border-industrial-700">
+            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono bg-white/[0.06] text-cyan-300 border border-white/[0.12]">
               v{health.version || '1.0.0'}
             </span>
           </div>
@@ -262,27 +260,27 @@ export const Navbar: React.FC<NavbarProps> = ({ currentJobId = 'demo-job-1' }) =
               Subsystem Health Diagnostics
             </h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] font-mono">
-              <div className="p-2.5 rounded-lg bg-industrial-950 border border-industrial-800 flex items-center justify-between">
+              <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.08] backdrop-blur-md flex items-center justify-between shadow-[inset_0_1px_0_0_rgba(255,255,255,0.08)]">
                 <span className="flex items-center gap-1.5 text-slate-400">
-                  <Database size={13} /> Database:
+                  <Database size={13} className="text-cyan-400" /> Database:
                 </span>
                 <span className="text-emerald-400 font-semibold">{health.checks?.database || 'Healthy (SQLite)'}</span>
               </div>
-              <div className="p-2.5 rounded-lg bg-industrial-950 border border-industrial-800 flex items-center justify-between">
+              <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.08] backdrop-blur-md flex items-center justify-between shadow-[inset_0_1px_0_0_rgba(255,255,255,0.08)]">
                 <span className="flex items-center gap-1.5 text-slate-400">
-                  <HardDrive size={13} /> Storage:
+                  <HardDrive size={13} className="text-emerald-400" /> Storage:
                 </span>
                 <span className="text-emerald-400 font-semibold">{health.checks?.storage || 'Healthy'}</span>
               </div>
-              <div className="p-2.5 rounded-lg bg-industrial-950 border border-industrial-800 flex items-center justify-between">
+              <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.08] backdrop-blur-md flex items-center justify-between shadow-[inset_0_1px_0_0_rgba(255,255,255,0.08)]">
                 <span className="flex items-center gap-1.5 text-slate-400">
-                  <Cpu size={13} /> OCR Engine:
+                  <Cpu size={13} className="text-indigo-400" /> OCR Engine:
                 </span>
                 <span className="text-emerald-400 font-semibold">Tesseract + PyMuPDF</span>
               </div>
-              <div className="p-2.5 rounded-lg bg-industrial-950 border border-industrial-800 flex items-center justify-between">
+              <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.08] backdrop-blur-md flex items-center justify-between shadow-[inset_0_1px_0_0_rgba(255,255,255,0.08)]">
                 <span className="flex items-center gap-1.5 text-slate-400">
-                  <Activity size={13} /> LLM Resolver:
+                  <Activity size={13} className="text-purple-400" /> LLM Resolver:
                 </span>
                 <span className="text-cyan-300 font-semibold truncate max-w-[130px]" title={health.checks?.llm || 'NeMoTron & Heuristic'}>
                   NeMoTron / Rule
@@ -292,7 +290,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentJobId = 'demo-job-1' }) =
           </div>
 
           <div className="pt-2 flex justify-end">
-            <Button variant="primary" size="sm" onClick={() => setStatusModalOpen(false)}>
+            <Button variant="secondary" size="sm" onClick={() => setStatusModalOpen(false)}>
               Close Telemetry
             </Button>
           </div>
@@ -302,8 +300,8 @@ export const Navbar: React.FC<NavbarProps> = ({ currentJobId = 'demo-job-1' }) =
       {/* Keyboard Shortcuts & Operations Reference Modal */}
       <Modal isOpen={shortcutsOpen} onClose={() => setShortcutsOpen(false)} title="System Hotkeys & Operations Guide">
         <div className="space-y-4 text-xs text-slate-300">
-          <div className="p-3.5 rounded-xl bg-industrial-950 border border-industrial-800 space-y-1.5">
-            <div className="flex items-center gap-2 text-xs font-semibold text-slate-200">
+          <div className="p-4 rounded-xl bg-white/[0.03] border border-white/[0.08] backdrop-blur-md space-y-1.5 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.1)]">
+            <div className="flex items-center gap-2 text-xs font-semibold text-white">
               <CheckCheck size={15} className="text-cyan-400" />
               <span>Multi-Signal Verification Protocol</span>
             </div>
@@ -318,35 +316,35 @@ export const Navbar: React.FC<NavbarProps> = ({ currentJobId = 'demo-job-1' }) =
               Canvas & Review Hotkeys
             </h4>
             <div className="grid grid-cols-2 gap-2 text-[11px] font-mono">
-              <div className="p-2.5 rounded-lg bg-industrial-950 border border-industrial-800 flex justify-between items-center">
+              <div className="p-2.5 rounded-xl bg-white/[0.03] border border-white/[0.08] backdrop-blur-md flex justify-between items-center">
                 <span className="text-slate-400">Toggle Shortcuts</span>
-                <kbd className="px-1.5 py-0.5 rounded bg-industrial-800 text-cyan-300">?</kbd>
+                <kbd className="px-2 py-0.5 rounded-md bg-white/[0.08] text-cyan-300 border border-white/[0.12]">?</kbd>
               </div>
-              <div className="p-2.5 rounded-lg bg-industrial-950 border border-industrial-800 flex justify-between items-center">
+              <div className="p-2.5 rounded-xl bg-white/[0.03] border border-white/[0.08] backdrop-blur-md flex justify-between items-center">
                 <span className="text-slate-400">Zoom In / Out</span>
-                <kbd className="px-1.5 py-0.5 rounded bg-industrial-800 text-cyan-300">+ / -</kbd>
+                <kbd className="px-2 py-0.5 rounded-md bg-white/[0.08] text-cyan-300 border border-white/[0.12]">+ / -</kbd>
               </div>
-              <div className="p-2.5 rounded-lg bg-industrial-950 border border-industrial-800 flex justify-between items-center">
+              <div className="p-2.5 rounded-xl bg-white/[0.03] border border-white/[0.08] backdrop-blur-md flex justify-between items-center">
                 <span className="text-slate-400">Reset Viewport</span>
-                <kbd className="px-1.5 py-0.5 rounded bg-industrial-800 text-cyan-300">0</kbd>
+                <kbd className="px-2 py-0.5 rounded-md bg-white/[0.08] text-cyan-300 border border-white/[0.12]">0</kbd>
               </div>
-              <div className="p-2.5 rounded-lg bg-industrial-950 border border-industrial-800 flex justify-between items-center">
+              <div className="p-2.5 rounded-xl bg-white/[0.03] border border-white/[0.08] backdrop-blur-md flex justify-between items-center">
                 <span className="text-slate-400">Before / After Split</span>
-                <kbd className="px-1.5 py-0.5 rounded bg-industrial-800 text-cyan-300">b</kbd>
+                <kbd className="px-2 py-0.5 rounded-md bg-white/[0.08] text-cyan-300 border border-white/[0.12]">b</kbd>
               </div>
-              <div className="p-2.5 rounded-lg bg-industrial-950 border border-industrial-800 flex justify-between items-center">
+              <div className="p-2.5 rounded-xl bg-white/[0.03] border border-white/[0.08] backdrop-blur-md flex justify-between items-center">
                 <span className="text-slate-400">Rebuild Graph</span>
-                <kbd className="px-1.5 py-0.5 rounded bg-industrial-800 text-cyan-300">r</kbd>
+                <kbd className="px-2 py-0.5 rounded-md bg-white/[0.08] text-cyan-300 border border-white/[0.12]">r</kbd>
               </div>
-              <div className="p-2.5 rounded-lg bg-industrial-950 border border-industrial-800 flex justify-between items-center">
+              <div className="p-2.5 rounded-xl bg-white/[0.03] border border-white/[0.08] backdrop-blur-md flex justify-between items-center">
                 <span className="text-slate-400">Close Active View</span>
-                <kbd className="px-1.5 py-0.5 rounded bg-industrial-800 text-cyan-300">Esc</kbd>
+                <kbd className="px-2 py-0.5 rounded-md bg-white/[0.08] text-cyan-300 border border-white/[0.12]">Esc</kbd>
               </div>
             </div>
           </div>
 
           <div className="pt-2 flex justify-end">
-            <Button variant="primary" size="sm" onClick={() => setShortcutsOpen(false)}>
+            <Button variant="secondary" size="sm" onClick={() => setShortcutsOpen(false)}>
               Got it
             </Button>
           </div>

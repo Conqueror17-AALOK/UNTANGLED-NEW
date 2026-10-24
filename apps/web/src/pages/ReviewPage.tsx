@@ -114,14 +114,14 @@ export const ReviewPage: React.FC = () => {
     <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6 animate-fade-in">
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2.5 px-4 py-3 rounded-xl bg-industrial-900 border border-emerald-500/50 text-emerald-300 text-xs font-mono shadow-2xl backdrop-blur-md animate-fade-in">
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2.5 px-4 py-3 rounded-2xl bg-white/[0.05] border border-emerald-400/40 text-emerald-300 text-xs font-mono shadow-[0_20px_50px_rgba(0,0,0,0.6),0_0_25px_rgba(16,185,129,0.2)] backdrop-blur-2xl animate-fade-in">
           <Check size={16} className="text-emerald-400" />
           <span>{toastMessage}</span>
         </div>
       )}
 
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-industrial-800">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/[0.08]">
         <div>
           <div className="flex items-center gap-2.5 mb-1">
             <h1 className="text-xl sm:text-2xl font-heading font-bold text-white tracking-tight">
@@ -309,7 +309,7 @@ export const ReviewPage: React.FC = () => {
                                     e.stopPropagation();
                                     cancelEdit();
                                   }}
-                                  className="p-1.5 rounded-lg bg-industrial-800 text-slate-400 hover:bg-industrial-700 hover:text-white border border-industrial-700"
+                                  className="p-1.5 rounded-lg bg-white/[0.06] text-slate-400 hover:bg-white/[0.12] hover:text-white border border-white/[0.1]"
                                   title="Cancel"
                                 >
                                   <X size={14} />
@@ -321,7 +321,7 @@ export const ReviewPage: React.FC = () => {
                                   e.stopPropagation();
                                   startEdit(tag);
                                 }}
-                                className="p-1.5 rounded-lg text-slate-500 hover:text-cyan-400 hover:bg-industrial-800 transition-colors"
+                                className="p-1.5 rounded-lg text-slate-500 hover:text-cyan-400 hover:bg-white/[0.06] transition-colors"
                                 title="Edit Tag"
                               >
                                 <Edit3 size={14} />
@@ -347,7 +347,7 @@ export const ReviewPage: React.FC = () => {
         {/* Live Crop & Inspector (Col span 1) */}
         <div>
           <Card variant="glass" className="p-4 space-y-3.5">
-            <div className="flex items-center justify-between pb-2.5 border-b border-industrial-800">
+            <div className="flex items-center justify-between pb-2.5 border-b border-white/[0.08]">
               <div className="flex items-center gap-2">
                 <Crosshair size={14} className="text-cyan-400" />
                 <h3 className="text-xs font-heading font-bold uppercase tracking-wider text-slate-200">
@@ -355,7 +355,7 @@ export const ReviewPage: React.FC = () => {
                 </h3>
               </div>
               {selectedTag && (
-                <span className="text-[10px] font-mono text-slate-500 px-2 py-0.5 rounded bg-industrial-950 border border-industrial-800">
+                <span className="text-[10px] font-mono text-cyan-300 px-2 py-0.5 rounded-full bg-white/[0.05] border border-white/[0.1]">
                   {selectedTag.id.slice(0, 8)}
                 </span>
               )}
@@ -364,8 +364,8 @@ export const ReviewPage: React.FC = () => {
             {selectedTag ? (
               <div className="space-y-3 font-mono text-xs">
                 {/* Crop Visualizer */}
-                <div className="h-28 rounded-lg bg-industrial-950 border border-industrial-800 flex items-center justify-center p-3">
-                  <div className="border border-cyan-500/40 bg-cyan-950/20 px-4 py-2 rounded text-center">
+                <div className="h-28 rounded-xl bg-white/[0.03] border border-white/[0.08] backdrop-blur-md flex items-center justify-center p-3 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]">
+                  <div className="border border-cyan-400/40 bg-cyan-950/30 px-4 py-2 rounded-xl text-center shadow-[0_0_15px_rgba(6,182,212,0.2)]">
                     <span className="font-mono font-bold text-amber-300 text-base block">
                       {selectedTag.raw_text}
                     </span>
@@ -377,7 +377,7 @@ export const ReviewPage: React.FC = () => {
 
                 {/* Reasoning */}
                 {selectedTag.reasoning && (
-                  <div className="p-2.5 rounded-lg bg-industrial-950/80 border border-industrial-800 text-xs">
+                  <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.08] backdrop-blur-md text-xs shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]">
                     <p className="text-slate-300 text-[11px] leading-relaxed">
                       {selectedTag.reasoning}
                     </p>
@@ -385,7 +385,7 @@ export const ReviewPage: React.FC = () => {
                 )}
 
                 {/* Match Record */}
-                <div className="p-2.5 rounded-lg bg-industrial-950/80 border border-industrial-800 space-y-1.5 text-xs">
+                <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.08] backdrop-blur-md space-y-2 text-xs shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]">
                   <div className="flex justify-between text-slate-400">
                     <span>DCS POINT</span>
                     <span className="text-emerald-400 font-bold">{selectedTag.io_match?.io_tag || 'None'}</span>

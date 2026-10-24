@@ -20,13 +20,13 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
-      <div className="bg-[#12141c] border border-[#2b3145] rounded-lg w-full max-w-xl max-h-[90vh] overflow-y-auto shadow-2xl p-5 sm:p-6 relative">
-        <div className="flex items-center justify-between pb-3.5 border-b border-[#222736]">
-          <h3 className="text-sm font-semibold tracking-tight text-[#f1f5f9]">{title}</h3>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fade-in">
+      <div className="premium-glass rounded-2xl w-full max-w-xl max-h-[90vh] overflow-y-auto shadow-[0_30px_70px_rgba(0,0,0,0.8),inset_0_1px_1px_0_rgba(255,255,255,0.3)] p-6 relative">
+        <div className="flex items-center justify-between pb-4 border-b border-white/[0.08]">
+          <h3 className="text-base font-semibold tracking-tight text-white">{title}</h3>
           <button
             onClick={onClose}
-            className="text-[#94a3b8] hover:text-[#f1f5f9] p-1 rounded hover:bg-[#1c202d] transition-colors"
+            className="text-slate-400 hover:text-white p-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] transition-colors"
           >
             <X size={16} />
           </button>

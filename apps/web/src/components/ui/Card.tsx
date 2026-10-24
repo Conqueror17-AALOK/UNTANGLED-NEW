@@ -3,30 +3,40 @@ import React from 'react';
 interface CardProps {
   children: React.ReactNode;
   className?: string;
-  variant?: 'default' | 'glass' | 'interactive' | 'telemetry';
+  variant?: 'default' | 'glass' | 'interactive' | 'telemetry' | 'well';
+  accent?: 'cyan' | 'emerald' | 'amber' | 'blue' | 'purple';
   hoverEffect?: boolean;
 }
 
 export const Card: React.FC<CardProps> = ({
   children,
   className = '',
-  variant = 'default',
+  variant = 'glass',
+  accent,
   hoverEffect = false,
 }) => {
   const variantStyles = {
-    default: 'bg-gradient-to-b from-white/[0.05] to-white/[0.01] bg-[#0d101a]/80 border border-white/[0.1] shadow-[0_6px_24px_rgba(0,0,0,0.45),inset_0_1px_0_0_rgba(255,255,255,0.14)] backdrop-blur-xl',
-    glass: 'bg-gradient-to-b from-white/[0.07] to-white/[0.015] bg-[#0c0f18]/75 border border-white/[0.12] shadow-[0_8px_32px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.18)] backdrop-blur-2xl',
-    interactive: 'bg-gradient-to-b from-white/[0.06] to-white/[0.01] bg-[#0d101a]/75 border border-white/[0.1] shadow-[0_6px_24px_rgba(0,0,0,0.4),inset_0_1px_0_0_rgba(255,255,255,0.14)] hover:border-cyan-400/40 hover:shadow-[0_12px_36px_rgba(6,182,212,0.18),inset_0_1px_0_0_rgba(255,255,255,0.25)] hover:bg-[#121624]/85 cursor-pointer backdrop-blur-xl',
-    telemetry: 'bg-gradient-to-b from-white/[0.03] to-transparent bg-[#080a11]/90 border border-white/[0.07] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.08)] backdrop-blur-md',
+    glass: 'premium-glass',
+    interactive: 'premium-glass premium-glass-hover cursor-pointer',
+    default: 'premium-glass',
+    well: 'glass-well',
+    telemetry: 'premium-glass bg-[#080d1a]/70',
   };
 
-  const hoverClass = hoverEffect
-    ? 'hover:border-white/25 hover:shadow-[0_12px_36px_rgba(0,0,0,0.6),inset_0_1px_0_0_rgba(255,255,255,0.22)] hover:translate-y-[-1px]'
-    : '';
+  const accentStyles = {
+    cyan: 'glass-accent-cyan',
+    emerald: 'glass-accent-emerald',
+    amber: 'glass-accent-amber',
+    blue: 'glass-accent-blue',
+    purple: 'glass-accent-purple',
+  };
+
+  const hoverClass = hoverEffect ? 'premium-glass-hover' : '';
+  const accentClass = accent ? accentStyles[accent] : '';
 
   return (
     <div
-      className={`rounded-xl p-4 sm:p-5 transition-all duration-200 ${variantStyles[variant]} ${hoverClass} ${className}`}
+      className={`rounded-2xl p-5 sm:p-6 transition-all duration-300 ${variantStyles[variant]} ${accentClass} ${hoverClass} ${className}`}
     >
       {children}
     </div>
