@@ -92,17 +92,22 @@ export const UploadPage: React.FC = () => {
       
       {/* Engineering Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-4 border-b border-[#1e222d]">
-        <div>
-          <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-[11px] font-mono text-cyan-400 bg-cyan-950/40 border border-cyan-800/50 mb-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
-            <span>Ingestion Console</span>
+        <div className="flex items-start gap-3.5">
+          <div className="hidden sm:flex shrink-0 w-12 h-12 rounded-xl bg-industrial-900 border border-industrial-800 items-center justify-center shadow-lg shadow-cyan-950/20">
+            <img src="/logo-mark.png" alt="UNTANGLED" className="w-8 h-8 object-contain" />
           </div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#f1f5f9]">
-            P&ID Drawing & DCS IO Ingestion
-          </h1>
-          <p className="text-xs text-[#94a3b8] mt-1 max-w-2xl leading-relaxed">
-            Multi-signal OCR consensus, symbol port snapping, and deterministic cross-validation against distributed control system point registers.
-          </p>
+          <div>
+            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-[11px] font-mono text-cyan-400 bg-cyan-950/40 border border-cyan-800/50 mb-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+              <span>Ingestion Console</span>
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#f1f5f9]">
+              P&ID Drawing & DCS IO Ingestion
+            </h1>
+            <p className="text-xs text-[#94a3b8] mt-1 max-w-2xl leading-relaxed">
+              Multi-signal OCR consensus, symbol port snapping, and deterministic cross-validation against distributed control system point registers.
+            </p>
+          </div>
         </div>
 
         {/* Engine Telemetry Strip */}
@@ -125,8 +130,13 @@ export const UploadPage: React.FC = () => {
       </div>
 
       {/* Main Upload Workspace */}
-      <Card className="bg-[#12141c] border-[#1e222d] shadow-sm">
-        <form onSubmit={handleSubmit} className="space-y-6">
+      <Card className="relative bg-[#12141c] border-[#1e222d] shadow-sm overflow-hidden">
+        {/* Subtle Background Watermark */}
+        <div className="pointer-events-none absolute right-2 bottom-2 opacity-[0.035] select-none z-0">
+          <img src="/logo-mark.png" alt="" className="w-56 h-56 object-contain" />
+        </div>
+
+        <form onSubmit={handleSubmit} className="relative z-10 space-y-6">
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             

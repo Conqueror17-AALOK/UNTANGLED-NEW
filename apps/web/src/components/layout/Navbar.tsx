@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
-  Layers,
   UploadCloud,
   Cpu,
   Workflow,
@@ -91,16 +90,20 @@ export const Navbar: React.FC<NavbarProps> = ({ currentJobId = 'demo-job-1' }) =
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-15">
             
-            {/* Brand Logo - Clean, Modern & Confident */}
-            <Link to="/" className="flex items-center gap-2.5 group shrink-0">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center text-white shadow-md shadow-cyan-500/20 group-hover:scale-105 transition-transform">
-                <Layers size={18} className="stroke-[2.2]" />
+            {/* Brand Logo - UNTANGLED with Official Ribbon Emblem */}
+            <Link to="/" className="flex items-center gap-2.5 group shrink-0" title="UNTANGLED Platform">
+              <div className="relative flex items-center justify-center">
+                <img
+                  src="/logo-mark.png"
+                  alt="UNTANGLED Emblem"
+                  className="w-8 h-8 object-contain drop-shadow-[0_0_10px_rgba(56,189,248,0.5)] group-hover:scale-105 transition-transform"
+                />
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-base font-bold tracking-tight text-slate-100 font-sans">
-                  UNTANGLE
+                <span className="text-base font-extrabold tracking-tight text-white font-sans">
+                  UNTANGLED
                 </span>
-                <span className="hidden sm:inline text-[11px] font-mono text-cyan-400/80 px-1.5 py-0.5 rounded bg-cyan-500/10 border border-cyan-500/20">
+                <span className="hidden sm:inline text-[10px] font-mono text-cyan-400 font-medium px-1.5 py-0.5 rounded bg-cyan-950/60 border border-cyan-500/30">
                   P&ID AI
                 </span>
               </div>
@@ -304,7 +307,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentJobId = 'demo-job-1' }) =
               <span>Multi-Signal Verification Protocol</span>
             </div>
             <p className="text-[11px] leading-relaxed text-slate-400">
-              UNTANGLE automatically cross-references physical P&ID blueprints against engineering DCS IO lists using visual OCR voting, OpenCV symbol correlation, RapidFuzz candidate indexing, and ISA-5.1 grammar parsing.
+              UNTANGLED automatically cross-references physical P&ID blueprints against engineering DCS IO lists using visual OCR voting, OpenCV symbol correlation, RapidFuzz candidate indexing, and ISA-5.1 grammar parsing.
             </p>
           </div>
 

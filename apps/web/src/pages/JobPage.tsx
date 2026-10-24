@@ -116,15 +116,20 @@ export const JobPage: React.FC = () => {
       
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-[#1e222d]">
-        <div>
-          <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-[11px] font-mono text-cyan-400 bg-cyan-950/40 border border-cyan-800/50 mb-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
-            <span className="truncate max-w-[280px]">Job: {jobId}</span>
+        <div className="flex items-start gap-3">
+          <div className="hidden sm:flex shrink-0 w-10 h-10 rounded-xl bg-industrial-900 border border-industrial-800 items-center justify-center shadow-md">
+            <img src="/logo-mark.png" alt="UNTANGLED" className="w-6 h-6 object-contain" />
           </div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#f1f5f9] flex items-center gap-2.5">
-            <Cpu size={22} className="text-blue-400 shrink-0" />
-            <span>Deterministic 9-Stage Pipeline Execution</span>
-          </h1>
+          <div>
+            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-[11px] font-mono text-cyan-400 bg-cyan-950/40 border border-cyan-800/50 mb-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+              <span className="truncate max-w-[280px]">Job: {jobId}</span>
+            </div>
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#f1f5f9] flex items-center gap-2.5">
+              <Cpu size={22} className="text-blue-400 shrink-0" />
+              <span>Deterministic 9-Stage Pipeline Execution</span>
+            </h1>
+          </div>
         </div>
 
         {isDone ? (
@@ -165,7 +170,11 @@ export const JobPage: React.FC = () => {
       </div>
 
       {/* Progress & Live Telemetry Card */}
-      <Card className="bg-[#12141c] border-[#1e222d] p-5 space-y-4">
+      <Card className="relative bg-[#12141c] border-[#1e222d] p-5 space-y-4 overflow-hidden">
+        {/* Subtle Watermark */}
+        <div className="pointer-events-none absolute right-3 bottom-2 opacity-[0.035] select-none z-0">
+          <img src="/logo-mark.png" alt="" className="w-36 h-36 object-contain" />
+        </div>
         <div className="flex items-center justify-between text-xs font-mono">
           <span className="text-[#94a3b8] flex items-center gap-2">
             <Terminal size={14} className="text-[#64748b]" />

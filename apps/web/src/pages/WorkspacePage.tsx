@@ -237,9 +237,26 @@ export const WorkspacePage: React.FC = () => {
           {/* SVG CAD Canvas Box */}
           <div className="h-[400px] sm:h-[480px] lg:h-[560px] relative overflow-hidden bg-[#08090d] border border-[#1e222d] rounded-lg select-none">
             
+            {/* Engineering Provenance Background Watermark */}
+            <div className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-[0.06] select-none z-0">
+              <img
+                src="/logo-full.png"
+                alt=""
+                className="w-[440px] max-w-[85%] object-contain filter drop-shadow-[0_0_25px_rgba(56,189,248,0.3)]"
+              />
+            </div>
+
+            {/* CAD Sheet Stamp Watermark */}
+            <div className="pointer-events-none absolute bottom-3 right-3 z-10 flex items-center gap-2 px-2.5 py-1 rounded bg-industrial-950/80 border border-industrial-800/80 backdrop-blur-sm select-none opacity-70">
+              <img src="/logo-mark.png" alt="" className="w-3.5 h-3.5 object-contain" />
+              <span className="font-mono text-[10px] tracking-wider text-slate-400 uppercase">
+                UNTANGLED Topology CAD
+              </span>
+            </div>
+
             {/* Coordinate Grid & Interactive Canvas */}
             <div
-              className="absolute inset-0 cursor-grab active:cursor-grabbing bg-cad-grid touch-none"
+              className="absolute inset-0 cursor-grab active:cursor-grabbing bg-cad-grid touch-none z-0"
               onMouseDown={handleMouseDown}
               onMouseMove={handleMouseMove}
               onMouseUp={handleMouseUp}
@@ -543,18 +560,21 @@ export const WorkspacePage: React.FC = () => {
                 </div>
 
                 {/* After: Synthesized Process Topology */}
-                <div className="bg-[#0f1117] p-3 flex flex-col justify-between">
-                  <div className="flex items-center justify-between">
+                <div className="relative bg-[#0f1117] p-3 flex flex-col justify-between overflow-hidden">
+                  <div className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-[0.06] select-none">
+                    <img src="/logo-mark.png" alt="" className="w-28 h-28 object-contain" />
+                  </div>
+                  <div className="relative z-10 flex items-center justify-between">
                     <span className="font-mono text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
-                      AFTER: Untangled Process Topology
+                      AFTER: UNTANGLED Process Topology
                     </span>
                     <span className="text-[10px] font-mono text-emerald-400">100% Cross-Checked</span>
                   </div>
-                  <div className="my-auto text-center space-y-1">
+                  <div className="relative z-10 my-auto text-center space-y-1">
                     <p className="font-mono text-xs text-[#94a3b8]">Deterministic orthogonal graph layout</p>
                     <p className="font-mono font-bold text-emerald-300">Verified: "PT-101" (4-20mA DCS Channel AI-01)</p>
                   </div>
-                  <span className="text-[10px] text-blue-400 font-mono">ISA-5.1 Syntax Validated</span>
+                  <span className="relative z-10 text-[10px] text-blue-400 font-mono">ISA-5.1 Syntax Validated</span>
                 </div>
               </div>
             </Card>

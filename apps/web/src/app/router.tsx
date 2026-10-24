@@ -23,15 +23,16 @@ export const AppRouter: React.FC = () => {
 
       <footer className="border-t border-[#1e222d] py-4 bg-[#090a0f] text-[11px] text-[#64748b] font-mono">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <div className="flex items-center gap-3">
-            <span className="text-[#94a3b8] font-semibold">UNTANGLE INDUSTRIAL ENGINE</span>
-            <span>•</span>
-            <span>ISA-5.1-2009 SPECIFICATION</span>
-            <span>•</span>
-            <span>IEC 62443 COMPLIANT PIPELINE</span>
+          <div className="flex items-center gap-2.5">
+            <img src="/logo-mark.png" alt="UNTANGLED" className="w-4 h-4 object-contain opacity-70" />
+            <span className="text-[#94a3b8] font-semibold">UNTANGLED PLATFORM</span>
+            <span className="hidden sm:inline">•</span>
+            <span className="hidden sm:inline">ISA-5.1 SPECIFICATION</span>
+            <span className="hidden sm:inline">•</span>
+            <span className="hidden sm:inline">CROSS-VALIDATION ENGINE</span>
           </div>
           <div>
-            <span>DCS CROSS-VALIDATION GATEWAY</span>
+            <span>DCS VERIFICATION GATEWAY</span>
           </div>
         </div>
       </footer>

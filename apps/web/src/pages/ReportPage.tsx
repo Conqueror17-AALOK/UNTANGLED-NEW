@@ -72,21 +72,35 @@ export const ReportPage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6 animate-fade-in print:p-0 print:space-y-4">
+    <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6 animate-fade-in print:p-0 print:space-y-4">
       
+      {/* Official Audit Document Background Watermark */}
+      <div className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-[0.03] overflow-hidden select-none z-0">
+        <img
+          src="/logo-full.png"
+          alt=""
+          className="w-[580px] max-w-full -rotate-12 filter drop-shadow-[0_0_40px_rgba(56,189,248,0.5)]"
+        />
+      </div>
+
       {/* Official Audit Document Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#1e222d]">
-        <div>
-          <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-[11px] font-mono text-emerald-400 bg-emerald-950/40 border border-emerald-800/50 mb-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            <span>Audit Report • Doc {jobId.slice(0, 8).toUpperCase()}</span>
+      <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#1e222d]">
+        <div className="flex items-start gap-3.5">
+          <div className="hidden sm:flex shrink-0 w-11 h-11 rounded-xl bg-industrial-900 border border-industrial-800 items-center justify-center shadow-lg shadow-cyan-950/20">
+            <img src="/logo-mark.png" alt="UNTANGLED" className="w-7 h-7 object-contain" />
           </div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#f1f5f9]">
-            {labels.report_title || 'P&ID Drawing vs IO List Cross-Validation Report'}
-          </h1>
-          <p className="text-xs text-[#94a3b8] mt-1 max-w-2xl leading-relaxed">
-            {labels.report_subtitle || 'Deterministic discrepancy analysis between physical P&ID blueprints and DCS electrical point registers.'}
-          </p>
+          <div>
+            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-[11px] font-mono text-emerald-400 bg-emerald-950/40 border border-emerald-800/50 mb-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span>Audit Report • Doc {jobId.slice(0, 8).toUpperCase()}</span>
+            </div>
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#f1f5f9]">
+              {labels.report_title || 'P&ID Drawing vs IO List Cross-Validation Report'}
+            </h1>
+            <p className="text-xs text-[#94a3b8] mt-1 max-w-2xl leading-relaxed">
+              {labels.report_subtitle || 'Deterministic discrepancy analysis between physical P&ID blueprints and DCS electrical point registers.'}
+            </p>
+          </div>
         </div>
 
         {/* Action Controls & Multi-lingual Switcher */}

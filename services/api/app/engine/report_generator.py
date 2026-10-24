@@ -105,10 +105,13 @@ def generate_pdf_report(job_id: str, report_data: Dict[str, Any], lang: str = "e
     doc = fitz.open()
     page = doc.new_page(width=612, height=792)  # 8.5 x 11 inch
 
+    # Background subtle official watermark
+    page.insert_text(fitz.Point(120, 480), "UNTANGLED CERTIFIED AUDIT", fontsize=28, color=(0.93, 0.94, 0.97), fontname="helv")
+
     # Header Banner (Dark industrial navy)
     page.draw_rect(fitz.Rect(0, 0, 612, 65), color=None, fill=(0.06, 0.09, 0.16))
-    page.insert_text(fitz.Point(36, 34), "UNTANGLE", fontsize=16, color=(0.0, 0.88, 1.0), fontname="helv")
-    page.insert_text(fitz.Point(135, 34), "|  Engineering Audit & Cross-Validation Report", fontsize=12, color=(0.85, 0.9, 0.95), fontname="helv")
+    page.insert_text(fitz.Point(36, 34), "UNTANGLED", fontsize=16, color=(0.0, 0.88, 1.0), fontname="helv")
+    page.insert_text(fitz.Point(145, 34), "|  Engineering Audit & Cross-Validation Report", fontsize=12, color=(0.85, 0.9, 0.95), fontname="helv")
     page.insert_text(fitz.Point(36, 52), labels["audit_stamp"], fontsize=8, color=(0.4, 0.7, 0.6), fontname="helv")
 
     # Metadata Row
