@@ -20,25 +20,20 @@ export const Badge: React.FC<BadgeProps> = ({
   };
 
   const variantClasses = {
-    // Glass Chip
-    chip: "bg-white/[0.08] text-white border border-white/10 font-bold",
-    // Neutral
-    neutral: "bg-white/[0.08] text-white border border-white/10 font-bold",
-    // Adobe Red (#eb1000) for emphasis/alerts
-    red: "bg-[#eb1000]/15 text-[#eb1000] border border-[#eb1000]/30 font-bold",
-    low: "bg-[#eb1000]/15 text-[#eb1000] border border-[#eb1000]/30 font-bold",
-    // Medium / Amber
-    medium: "bg-amber-500/15 text-amber-300 border border-amber-500/30 font-bold",
-    // High / Verified (Clean white/emerald)
-    high: "bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 font-bold",
-    emerald: "bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 font-bold",
-    cyan: "bg-white/[0.1] text-white border border-white/20 font-bold",
-    blue: "bg-white/[0.1] text-white border border-white/20 font-bold",
-    purple: "bg-white/[0.08] text-white border border-white/10 font-bold",
+    chip: "bg-white/[0.05] text-neutral-300 border border-[#2d313a] font-medium",
+    neutral: "bg-white/[0.05] text-neutral-300 border border-[#2d313a] font-medium",
+    red: "bg-red-500/10 text-red-400 border border-red-500/20 font-medium",
+    low: "bg-red-500/10 text-red-400 border border-red-500/20 font-medium",
+    medium: "bg-amber-500/10 text-amber-400 border border-amber-500/20 font-medium",
+    high: "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium",
+    emerald: "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium",
+    cyan: "bg-blue-500/10 text-blue-400 border border-blue-500/20 font-medium",
+    blue: "bg-blue-500/10 text-blue-400 border border-blue-500/20 font-medium",
+    purple: "bg-purple-500/10 text-purple-400 border border-purple-500/20 font-medium",
   };
 
   return (
-    <span className={`inline-flex items-center font-bold tracking-tight uppercase ${sizeClasses[size]} ${variantClasses[variant]} ${className}`}>
+    <span className={`inline-flex items-center font-medium ${sizeClasses[size]} ${variantClasses[variant]} ${className}`}>
       {children}
     </span>
   );

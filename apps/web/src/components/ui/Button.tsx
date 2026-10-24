@@ -15,28 +15,22 @@ export const Button: React.FC<ButtonProps> = ({
   disabled,
   ...props
 }) => {
-  const base = "inline-flex items-center justify-center font-bold tracking-tight transition-all duration-150 select-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#eb1000] disabled:opacity-40 disabled:cursor-not-allowed";
+  const base = "inline-flex items-center justify-center font-medium tracking-tight transition-all duration-150 select-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-40 disabled:cursor-not-allowed";
   
   const sizeClasses = {
-    xs: "px-3 py-1 text-[11px] h-7 rounded-full font-mono gap-1.5",
-    sm: "px-4 py-1.5 text-xs h-8 rounded-full gap-2",
-    md: "px-6 py-2.5 text-sm h-10 rounded-full gap-2", // Matches 40px height & 13px 24px padding spec
-    lg: "px-8 py-3 text-base h-12 rounded-full gap-2.5",
+    xs: "px-2.5 py-1 text-xs h-7 rounded-md gap-1.5",
+    sm: "px-3 py-1.5 text-xs h-8 rounded-lg gap-1.5",
+    md: "px-4 py-2 text-xs sm:text-sm h-9 sm:h-10 rounded-lg gap-2",
+    lg: "px-6 py-2.5 text-sm sm:text-base h-11 rounded-lg gap-2.5",
   };
 
   const variantClasses = {
-    // Adobe Firefly / Podcast Primary: Crisp pure white pill with deep black ink text, subtle tonal hover
-    primary: "bg-[#ffffff] text-[#000000] hover:bg-[#e5e7eb] active:scale-[0.98] border border-transparent font-bold",
-    // Engineering primary (same high-contrast white pill or crisp accent)
-    engineering: "bg-[#ffffff] text-[#000000] hover:bg-[#e5e7eb] active:scale-[0.98] border border-transparent font-bold",
-    // Adobe Firefly / Podcast Secondary: Rounded-full border-led pill
-    secondary: "bg-transparent text-[#ffffff] border border-white/25 hover:border-white/50 hover:bg-white/[0.06] active:scale-[0.98] font-bold",
-    // Adobe Tertiary: Transparent text button
-    tertiary: "bg-transparent text-[#d1d5db] hover:text-[#ffffff] p-0 font-bold hover:underline",
-    // Danger with Adobe Red #eb1000
-    danger: "bg-[#eb1000] text-white hover:bg-[#c90d00] active:scale-[0.98] font-bold rounded-full",
-    // Ghost
-    ghost: "bg-transparent text-[#9ca3af] hover:text-[#ffffff] hover:bg-white/[0.06] rounded-full font-bold",
+    primary: "bg-neutral-100 text-neutral-900 hover:bg-white active:scale-[0.98] border border-transparent font-medium shadow-sm",
+    engineering: "bg-blue-600 text-white hover:bg-blue-500 active:scale-[0.98] border border-transparent font-medium shadow-sm",
+    secondary: "bg-[#20232a] text-neutral-200 border border-[#2e323b] hover:bg-[#252831] hover:text-white active:scale-[0.98] font-medium",
+    tertiary: "bg-transparent text-neutral-400 hover:text-white p-0 font-medium hover:underline",
+    danger: "bg-red-600 text-white hover:bg-red-500 active:scale-[0.98] font-medium rounded-lg",
+    ghost: "bg-transparent text-neutral-400 hover:text-white hover:bg-white/[0.04] rounded-lg font-medium",
   };
 
   const isTertiary = variant === 'tertiary';

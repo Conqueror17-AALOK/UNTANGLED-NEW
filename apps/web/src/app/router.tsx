@@ -9,14 +9,11 @@ import { Navbar } from '../components/layout/Navbar';
 
 export const AppRouter: React.FC = () => {
   return (
-    <div className="relative min-h-screen flex flex-col bg-[#000000] text-[#ffffff] antialiased overflow-x-hidden selection:bg-[#eb1000]/30 selection:text-white font-bold">
-      {/* Editorial High-Contrast Canvas (Adobe Firefly / Podcast Aesthetic) */}
+    <div className="relative min-h-screen flex flex-col bg-[#181a1f] text-[#e5e7eb] antialiased overflow-x-hidden selection:bg-blue-500/25 selection:text-white font-normal">
+      {/* Matte Architectural Background Canvas */}
       <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden select-none">
-        {/* Deep Ink Gradient */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#0a0a0a] via-[#000000] to-[#000000]" />
-        
-        {/* Subtle Architectural Grid */}
-        <div className="absolute inset-0 bg-adobe-grid opacity-20" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#1c1e24] via-[#181a1f] to-[#15161a]" />
+        <div className="absolute inset-0 bg-adobe-grid opacity-15" />
       </div>
 
       <div className="relative z-10 flex flex-col min-h-screen">
@@ -31,19 +28,19 @@ export const AppRouter: React.FC = () => {
           </Routes>
         </main>
 
-        <footer className="border-t border-white/[0.1] py-6 bg-[#000000] text-xs text-[#9ca3af] font-bold">
+        <footer className="border-t border-[#2d313a] py-5 bg-[#16171c] text-xs text-neutral-400 font-normal">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <img src="/logo-mark.png" alt="UNTANGLED" className="w-5 h-5 object-contain" />
-              <span className="text-white font-heading font-black tracking-tight">UNTANGLED</span>
-              <span className="text-white/20">•</span>
-              <span>ISA-5.1 COMPLIANT</span>
-              <span className="text-white/20">•</span>
-              <span>DCS CROSS-VALIDATION GATEWAY</span>
+              <img src="/logo-mark.png" alt="UNTANGLED" className="w-4 h-4 object-contain opacity-80" />
+              <span className="text-neutral-200 font-medium">UNTANGLED</span>
+              <span className="text-neutral-600">•</span>
+              <span className="text-neutral-400">ISA-5.1 Deterministic Verification</span>
+              <span className="text-neutral-600">•</span>
+              <span className="text-neutral-400">DCS Cross-Validation</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-[#10b981]" />
-              <span className="text-white font-mono">ENGINE v1.0 ONLINE</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+              <span className="text-neutral-300 font-mono text-[11px]">System Ready</span>
             </div>
           </div>
         </footer>

@@ -84,26 +84,26 @@ export const Navbar: React.FC<NavbarProps> = ({ currentJobId = 'demo-job-1' }) =
 
   return (
     <>
-      <header className="sticky top-0 z-40 bg-[#000000]/95 backdrop-blur-md border-b border-white/[0.1] h-16">
+      <header className="sticky top-0 z-40 bg-[#181a1f]/95 backdrop-blur-md border-b border-[#2d313a] h-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full">
           <div className="flex items-center justify-between h-full">
             
-            {/* Brand Logo - UNTANGLED (Adobe Clean Typography) */}
-            <Link to="/" className="flex items-center gap-3 group shrink-0" title="UNTANGLED Platform">
+            {/* Brand Logo - UNTANGLED */}
+            <Link to="/" className="flex items-center gap-2.5 group shrink-0" title="UNTANGLED Platform">
               <div className="flex items-center justify-center">
                 <img
                   src="/logo-mark.png"
                   alt="UNTANGLED Logo"
-                  className="w-8 h-8 object-contain transition-transform group-hover:scale-105"
+                  className="w-7 h-7 object-contain transition-transform group-hover:scale-105 opacity-90"
                 />
               </div>
-              <span className="text-xl font-heading font-black tracking-tight text-white">
+              <span className="text-base font-semibold tracking-tight text-white">
                 UNTANGLED
               </span>
             </Link>
 
-            {/* Desktop Navigation - Adobe Docked Selector Strip */}
-            <nav className="hidden md:flex items-center gap-1 bg-[#141414] p-1 rounded-full border border-white/[0.12] mx-2">
+            {/* Desktop Navigation - Docked Selector Strip */}
+            <nav className="hidden md:flex items-center gap-1 bg-[#20232a] p-1 rounded-lg border border-[#2d313a] mx-2">
               {navItems.map((item) => {
                 const Icon = item.icon;
                 const active = isActive(item.path);
@@ -111,13 +111,13 @@ export const Navbar: React.FC<NavbarProps> = ({ currentJobId = 'demo-job-1' }) =
                   <Link
                     key={item.label}
                     to={item.path}
-                    className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold transition-all duration-150 ${
+                    className={`flex items-center gap-2 px-3.5 py-1.5 rounded-md text-xs font-medium transition-all duration-150 ${
                       active
-                        ? 'bg-[#ffffff] text-[#000000] font-black shadow-sm'
-                        : 'text-[#9ca3af] hover:text-white hover:bg-white/[0.06]'
+                        ? 'bg-[#2d313a] text-white font-semibold shadow-sm'
+                        : 'text-neutral-400 hover:text-white hover:bg-white/[0.04]'
                     }`}
                   >
-                    <Icon size={14} className={active ? 'text-black' : 'text-[#9ca3af]'} />
+                    <Icon size={14} className={active ? 'text-blue-400' : 'text-neutral-400'} />
                     <span className="lg:hidden">{item.label}</span>
                     <span className="hidden lg:inline">{item.fullLabel}</span>
                   </Link>
@@ -129,22 +129,20 @@ export const Navbar: React.FC<NavbarProps> = ({ currentJobId = 'demo-job-1' }) =
             <div className="flex items-center gap-2.5 shrink-0">
 
               {/* Hotkeys (?) Button */}
-              <Button
-                variant="secondary"
-                size="xs"
+              <button
                 onClick={() => setShortcutsOpen(true)}
-                className="hidden sm:flex items-center gap-1.5 text-xs text-white"
+                className="hidden sm:flex items-center gap-1.5 text-xs text-neutral-300 hover:text-white px-3 py-1.5 rounded-lg border border-[#2d313a] bg-[#20232a] hover:bg-[#252831] transition-all"
                 title="Keyboard Shortcuts & Reference (?)"
               >
                 <Keyboard size={13} />
                 <span className="hidden lg:inline">Hotkeys</span>
-                <kbd className="px-1.5 py-0.2 rounded bg-white/20 text-[10px] font-mono font-bold">?</kbd>
-              </Button>
+                <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-[10px] font-mono">?</kbd>
+              </button>
 
               {/* Mobile Hamburger Toggle */}
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="md:hidden text-white p-2 rounded-full bg-[#141414] border border-white/[0.12]"
+                className="md:hidden text-neutral-200 p-2 rounded-lg bg-[#20232a] border border-[#2d313a]"
                 aria-label="Toggle navigation menu"
               >
                 {mobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
@@ -156,7 +154,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentJobId = 'demo-job-1' }) =
 
         {/* Mobile Dropdown Drawer */}
         {mobileMenuOpen && (
-          <div className="md:hidden border-b border-white/[0.12] bg-[#0d0d0d] px-4 py-3 space-y-1 animate-fade-in">
+          <div className="md:hidden border-b border-[#2d313a] bg-[#1c1e24] px-4 py-3 space-y-1 animate-fade-in">
             {navItems.map((item) => {
               const Icon = item.icon;
               const active = isActive(item.path);
@@ -165,9 +163,9 @@ export const Navbar: React.FC<NavbarProps> = ({ currentJobId = 'demo-job-1' }) =
                   key={item.label}
                   to={item.path}
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`flex items-center gap-3 px-4 py-2.5 rounded-full text-sm font-bold transition-colors ${
+                  className={`flex items-center gap-3 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                     active
-                      ? 'bg-white text-black font-extrabold'
+                      ? 'bg-[#2d313a] text-white font-semibold'
                       : 'text-slate-300 hover:text-white hover:bg-white/[0.06]'
                   }`}
                 >

@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { CheckCircle2, Loader2, ArrowRight, AlertTriangle, Download } from 'lucide-react';
-import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { JobStreamClient, PIPELINE_STAGES } from '../api/ws';
 import { apiClient } from '../api/client';
@@ -108,90 +107,93 @@ export const JobPage: React.FC = () => {
   }, [jobId]);
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-12 space-y-6 animate-fade-in">
+    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-10 space-y-5 animate-fade-in font-sans">
       
-      {/* Editorial Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-white/[0.1]">
+      {/* Clean Technical Header */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-[#2d313a]">
         <div>
-          <h1 className="text-2xl sm:text-4xl font-heading font-black tracking-[-0.035em] text-white">
+          <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-white">
             Pipeline Execution
           </h1>
+          <p className="text-xs text-neutral-400 font-normal mt-0.5">
+            Sequential 9-stage perception, parsing, reconciliation, and topology synthesis.
+          </p>
         </div>
 
         {isDone ? (
-          <div className="flex items-center gap-2.5 w-full sm:w-auto">
+          <div className="flex items-center gap-2 w-full sm:w-auto">
             <a
               href={`/api/v1/jobs/${jobId}/simplified-diagram/pdf`}
               download={`simplified_diagram_${jobId.slice(0, 8)}.pdf`}
               target="_blank"
               rel="noopener noreferrer"
             >
-              <Button variant="secondary" size="md" className="font-bold">
-                <Download size={14} className="text-[#10b981]" />
+              <Button variant="secondary" size="sm" className="font-medium">
+                <Download size={13} className="text-emerald-400" />
                 <span>PDF Diagram</span>
               </Button>
             </a>
             <Button
               variant="primary"
-              size="md"
+              size="sm"
               onClick={() => navigate(`/workspace/${jobId}`)}
-              className="font-bold"
+              className="font-medium"
             >
               <span>View Canvas</span>
-              <ArrowRight size={14} />
+              <ArrowRight size={13} />
             </Button>
           </div>
         ) : errorMsg ? (
-          <div className="flex items-center gap-2.5 px-4 py-2 rounded-xl bg-[#eb1000]/15 border border-[#eb1000]/30 text-xs font-bold text-white">
-            <AlertTriangle size={15} className="text-[#eb1000] shrink-0" />
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-red-500/10 border border-red-500/20 text-xs text-red-300">
+            <AlertTriangle size={14} className="text-red-400 shrink-0" />
             <span>Error: {errorMsg}</span>
           </div>
         ) : (
-          <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-white text-black text-xs font-bold shadow-sm">
-            <Loader2 size={13} className="animate-spin text-black" />
-            <span className="uppercase font-black">{currentStage}</span>
+          <div className="flex items-center gap-2 px-3 py-1 rounded-md bg-[#252831] border border-[#2d313a] text-xs text-neutral-200">
+            <Loader2 size={13} className="animate-spin text-blue-400" />
+            <span className="font-medium uppercase text-[11px]">{currentStage}</span>
           </div>
         )}
       </div>
 
-      {/* Editorial Progress Card */}
-      <Card variant="card" className="p-6 space-y-5">
-        <div className="flex items-center justify-between text-xs font-bold">
-          <span className="text-slate-400 tracking-wider uppercase">TOTAL PIPELINE PROGRESS</span>
-          <span className="text-white font-black text-base tabular-nums">
+      {/* Progress Card with Integrated Stat Strip (No Boxception) */}
+      <div className="adobe-card p-5 space-y-4">
+        <div className="flex items-center justify-between text-xs text-neutral-400 font-medium">
+          <span>PIPELINE PROGRESS</span>
+          <span className="text-white font-semibold text-sm tabular-nums">
             {Math.round(progress * 100)}%
           </span>
         </div>
 
-        {/* Minimal Progress Bar Capsule */}
-        <div className="w-full h-3 rounded-full bg-white/10 p-0.5 overflow-hidden">
+        {/* Minimal Progress Bar */}
+        <div className="w-full h-2 rounded-full bg-[#1c1e24] overflow-hidden">
           <div
-            className="h-full rounded-full bg-white transition-all duration-300"
+            className="h-full rounded-full bg-blue-500 transition-all duration-300"
             style={{ width: `${Math.min(100, Math.max(5, progress * 100))}%` }}
           />
         </div>
 
-        {/* 3 Compact Editorial Stat Tiles */}
-        <div className="grid grid-cols-3 gap-3.5 pt-1 text-center font-mono">
-          <div className="p-4 rounded-xl bg-[#1a1a1a] border border-white/[0.08]">
-            <span className="text-[10px] text-slate-400 block font-bold tracking-wider">RESOLVED</span>
-            <span className="text-white font-black text-2xl tabular-nums mt-1 block">{summary.resolved}</span>
+        {/* 3 Stats in a Clean Divided Row (No Nested Boxes) */}
+        <div className="grid grid-cols-3 divide-x divide-[#2d313a] pt-2 border-t border-[#2d313a] text-center text-xs">
+          <div className="py-1">
+            <span className="text-[11px] text-neutral-400 block font-normal">Resolved</span>
+            <span className="text-white font-semibold text-xl tabular-nums mt-0.5 block">{summary.resolved}</span>
           </div>
-          <div className="p-4 rounded-xl bg-[#1a1a1a] border border-white/[0.08]">
-            <span className="text-[10px] text-slate-400 block font-bold tracking-wider">REVIEW</span>
-            <span className="text-[#eb1000] font-black text-2xl tabular-nums mt-1 block">{summary.needs_review}</span>
+          <div className="py-1">
+            <span className="text-[11px] text-neutral-400 block font-normal">Review Queue</span>
+            <span className="text-amber-400 font-semibold text-xl tabular-nums mt-0.5 block">{summary.needs_review}</span>
           </div>
-          <div className="p-4 rounded-xl bg-[#1a1a1a] border border-white/[0.08]">
-            <span className="text-[10px] text-slate-400 block font-bold tracking-wider">STAGES</span>
-            <span className="text-white font-black text-2xl tabular-nums mt-1 block">
+          <div className="py-1">
+            <span className="text-[11px] text-neutral-400 block font-normal">Completed</span>
+            <span className="text-white font-semibold text-xl tabular-nums mt-0.5 block">
               {completedStages.size} / 9
             </span>
           </div>
         </div>
-      </Card>
+      </div>
 
-      {/* 9-Stage Sequence with Adobe Editorial List Rows */}
-      <div className="space-y-2">
+      {/* 9-Stage Sequence in a Single Clean Divided List (No Separate Box for Each Stage) */}
+      <div className="adobe-card divide-y divide-[#2d313a] overflow-hidden">
         {PIPELINE_STAGES.map((s, index) => {
           const isCompleted = completedStages.has(s.id) || isDone;
           const isCurrent = currentStage === s.id && !isDone;
@@ -199,40 +201,40 @@ export const JobPage: React.FC = () => {
           return (
             <div
               key={s.id}
-              className={`flex items-center justify-between px-5 py-3.5 rounded-xl border text-xs transition-all duration-150 ${
+              className={`flex items-center justify-between px-4 py-3 text-xs transition-colors ${
                 isCurrent
-                  ? 'bg-[#1a1a1a] border-white/40 text-white font-black'
+                  ? 'bg-blue-500/10 text-white'
                   : isCompleted
-                  ? 'bg-[#141414] hover:bg-[#181818] border-white/[0.08] text-slate-200 font-bold'
-                  : 'bg-[#0d0d0d] border-white/[0.04] text-slate-500 font-bold'
+                  ? 'text-neutral-200 hover:bg-white/[0.02]'
+                  : 'text-neutral-500'
               }`}
             >
-              <div className="flex items-center gap-4">
-                <span className="w-5 text-center font-mono text-slate-400">
+              <div className="flex items-center gap-3">
+                <span className="w-5 text-center text-neutral-400 font-mono text-[11px]">
                   {isCompleted ? (
-                    <CheckCircle2 size={16} className="text-[#10b981] inline" />
+                    <CheckCircle2 size={15} className="text-emerald-400 inline" />
                   ) : isCurrent ? (
-                    <Loader2 size={15} className="animate-spin text-white inline" />
+                    <Loader2 size={14} className="animate-spin text-blue-400 inline" />
                   ) : (
                     index + 1
                   )}
                 </span>
-                <span className={`text-sm ${isCurrent ? 'text-white font-black' : 'font-bold'}`}>
+                <span className={`text-xs ${isCurrent ? 'font-semibold text-white' : 'font-normal'}`}>
                   {s.label}
                 </span>
               </div>
 
               <div>
                 {isCompleted ? (
-                  <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-[#10b981]/20 text-[#10b981]">
-                    DONE
+                  <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400">
+                    Done
                   </span>
                 ) : isCurrent ? (
-                  <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-white text-black animate-pulse">
-                    RUNNING
+                  <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 animate-pulse">
+                    Running
                   </span>
                 ) : (
-                  <span className="text-[11px] font-mono text-slate-600">WAITING</span>
+                  <span className="text-[10px] text-neutral-600">Pending</span>
                 )}
               </div>
             </div>

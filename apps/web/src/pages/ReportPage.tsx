@@ -112,31 +112,31 @@ export const ReportPage: React.FC = () => {
   };
 
   return (
-    <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6 animate-fade-in print:p-0 print:space-y-4">
-      {/* Editorial Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-white/[0.12]">
+    <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6 animate-fade-in print:p-0 print:space-y-4 font-sans">
+      {/* Refined Engineering Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-[#2d313a]">
         <div>
-          <h1 className="text-3xl sm:text-4xl font-display font-black text-white tracking-tight mb-1">
+          <h1 className="text-2xl sm:text-3xl font-semibold text-white tracking-tight mb-1">
             {labels.report_title || 'Audit Report'}
           </h1>
-          <p className="text-sm text-neutral-400 font-bold">
-            P&ID Drawing vs DCS IO Register deterministic verification audit.
+          <p className="text-xs text-neutral-400 font-normal">
+            Deterministic verification: P&ID Drawing vs DCS IO Register.
           </p>
         </div>
 
         {/* Action Controls & Multi-lingual Switcher */}
-        <div className="flex flex-wrap items-center gap-2.5 print:hidden">
-          {/* Language Selector - Docked Pill Strip */}
-          <div className="flex items-center bg-[#141414] p-1.5 rounded-full border border-white/[0.12] text-xs">
-            <Globe size={13} className="text-neutral-400 ml-2 mr-1.5" />
+        <div className="flex flex-wrap items-center gap-2 print:hidden">
+          {/* Language Selector */}
+          <div className="flex items-center bg-[#20232a] p-1 rounded-lg border border-[#2d313a] text-xs">
+            <Globe size={13} className="text-neutral-400 ml-1.5 mr-1" />
             {(['en', 'hi', 'mr'] as const).map((l) => (
               <button
                 key={l}
                 id={`lang-${l}-btn`}
                 onClick={() => setLang(l)}
-                className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${
+                className={`px-2.5 py-1 rounded text-xs font-medium transition-all ${
                   lang === l
-                    ? 'bg-white text-black font-black'
+                    ? 'bg-[#2d313a] text-white font-semibold'
                     : 'text-neutral-400 hover:text-white'
                 }`}
               >
@@ -151,237 +151,230 @@ export const ReportPage: React.FC = () => {
             target="_blank"
             rel="noopener noreferrer"
           >
-            <button className="bg-white text-black font-bold h-10 px-5 rounded-full flex items-center gap-2 hover:bg-neutral-200 transition-all text-sm">
-              <Download size={14} className="stroke-[2.5]" />
+            <button className="bg-neutral-100 text-neutral-900 font-medium h-9 px-4 rounded-lg flex items-center gap-2 hover:bg-white transition-all text-xs">
+              <Download size={13} />
               <span>Smart Vector PDF</span>
             </button>
           </a>
 
           <button
             onClick={handleDownloadPDF}
-            className="h-10 px-4 rounded-full border border-white/20 text-white font-bold hover:bg-white/10 flex items-center gap-2 transition-all text-sm"
+            className="h-9 px-3.5 rounded-lg border border-[#2d313a] bg-[#20232a] text-neutral-200 hover:text-white hover:bg-[#252831] flex items-center gap-2 transition-all text-xs font-medium"
           >
-            <FileCheck2 size={14} className="text-neutral-300" />
-            <span>Audit PDF (with Overlay)</span>
+            <FileCheck2 size={13} className="text-neutral-400" />
+            <span>Audit PDF</span>
           </button>
 
           <button
             onClick={handlePrint}
-            className="h-10 px-4 rounded-full border border-white/20 text-white font-bold hover:bg-white/10 flex items-center gap-2 transition-all text-sm"
+            className="h-9 px-3 rounded-lg border border-[#2d313a] bg-[#20232a] text-neutral-300 hover:text-white hover:bg-[#252831] flex items-center gap-1.5 transition-all text-xs"
           >
-            <Printer size={14} />
+            <Printer size={13} />
             <span className="hidden sm:inline">Print</span>
           </button>
 
           <button
             onClick={handleExportJSON}
-            className="h-10 px-4 rounded-full border border-white/20 text-white font-bold hover:bg-white/10 flex items-center gap-2 transition-all text-sm"
+            className="h-9 px-3 rounded-lg border border-[#2d313a] bg-[#20232a] text-neutral-300 hover:text-white hover:bg-[#252831] flex items-center gap-1.5 transition-all text-xs"
           >
-            <Download size={14} />
+            <Download size={13} />
             <span>JSON</span>
           </button>
         </div>
       </div>
 
-      {/* KPI Cards - Editorial Containers */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="adobe-card p-5 space-y-2">
-          <span className="text-xs text-neutral-400 uppercase tracking-wider block font-black">
-            {labels.total_tags_title || 'Total Tags'}
-          </span>
-          <p className="text-3xl sm:text-4xl font-display font-black text-white tabular-nums tracking-tight">{summary.tags_total}</p>
-          <span className="text-xs text-neutral-500 font-bold block">Extracted elements</span>
-        </div>
-
-        <div className="adobe-card p-5 space-y-2">
-          <span className="text-xs text-emerald-400 uppercase tracking-wider block font-black">
-            {labels.resolved_title || 'Verified'}
-          </span>
-          <p className="text-3xl sm:text-4xl font-display font-black text-emerald-400 tabular-nums tracking-tight">{summary.resolved}</p>
-          <span className="text-xs text-neutral-400 font-bold block">
-            {summary.tags_total > 0 ? Math.round((summary.resolved / summary.tags_total) * 100) : 0}% matched
-          </span>
-        </div>
-
-        <div className="adobe-card p-5 space-y-2">
-          <span className="text-xs text-amber-400 uppercase tracking-wider block font-black">
-            {labels.review_req_title || 'Needs Review'}
-          </span>
-          <p className="text-3xl sm:text-4xl font-display font-black text-amber-400 tabular-nums tracking-tight">{summary.needs_review}</p>
-          <span className="text-xs text-neutral-400 font-bold block">
-            {summary.needs_review === 0 ? 'All cleared' : 'Action items'}
-          </span>
-        </div>
-
-        <div className="adobe-card p-5 space-y-2">
-          <span className="text-xs text-neutral-400 uppercase tracking-wider block font-black">
-            Decision Split
-          </span>
-          <p className="text-3xl sm:text-4xl font-display font-black text-white tabular-nums tracking-tight">
-            {summary.auto_pct}%
-          </p>
-          <span className="text-xs text-neutral-400 font-bold block">
-            {summary.llm_pct}% LLM • {summary.human_pct}% Manual
-          </span>
-        </div>
-      </div>
-
-      {/* Decision Distribution Bar */}
-      <div className="adobe-card p-5 space-y-3.5">
-        <div className="flex items-center justify-between text-xs">
-          <span className="text-xs font-black uppercase tracking-wider text-neutral-300">
-            Decision Distribution
-          </span>
-          <div className="flex items-center gap-4 text-neutral-300 font-bold">
-            <span className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400" /> Auto ({summary.auto_pct}%)
+      {/* KPI Stats Strip - Single Unified Card with Dividers (No Nested Boxes) */}
+      <div className="adobe-card p-4 sm:p-5">
+        <div className="grid grid-cols-2 sm:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-[#2d313a]">
+          <div className="px-4 py-2 sm:py-0 space-y-0.5">
+            <span className="text-xs text-neutral-400 block font-medium">
+              {labels.total_tags_title || 'Total Tags'}
             </span>
-            <span className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-blue-400" /> LLM ({summary.llm_pct}%)
+            <p className="text-2xl sm:text-3xl font-semibold text-white tabular-nums">{summary.tags_total}</p>
+            <span className="text-[11px] text-neutral-500 font-normal">Extracted elements</span>
+          </div>
+
+          <div className="px-4 py-2 sm:py-0 space-y-0.5">
+            <span className="text-xs text-neutral-400 block font-medium">
+              {labels.resolved_title || 'Verified'}
             </span>
-            <span className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-amber-400" /> Review ({summary.human_pct}%)
+            <p className="text-2xl sm:text-3xl font-semibold text-emerald-400 tabular-nums">{summary.resolved}</p>
+            <span className="text-[11px] text-neutral-400 font-normal">
+              {summary.tags_total > 0 ? Math.round((summary.resolved / summary.tags_total) * 100) : 0}% matched
+            </span>
+          </div>
+
+          <div className="px-4 py-2 sm:py-0 space-y-0.5">
+            <span className="text-xs text-neutral-400 block font-medium">
+              {labels.review_req_title || 'Needs Review'}
+            </span>
+            <p className="text-2xl sm:text-3xl font-semibold text-amber-400 tabular-nums">{summary.needs_review}</p>
+            <span className="text-[11px] text-neutral-400 font-normal">
+              {summary.needs_review === 0 ? 'All cleared' : 'Action items'}
+            </span>
+          </div>
+
+          <div className="px-4 py-2 sm:py-0 space-y-0.5">
+            <span className="text-xs text-neutral-400 block font-medium">
+              Decision Split
+            </span>
+            <p className="text-2xl sm:text-3xl font-semibold text-white tabular-nums">
+              {summary.auto_pct}%
+            </p>
+            <span className="text-[11px] text-neutral-400 font-normal">
+              {summary.llm_pct}% LLM • {summary.human_pct}% Manual
             </span>
           </div>
         </div>
 
-        <div className="w-full h-3 rounded-full bg-[#0a0a0a] p-0.5 flex overflow-hidden border border-white/[0.08]">
-          <div style={{ width: `${summary.auto_pct}%` }} className="bg-emerald-400 rounded-l-full" />
-          <div style={{ width: `${summary.llm_pct}%` }} className="bg-blue-400" />
-          <div style={{ width: `${summary.human_pct}%` }} className="bg-amber-400 rounded-r-full" />
+        {/* Minimal Decision Progress Track */}
+        <div className="pt-4 mt-3 border-t border-[#2d313a] space-y-2">
+          <div className="flex items-center justify-between text-xs text-neutral-400">
+            <span>Decision Distribution</span>
+            <div className="flex items-center gap-3">
+              <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-emerald-500" /> Auto ({summary.auto_pct}%)</span>
+              <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-blue-500" /> LLM ({summary.llm_pct}%)</span>
+              <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-amber-500" /> Review ({summary.human_pct}%)</span>
+            </div>
+          </div>
+          <div className="w-full h-1.5 rounded-full bg-[#1c1e24] flex overflow-hidden">
+            <div style={{ width: `${summary.auto_pct}%` }} className="bg-emerald-500" />
+            <div style={{ width: `${summary.llm_pct}%` }} className="bg-blue-500" />
+            <div style={{ width: `${summary.human_pct}%` }} className="bg-amber-500" />
+          </div>
         </div>
       </div>
 
       {/* Multi-Signal Confidence & Reliability Report */}
       <div className="adobe-card p-6 space-y-5">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/[0.1]">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-full bg-white/[0.08] text-white">
-              <ShieldCheck size={20} className="stroke-[2.5]" />
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#2d313a]">
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 rounded-lg bg-[#272a33] text-neutral-300">
+              <ShieldCheck size={18} />
             </div>
             <div>
-              <h2 className="text-base font-display font-black text-white tracking-tight">
-                Multi-Signal Confidence & Model Accuracy Report
+              <h2 className="text-sm font-semibold text-white tracking-tight">
+                Multi-Signal Confidence & Model Reliability
               </h2>
-              <p className="text-xs text-neutral-400 font-bold">
-                Calibrated multi-signal validation fusing OCR, Fine-Tuned YOLO11 symbols, DCS I/O lists, and ISA-5.1 grammar.
+              <p className="text-xs text-neutral-400 font-normal">
+                Calibrated multi-signal validation: OCR, Fine-Tuned YOLO11 symbols, DCS I/O lists, and ISA-5.1 grammar.
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-3">
             <div className="text-right">
-              <span className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider block">Mean Confidence</span>
-              <span className="text-xl font-display font-black text-emerald-400 tabular-nums">
+              <span className="text-[10px] text-neutral-400 font-medium uppercase tracking-wider block">Mean Confidence</span>
+              <span className="text-lg font-semibold text-emerald-400 tabular-nums">
                 {summary.average_confidence ? `${summary.average_confidence}%` : '93.5%'}
               </span>
             </div>
-            <span className="text-xs font-bold px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-400/30">
+            <span className="text-xs font-medium px-2.5 py-1 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
               High Reliability
             </span>
           </div>
         </div>
 
-        {/* Confidence Tier Distribution */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <div className="p-4 rounded-xl bg-[#1a1a1a] border border-white/[0.08] flex items-center justify-between">
+        {/* Confidence Tier Distribution - Clean 3-column divided strip */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-[#2d313a] py-1 border-b border-[#2d313a]">
+          <div className="py-2 sm:py-0 sm:px-4 flex items-center justify-between">
             <div>
-              <span className="text-xs uppercase tracking-wider text-emerald-400 block font-black">
-                High Certainty (&gt;= 85%)
+              <span className="text-xs text-neutral-400 block font-normal">
+                High Certainty (&ge; 85%)
               </span>
-              <span className="text-2xl font-display font-black text-white tabular-nums">
+              <span className="text-xl font-semibold text-white tabular-nums">
                 {summary.high_confidence_count ?? summary.resolved}
               </span>
             </div>
-            <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">
+            <span className="text-[11px] font-medium text-emerald-400">
               Auto-Approved
             </span>
           </div>
 
-          <div className="p-4 rounded-xl bg-[#1a1a1a] border border-white/[0.08] flex items-center justify-between">
+          <div className="py-2 sm:py-0 sm:px-4 flex items-center justify-between">
             <div>
-              <span className="text-xs uppercase tracking-wider text-amber-400 block font-black">
-                Medium Certainty (70-84%)
+              <span className="text-xs text-neutral-400 block font-normal">
+                Medium (70–84%)
               </span>
-              <span className="text-2xl font-display font-black text-white tabular-nums">
+              <span className="text-xl font-semibold text-white tabular-nums">
                 {summary.medium_confidence_count ?? summary.needs_review}
               </span>
             </div>
-            <span className="text-[10px] font-bold text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded-full border border-amber-500/20">
-              Verification Needed
+            <span className="text-[11px] font-medium text-amber-400">
+              Needs Review
             </span>
           </div>
 
-          <div className="p-4 rounded-xl bg-[#1a1a1a] border border-white/[0.08] flex items-center justify-between">
+          <div className="py-2 sm:py-0 sm:px-4 flex items-center justify-between">
             <div>
-              <span className="text-xs uppercase tracking-wider text-[#eb1000] block font-black">
-                Low Certainty (&lt; 70%)
+              <span className="text-xs text-neutral-400 block font-normal">
+                Low (&lt; 70%)
               </span>
-              <span className="text-2xl font-display font-black text-white tabular-nums">
+              <span className="text-xl font-semibold text-white tabular-nums">
                 {summary.low_confidence_count ?? summary.rejected}
               </span>
             </div>
-            <span className="text-[10px] font-bold text-[#eb1000] bg-[#eb1000]/10 px-2.5 py-1 rounded-full border border-[#eb1000]/20">
+            <span className="text-[11px] font-medium text-red-400">
               Flagged
             </span>
           </div>
         </div>
 
-        {/* Signal Component Breakdown Meters */}
+        {/* Signal Component Breakdown Meters - Clean progress bars */}
         <div className="space-y-3 pt-1">
-          <span className="text-xs font-black uppercase tracking-wider text-neutral-400 block">
+          <span className="text-xs font-medium text-neutral-400 block">
             Signal Reliability Breakdown
           </span>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
             {/* OCR */}
-            <div className="p-3.5 rounded-xl bg-[#1a1a1a] border border-white/[0.08] space-y-2">
-              <div className="flex justify-between text-neutral-300 font-bold">
+            <div className="space-y-1">
+              <div className="flex justify-between text-neutral-300 font-normal">
                 <span>OCR Text Clarity (Vector + Dual-OCR)</span>
-                <span className="text-white font-mono font-bold tabular-nums">
+                <span className="text-neutral-200 font-medium tabular-nums">
                   {summary.confidence_breakdown_avg?.ocr ?? 95.0}%
                 </span>
               </div>
-              <div className="w-full h-2 rounded-full bg-black/60 overflow-hidden">
-                <div style={{ width: `${summary.confidence_breakdown_avg?.ocr ?? 95.0}%` }} className="h-full bg-white rounded-full" />
+              <div className="w-full h-1.5 rounded-full bg-[#1c1e24] overflow-hidden">
+                <div style={{ width: `${summary.confidence_breakdown_avg?.ocr ?? 95.0}%` }} className="h-full bg-neutral-300 rounded-full" />
               </div>
             </div>
 
             {/* YOLO11 Symbol Detection */}
-            <div className="p-3.5 rounded-xl bg-[#1a1a1a] border border-white/[0.08] space-y-2">
-              <div className="flex justify-between text-neutral-300 font-bold">
+            <div className="space-y-1">
+              <div className="flex justify-between text-neutral-300 font-normal">
                 <span>Neural Symbol Detection (Fine-Tuned YOLO11)</span>
-                <span className="text-emerald-400 font-mono font-bold tabular-nums">
+                <span className="text-emerald-400 font-medium tabular-nums">
                   {summary.confidence_breakdown_avg?.symbol ?? 94.2}%
                 </span>
               </div>
-              <div className="w-full h-2 rounded-full bg-black/60 overflow-hidden">
-                <div style={{ width: `${summary.confidence_breakdown_avg?.symbol ?? 94.2}%` }} className="h-full bg-emerald-400 rounded-full" />
+              <div className="w-full h-1.5 rounded-full bg-[#1c1e24] overflow-hidden">
+                <div style={{ width: `${summary.confidence_breakdown_avg?.symbol ?? 94.2}%` }} className="h-full bg-emerald-500 rounded-full" />
               </div>
             </div>
 
             {/* DCS I/O Match */}
-            <div className="p-3.5 rounded-xl bg-[#1a1a1a] border border-white/[0.08] space-y-2">
-              <div className="flex justify-between text-neutral-300 font-bold">
+            <div className="space-y-1">
+              <div className="flex justify-between text-neutral-300 font-normal">
                 <span>DCS I/O Register Cross-Verification</span>
-                <span className="text-cyan-400 font-mono font-bold tabular-nums">
+                <span className="text-blue-400 font-medium tabular-nums">
                   {summary.confidence_breakdown_avg?.io_match ?? 92.5}%
                 </span>
               </div>
-              <div className="w-full h-2 rounded-full bg-black/60 overflow-hidden">
-                <div style={{ width: `${summary.confidence_breakdown_avg?.io_match ?? 92.5}%` }} className="h-full bg-cyan-400 rounded-full" />
+              <div className="w-full h-1.5 rounded-full bg-[#1c1e24] overflow-hidden">
+                <div style={{ width: `${summary.confidence_breakdown_avg?.io_match ?? 92.5}%` }} className="h-full bg-blue-500 rounded-full" />
               </div>
             </div>
 
             {/* ISA-5.1 Syntax & Grammar */}
-            <div className="p-3.5 rounded-xl bg-[#1a1a1a] border border-white/[0.08] space-y-2">
-              <div className="flex justify-between text-neutral-300 font-bold">
+            <div className="space-y-1">
+              <div className="flex justify-between text-neutral-300 font-normal">
                 <span>ISA-5.1 Deterministic Tag Grammar</span>
-                <span className="text-purple-400 font-mono font-bold tabular-nums">
+                <span className="text-purple-400 font-medium tabular-nums">
                   {summary.confidence_breakdown_avg?.grammar ?? 96.0}%
                 </span>
               </div>
-              <div className="w-full h-2 rounded-full bg-black/60 overflow-hidden">
-                <div style={{ width: `${summary.confidence_breakdown_avg?.grammar ?? 96.0}%` }} className="h-full bg-purple-400 rounded-full" />
+              <div className="w-full h-1.5 rounded-full bg-[#1c1e24] overflow-hidden">
+                <div style={{ width: `${summary.confidence_breakdown_avg?.grammar ?? 96.0}%` }} className="h-full bg-purple-500 rounded-full" />
               </div>
             </div>
           </div>
@@ -389,75 +382,75 @@ export const ReportPage: React.FC = () => {
       </div>
 
       {/* SECTION: AI Detection Preview & Spatial Verification */}
-      <div className="adobe-card p-5 sm:p-6 space-y-5">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-industrial-800">
+      <div className="adobe-card p-5 sm:p-6 space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#2d313a]">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-cyan-400">
+            <div className="p-2 rounded-lg bg-[#272a33] text-neutral-300">
               <Eye size={18} />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-sm font-heading font-bold text-white tracking-tight">
-                  AI Detection Preview &amp; Spatial Verification
+                <h2 className="text-sm font-semibold text-white tracking-tight">
+                  AI Detection Preview & Spatial Verification
                 </h2>
-                <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-400/30">
-                  100% Traceability
+                <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                  Traceable
                 </span>
               </div>
-              <p className="text-[11px] font-mono text-slate-400">
-                Visual proof of neural symbol detections, OCR tag bounding boxes, valves, and piping connections overlaid on the physical drawing
+              <p className="text-xs text-neutral-400 font-normal">
+                Visual overlay of neural symbol detections, OCR tag bounding boxes, valves, and piping connections on the physical drawing
               </p>
             </div>
           </div>
 
-          {/* Interactive Inspection Controls */}
-          <div className="flex flex-wrap items-center gap-2 font-mono text-xs">
+          {/* Inspection Controls */}
+          <div className="flex flex-wrap items-center gap-2 text-xs">
             {/* View Mode Toggle */}
-            <div className="flex items-center bg-white/[0.04] p-1 rounded-xl border border-white/[0.1] backdrop-blur-xl">
+            <div className="flex items-center bg-[#1c1e24] p-1 rounded-lg border border-[#2d313a]">
               <button
                 type="button"
                 onClick={() => setPreviewMode('overlay')}
-                className={`px-2.5 py-1 rounded-lg text-[11px] font-medium flex items-center gap-1.5 transition-all ${
+                className={`px-2.5 py-1 rounded text-xs font-medium flex items-center gap-1.5 transition-all ${
                   previewMode === 'overlay'
-                    ? 'bg-cyan-500/20 text-cyan-300 font-bold border border-cyan-400/40 shadow-[0_0_8px_rgba(6,182,212,0.3)]'
-                    : 'text-slate-400 hover:text-white'
+                    ? 'bg-[#2d313a] text-white font-semibold'
+                    : 'text-neutral-400 hover:text-white'
                 }`}
               >
-                <Sparkles size={12} className={previewMode === 'overlay' ? 'text-cyan-400' : 'text-slate-500'} />
-                <span>AI Detection Overlay</span>
+                <Sparkles size={12} className={previewMode === 'overlay' ? 'text-blue-400' : 'text-neutral-500'} />
+                <span>Detection Overlay</span>
               </button>
               <button
                 type="button"
                 onClick={() => setPreviewMode('original')}
-                className={`px-2.5 py-1 rounded-lg text-[11px] font-medium flex items-center gap-1.5 transition-all ${
+                className={`px-2.5 py-1 rounded text-xs font-medium flex items-center gap-1.5 transition-all ${
                   previewMode === 'original'
-                    ? 'bg-white/[0.15] text-white font-bold border border-white/20'
-                    : 'text-slate-400 hover:text-white'
+                    ? 'bg-[#2d313a] text-white font-semibold'
+                    : 'text-neutral-400 hover:text-white'
                 }`}
               >
-                <Layers size={12} className={previewMode === 'original' ? 'text-white' : 'text-slate-500'} />
-                <span>Original Blueprint</span>
+                <Layers size={12} className={previewMode === 'original' ? 'text-white' : 'text-neutral-500'} />
+                <span>Original Drawing</span>
               </button>
             </div>
 
             {/* Zoom Controls */}
-            <div className="flex items-center bg-white/[0.04] px-1.5 py-1 rounded-xl border border-white/[0.1] gap-1">
+            <div className="flex items-center bg-[#1c1e24] px-1.5 py-1 rounded-lg border border-[#2d313a] gap-1">
               <button
                 type="button"
                 title="Zoom Out"
                 onClick={() => setPreviewZoom((z) => Math.max(0.6, z - 0.2))}
-                className="p-1 rounded text-slate-400 hover:text-white hover:bg-white/[0.08] transition-colors"
+                className="p-1 rounded text-neutral-400 hover:text-white hover:bg-white/[0.04] transition-colors"
               >
                 <ZoomOut size={13} />
               </button>
-              <span className="text-[10px] text-slate-300 w-9 text-center font-bold">
+              <span className="text-[11px] text-neutral-300 w-9 text-center font-mono">
                 {Math.round(previewZoom * 100)}%
               </span>
               <button
                 type="button"
                 title="Zoom In"
                 onClick={() => setPreviewZoom((z) => Math.min(2.5, z + 0.2))}
-                className="p-1 rounded text-slate-400 hover:text-white hover:bg-white/[0.08] transition-colors"
+                className="p-1 rounded text-neutral-400 hover:text-white hover:bg-white/[0.04] transition-colors"
               >
                 <ZoomIn size={13} />
               </button>
@@ -465,7 +458,7 @@ export const ReportPage: React.FC = () => {
                 type="button"
                 title="Reset Zoom"
                 onClick={() => setPreviewZoom(1.0)}
-                className="p-1 rounded text-slate-400 hover:text-white hover:bg-white/[0.08] transition-colors"
+                className="p-1 rounded text-neutral-400 hover:text-white hover:bg-white/[0.04] transition-colors"
               >
                 <RotateCcw size={12} />
               </button>
@@ -473,16 +466,16 @@ export const ReportPage: React.FC = () => {
 
             {/* Multi-page Selector if > 1 page */}
             {previewsInfo && previewsInfo.total_pages > 1 && (
-              <div className="flex items-center gap-1 bg-white/[0.04] p-1 rounded-xl border border-white/[0.1]">
+              <div className="flex items-center gap-1 bg-[#1c1e24] p-1 rounded-lg border border-[#2d313a]">
                 {previewsInfo.pages.map((p) => (
                   <button
                     key={p.page}
                     type="button"
                     onClick={() => setPreviewPage(p.page)}
-                    className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                    className={`px-2 py-0.5 rounded text-[11px] font-medium ${
                       previewPage === p.page
-                        ? 'bg-blue-500/20 text-blue-300 border border-blue-400/40'
-                        : 'text-slate-400 hover:text-white'
+                        ? 'bg-[#2d313a] text-white'
+                        : 'text-neutral-400 hover:text-white'
                     }`}
                   >
                     Sheet {p.page}
@@ -497,52 +490,52 @@ export const ReportPage: React.FC = () => {
               download={`detection_preview_${jobId.slice(0, 8)}_p${previewPage}.png`}
             >
               <button
-                className="h-9 px-4 rounded-full border border-white/20 text-white font-bold hover:bg-white/10 flex items-center gap-1.5 transition-all text-xs"
+                className="h-8 px-3 rounded-lg border border-[#2d313a] bg-[#20232a] text-neutral-300 hover:text-white hover:bg-[#252831] flex items-center gap-1.5 transition-all text-xs font-medium"
               >
-                <Download size={13} />
+                <Download size={12} />
                 <span>Download PNG</span>
               </button>
             </a>
           </div>
         </div>
 
-        {/* Spatial Color-Coded Detection Legend Bar */}
-        <div className="p-2.5 rounded-xl bg-industrial-950/80 border border-industrial-800 flex flex-wrap items-center justify-between gap-2.5 text-xs font-mono">
-          <div className="flex flex-wrap items-center gap-3 text-[11px]">
-            <span className="text-slate-400 font-semibold uppercase text-[10px]">Legend:</span>
-            <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-cyan-950/40 border border-cyan-500/30 text-cyan-300">
-              <span className="w-2 h-2 rounded-sm bg-cyan-400" />
-              <span>OCR Tag &amp; Text Boxes</span>
+        {/* Clean Detection Legend (No Boxception) */}
+        <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-neutral-400 py-1">
+          <div className="flex flex-wrap items-center gap-3.5 text-[11px]">
+            <span className="text-neutral-500 font-medium">Legend:</span>
+            <span className="flex items-center gap-1.5 text-neutral-300">
+              <span className="w-2 h-2 rounded-sm bg-blue-400" />
+              <span>OCR Tags</span>
             </span>
-            <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-amber-950/40 border border-amber-500/30 text-amber-300">
-              <span className="w-2 h-2 rounded-full bg-amber-400" />
-              <span>ISA-5.1 Instruments (FIC, PT, LT)</span>
+            <span className="flex items-center gap-1.5 text-neutral-300">
+              <span className="w-2 h-2 rounded-sm bg-amber-400" />
+              <span>Instruments</span>
             </span>
-            <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-orange-950/40 border border-orange-500/30 text-orange-300">
-              <span className="w-2 h-2 rounded-sm bg-orange-500" />
-              <span>Control &amp; Manual Valves</span>
+            <span className="flex items-center gap-1.5 text-neutral-300">
+              <span className="w-2 h-2 rounded-sm bg-orange-400" />
+              <span>Valves</span>
             </span>
-            <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-950/40 border border-emerald-500/30 text-emerald-300">
+            <span className="flex items-center gap-1.5 text-neutral-300">
               <span className="w-2 h-2 rounded-sm bg-emerald-400" />
-              <span>Equipment (Pumps, Tanks, Vessels)</span>
+              <span>Equipment</span>
             </span>
-            <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-purple-950/40 border border-purple-500/30 text-purple-300">
+            <span className="flex items-center gap-1.5 text-neutral-300">
               <span className="w-2 h-2 rounded-sm bg-purple-400" />
-              <span>Off-Page Connectors</span>
+              <span>Connectors</span>
             </span>
-            <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-red-950/40 border border-red-500/30 text-red-300">
-              <span className="w-2 h-2 rounded-full bg-red-500" />
+            <span className="flex items-center gap-1.5 text-neutral-300">
+              <span className="w-2 h-2 rounded-sm bg-red-400" />
               <span>Pipe Junctions</span>
             </span>
           </div>
 
-          <div className="text-[11px] text-slate-400">
-            <span className="text-cyan-300 font-bold">Model:</span> YOLO11-PID Fine-Tuned (MPS Accelerated)
+          <div className="text-[11px] text-neutral-500">
+            Model: <span className="text-neutral-300">YOLO11-PID</span>
           </div>
         </div>
 
-        {/* High-Resolution Pan/Zoom Canvas Viewport */}
-        <div className="relative w-full rounded-xl overflow-hidden border border-white/[0.08] bg-[#070b14] shadow-inner">
+        {/* High-Resolution Canvas Viewport */}
+        <div className="relative w-full rounded-xl overflow-hidden border border-[#2d313a] bg-[#14161a]">
           <div className="max-h-[620px] overflow-auto p-2 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
             <div
               style={{
@@ -678,27 +671,27 @@ export const ReportPage: React.FC = () => {
 
       {/* SECTION: P&ID Connection Verification */}
       <div className="adobe-card p-5 space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-white/[0.1]">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#2d313a]">
           <div className="flex items-center gap-2.5">
-            <GitBranch size={16} className="text-cyan-400" />
+            <GitBranch size={16} className="text-blue-400" />
             <div>
-              <h3 className="text-sm font-display font-black text-white tracking-tight">
-                P&ID Priority-Wise Connection Errors &amp; Fast-Track Actions
+              <h3 className="text-sm font-semibold text-white tracking-tight">
+                P&ID Priority Connection Errors & Diagnostics
               </h3>
-              <p className="text-[11px] text-neutral-400 font-mono">
-                Optimized for instant engineering resolution without wasting time rechecking full drawings.
+              <p className="text-xs text-neutral-400 font-normal">
+                Direct root-cause analysis for engineering resolution without manual drawing rechecks.
               </p>
             </div>
           </div>
           {report.connection_validation && (
-            <div className="flex items-center gap-2.5">
-              <span className="text-xs text-neutral-400 font-bold">
-                Health Score: <strong className="text-emerald-400">{report.connection_validation.health_score_pct}%</strong>
+            <div className="flex items-center gap-3">
+              <span className="text-xs text-neutral-400">
+                Health Score: <strong className="text-emerald-400 font-semibold">{report.connection_validation.health_score_pct}%</strong>
               </span>
-              <span className={`text-[10px] font-bold px-3 py-1 rounded-full ${
+              <span className={`text-[11px] font-medium px-2.5 py-0.5 rounded ${
                 report.connection_validation.status === 'PASSED'
-                  ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-400/30'
-                  : 'bg-amber-500/15 text-amber-300 border border-amber-400/30'
+                  ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                  : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
               }`}>
                 {report.connection_validation.status}
               </span>
@@ -708,29 +701,29 @@ export const ReportPage: React.FC = () => {
 
         {report.connection_validation ? (
           <div className="space-y-4">
-            {/* 4 Priority Summary Metric Cards */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-center text-xs font-mono">
-              <div className="p-2.5 bg-red-500/10 rounded-xl border border-red-500/25">
-                <span className="text-red-400 block text-[10px] uppercase font-bold tracking-wider">P1 Critical Safety</span>
-                <span className="text-red-300 font-bold text-xl">{report.connection_validation.p1_critical_count ?? report.connection_validation.error_count}</span>
+            {/* 4 Priority Summary Metric Strip - Clean Divided Row (No Nested Boxes) */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-[#2d313a] py-2 border-b border-[#2d313a] text-xs">
+              <div className="px-3 py-1 sm:py-0">
+                <span className="text-neutral-400 block text-[11px]">P1 Critical Safety</span>
+                <span className="text-red-400 font-semibold text-lg">{report.connection_validation.p1_critical_count ?? report.connection_validation.error_count}</span>
               </div>
-              <div className="p-2.5 bg-amber-500/10 rounded-xl border border-amber-500/25">
-                <span className="text-amber-400 block text-[10px] uppercase font-bold tracking-wider">P2 Operational</span>
-                <span className="text-amber-300 font-bold text-xl">{report.connection_validation.p2_high_count ?? report.connection_validation.warning_count}</span>
+              <div className="px-3 py-1 sm:py-0">
+                <span className="text-neutral-400 block text-[11px]">P2 Operational</span>
+                <span className="text-amber-400 font-semibold text-lg">{report.connection_validation.p2_high_count ?? report.connection_validation.warning_count}</span>
               </div>
-              <div className="p-2.5 bg-purple-500/10 rounded-xl border border-purple-500/25">
-                <span className="text-purple-400 block text-[10px] uppercase font-bold tracking-wider">P3 Low Accuracy</span>
-                <span className="text-purple-300 font-bold text-xl">{report.connection_validation.p3_medium_count ?? 0}</span>
+              <div className="px-3 py-1 sm:py-0">
+                <span className="text-neutral-400 block text-[11px]">P3 Low Accuracy</span>
+                <span className="text-purple-400 font-semibold text-lg">{report.connection_validation.p3_medium_count ?? 0}</span>
               </div>
-              <div className="p-2.5 bg-emerald-500/10 rounded-xl border border-emerald-500/25">
-                <span className="text-emerald-400 block text-[10px] uppercase font-bold tracking-wider">P4 Safe &amp; Verified</span>
-                <span className="text-emerald-300 font-bold text-xl">{report.connection_validation.p4_low_count ?? report.connection_validation.correct_count}</span>
+              <div className="px-3 py-1 sm:py-0">
+                <span className="text-neutral-400 block text-[11px]">P4 Verified</span>
+                <span className="text-emerald-400 font-semibold text-lg">{report.connection_validation.p4_low_count ?? report.connection_validation.correct_count}</span>
               </div>
             </div>
 
-            {/* Interactive Priority Filter Pills */}
-            <div className="flex flex-wrap items-center gap-1.5 pt-1 font-mono text-xs">
-              <span className="text-slate-400 text-[11px] mr-1">Filter Priority:</span>
+            {/* Clean Priority Filter Bar */}
+            <div className="flex flex-wrap items-center gap-1.5 text-xs">
+              <span className="text-neutral-400 text-xs mr-1">Filter:</span>
               {(['ALL', 'P1', 'P2', 'P3', 'P4'] as const).map((pri) => {
                 const count = pri === 'ALL'
                   ? report.connection_validation!.diagnostics.length
@@ -746,20 +739,20 @@ export const ReportPage: React.FC = () => {
                   <button
                     key={pri}
                     onClick={() => setPriorityFilter(pri)}
-                    className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all ${
+                    className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
                       priorityFilter === pri
-                        ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-400/40 shadow-[0_0_10px_rgba(56,189,248,0.25)]'
-                        : 'bg-white/[0.03] text-slate-400 border border-white/[0.08] hover:text-white hover:bg-white/[0.06]'
+                        ? 'bg-[#2d313a] text-white font-semibold'
+                        : 'text-neutral-400 hover:text-white'
                     }`}
                   >
-                    {pri === 'ALL' ? 'All Issues' : `${pri} Hazards`} ({count})
+                    {pri === 'ALL' ? 'All' : pri} ({count})
                   </button>
                 );
               })}
             </div>
 
-            {/* Diagnostics List with Action Callouts & Blueprint Inspection */}
-            <div className="max-h-96 overflow-y-auto space-y-2.5 pr-1 font-mono text-xs">
+            {/* Diagnostics List - Clean Flat Row Items (No Boxception) */}
+            <div className="divide-y divide-[#2d313a] max-h-96 overflow-y-auto pr-1 text-xs">
               {report.connection_validation.diagnostics
                 .filter((diag) => {
                   if (priorityFilter === 'ALL') return true;
@@ -774,88 +767,68 @@ export const ReportPage: React.FC = () => {
                   return (
                     <div
                       key={i}
-                      className={`p-3.5 rounded-xl border flex flex-col gap-2.5 backdrop-blur-md transition-all ${
-                        isCritical
-                          ? 'bg-red-500/10 border-red-400/30 text-red-200'
-                          : isWarning
-                          ? 'bg-amber-500/10 border-amber-400/30 text-amber-200'
-                          : isAudit
-                          ? 'bg-purple-500/10 border-purple-400/30 text-purple-200'
-                          : 'bg-white/[0.02] border-white/[0.08] text-slate-200'
-                      }`}
+                      className="py-3 flex flex-col sm:flex-row sm:items-start justify-between gap-3 hover:bg-white/[0.02] px-2 rounded-lg transition-colors"
                     >
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex items-start gap-2.5">
-                          {isCritical ? (
-                            <XCircle size={16} className="text-red-400 mt-0.5 shrink-0" />
-                          ) : isWarning ? (
-                            <AlertTriangle size={16} className="text-amber-400 mt-0.5 shrink-0" />
-                          ) : isAudit ? (
-                            <HelpCircle size={16} className="text-purple-400 mt-0.5 shrink-0" />
-                          ) : (
-                            <CheckCircle2 size={16} className="text-emerald-400 mt-0.5 shrink-0" />
-                          )}
-                          <div>
-                            <div className="flex items-center gap-2 mb-1 flex-wrap">
-                              <span className="font-bold text-white text-xs px-2 py-0.5 rounded bg-white/[0.06] border border-white/[0.1]">
-                                {diag.element_id}
-                              </span>
-                              <span className="text-[10px] text-slate-400 font-sans">
-                                Rule: {diag.rule}
-                              </span>
-                            </div>
-                            <p className="font-medium text-xs leading-relaxed">{diag.message}</p>
-                          </div>
-                        </div>
-
-                        {/* Priority Badge */}
-                        <span
-                          className={`text-[9px] font-bold px-2.5 py-1 rounded-full shrink-0 uppercase tracking-wider ${
-                            isCritical
-                              ? 'bg-red-500/20 text-red-300 border border-red-400/40'
-                              : isWarning
-                              ? 'bg-amber-500/20 text-amber-300 border border-amber-400/40'
-                              : isAudit
-                              ? 'bg-purple-500/20 text-purple-300 border border-purple-400/40'
-                              : 'bg-emerald-500/15 text-emerald-300 border border-emerald-400/30'
-                          }`}
-                        >
-                          {diag.priority_label || pri}
-                        </span>
-                      </div>
-
-                      {/* Immediate Time-Saving Engineering Action Callout */}
-                      {(diag.time_savings_action || diag.recommendation) && diag.status !== 'CORRECT' && (
-                        <div className="p-2.5 rounded-lg bg-black/40 border border-cyan-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                          <div className="space-y-0.5">
-                            <span className="text-[9.5px] font-bold text-cyan-400 uppercase tracking-wider block">
-                              Fast-Track Action (No Drawing Recheck Required):
+                      <div className="flex items-start gap-2.5 min-w-0">
+                        {isCritical ? (
+                          <XCircle size={15} className="text-red-400 mt-0.5 shrink-0" />
+                        ) : isWarning ? (
+                          <AlertTriangle size={15} className="text-amber-400 mt-0.5 shrink-0" />
+                        ) : isAudit ? (
+                          <HelpCircle size={15} className="text-purple-400 mt-0.5 shrink-0" />
+                        ) : (
+                          <CheckCircle2 size={15} className="text-emerald-400 mt-0.5 shrink-0" />
+                        )}
+                        <div className="space-y-0.5 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-mono text-neutral-100 font-semibold text-xs">
+                              {diag.element_id}
                             </span>
-                            <p className="text-[11.5px] text-slate-200 font-sans">
+                            <span className="text-[11px] text-neutral-500">
+                              {diag.rule}
+                            </span>
+                            <span
+                              className={`text-[10px] px-2 py-0.2 rounded font-medium ${
+                                isCritical
+                                  ? 'bg-red-500/10 text-red-400 border border-red-500/20'
+                                  : isWarning
+                                  ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                                  : isAudit
+                                  ? 'bg-purple-500/10 text-purple-400 border border-purple-500/20'
+                                  : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                              }`}
+                            >
+                              {diag.priority_label || pri}
+                            </span>
+                          </div>
+                          <p className="text-neutral-300 font-normal leading-relaxed">{diag.message}</p>
+                          {(diag.time_savings_action || diag.recommendation) && diag.status !== 'CORRECT' && (
+                            <p className="text-blue-400 text-[11px] font-normal pt-0.5">
+                              <span className="font-medium text-neutral-400 mr-1">Action:</span>
                               {diag.time_savings_action || diag.recommendation}
                             </p>
-                          </div>
-
-                          {/* Inspect CAD Blueprint Snippet Button */}
-                          {diag.bbox && (
-                            <button
-                              onClick={() =>
-                                setInspectSnippet({
-                                  bbox: diag.bbox!,
-                                  page: diag.page || 1,
-                                  tag: diag.element_id,
-                                  action: diag.time_savings_action || diag.recommendation,
-                                  priority: pri,
-                                  rule: diag.rule,
-                                })
-                              }
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 border border-cyan-400/40 text-[11px] font-bold shrink-0 transition-all shadow-[0_0_10px_rgba(56,189,248,0.2)]"
-                            >
-                              <Eye size={12} className="text-cyan-400" />
-                              <span>View Blueprint Snippet</span>
-                            </button>
                           )}
                         </div>
+                      </div>
+
+                      {/* View Crop Action */}
+                      {diag.bbox && (
+                        <button
+                          onClick={() =>
+                            setInspectSnippet({
+                              bbox: diag.bbox!,
+                              page: diag.page || 1,
+                              tag: diag.element_id,
+                              action: diag.time_savings_action || diag.recommendation,
+                              priority: pri,
+                              rule: diag.rule,
+                            })
+                          }
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded border border-[#2d313a] bg-[#20232a] hover:bg-[#252831] text-neutral-300 hover:text-white text-[11px] font-medium shrink-0 self-start sm:self-center transition-all"
+                        >
+                          <Eye size={12} className="text-neutral-400" />
+                          <span>View Crop</span>
+                        </button>
                       )}
                     </div>
                   );
@@ -863,7 +836,7 @@ export const ReportPage: React.FC = () => {
             </div>
           </div>
         ) : (
-          <p className="text-xs text-neutral-500 text-center py-2 font-bold">
+          <p className="text-xs text-neutral-500 text-center py-2 font-normal">
             Topology connection analysis completed. All pipelines verified.
           </p>
         )}
@@ -934,59 +907,59 @@ export const ReportPage: React.FC = () => {
 
       {/* Interactive Blueprint CAD Snippet Modal */}
       {inspectSnippet && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in print:hidden">
-          <div className="relative w-full max-w-2xl bg-[#090d16] border border-cyan-500/40 rounded-2xl p-6 shadow-[0_0_50px_rgba(56,189,248,0.25)] space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-white/[0.1]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in print:hidden">
+          <div className="relative w-full max-w-2xl bg-[#20232a] border border-[#2d313a] rounded-xl p-5 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-[#2d313a]">
               <div className="flex items-center gap-2">
-                <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase ${
+                <span className={`text-[10px] font-medium px-2 py-0.5 rounded uppercase ${
                   inspectSnippet.priority === 'P1'
-                    ? 'bg-red-500/20 text-red-300 border border-red-400/40'
+                    ? 'bg-red-500/10 text-red-400 border border-red-500/20'
                     : inspectSnippet.priority === 'P2'
-                    ? 'bg-amber-500/20 text-amber-300 border border-amber-400/40'
-                    : 'bg-purple-500/20 text-purple-300 border border-purple-400/40'
+                    ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                    : 'bg-purple-500/10 text-purple-400 border border-purple-500/20'
                 }`}>
                   {inspectSnippet.priority}: {inspectSnippet.rule}
                 </span>
-                <h4 className="font-heading font-bold text-white text-base">
-                  Component CAD Crop: <span className="text-cyan-300 font-mono">{inspectSnippet.tag}</span>
+                <h4 className="font-semibold text-white text-sm">
+                  Blueprint Crop: <span className="text-blue-400 font-mono">{inspectSnippet.tag}</span>
                 </h4>
               </div>
               <button
                 onClick={() => setInspectSnippet(null)}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/[0.08] transition-all"
+                className="p-1 rounded text-neutral-400 hover:text-white hover:bg-white/[0.06] transition-all"
               >
-                <X size={18} />
+                <X size={16} />
               </button>
             </div>
 
             {/* High-Resolution CAD Crop Image */}
-            <div className="rounded-xl overflow-hidden border border-white/[0.1] bg-black/60 flex items-center justify-center min-h-[220px]">
+            <div className="rounded-lg overflow-hidden border border-[#2d313a] bg-[#181a1f] flex items-center justify-center min-h-[200px]">
               <img
                 src={`/api/v1/jobs/${jobId}/source/${inspectSnippet.page}/crop?bbox=${inspectSnippet.bbox.join(',')}`}
                 alt={`CAD snippet for ${inspectSnippet.tag}`}
-                className="max-h-[300px] w-auto object-contain"
+                className="max-h-[280px] w-auto object-contain"
               />
             </div>
 
-            {/* Direct Action Highlight */}
-            <div className="p-3.5 rounded-xl bg-cyan-950/40 border border-cyan-400/30 space-y-1">
-              <span className="text-[10px] font-bold text-cyan-400 uppercase tracking-wider block font-mono">
-                Immediate Fast-Track Engineering Action:
+            {/* Action Callout */}
+            <div className="p-3 rounded-lg bg-[#252831] border border-[#2d313a] space-y-1 text-xs">
+              <span className="text-[10px] font-medium text-blue-400 uppercase tracking-wider block">
+                Recommended Action:
               </span>
-              <p className="text-xs text-slate-100 font-sans leading-relaxed">
+              <p className="text-neutral-200 font-normal leading-relaxed">
                 {inspectSnippet.action}
               </p>
-              <p className="text-[10px] font-mono text-slate-400 pt-1">
-                CAD Location: Page {inspectSnippet.page} | Bounding Box: [{inspectSnippet.bbox.map((v) => Math.round(v)).join(', ')}]
+              <p className="text-[10px] font-mono text-neutral-500 pt-0.5">
+                Location: Sheet {inspectSnippet.page} | Bounding Box: [{inspectSnippet.bbox.map((v) => Math.round(v)).join(', ')}]
               </p>
             </div>
 
-            <div className="flex justify-end pt-2">
+            <div className="flex justify-end pt-1">
               <button
                 onClick={() => setInspectSnippet(null)}
-                className="px-4 py-1.5 rounded-full border border-white/[0.15] bg-white/[0.05] hover:bg-white/[0.1] text-white font-mono text-xs transition-all"
+                className="px-3.5 py-1.5 rounded-lg border border-[#2d313a] bg-[#252831] hover:bg-[#2b2e38] text-neutral-200 hover:text-white text-xs font-medium transition-all"
               >
-                Close Snippet
+                Close
               </button>
             </div>
           </div>

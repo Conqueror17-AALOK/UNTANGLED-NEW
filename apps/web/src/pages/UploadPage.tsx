@@ -7,10 +7,8 @@ import {
   AlertTriangle,
   ArrowRight,
   UploadCloud,
-  Sparkles,
-  Zap
+  Sparkles
 } from 'lucide-react';
-import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { apiClient } from '../api/client';
 
@@ -86,58 +84,31 @@ export const UploadPage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-12 pb-24 space-y-8 animate-fade-in">
+    <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-12 pb-24 space-y-6 animate-fade-in font-sans">
       
-      {/* Editorial Hero */}
-      <div className="text-center pt-2">
-        <h1 className="text-4xl sm:text-6xl font-heading font-black tracking-[-0.035em] text-white">
+      {/* Clean Technical Hero */}
+      <div className="text-center space-y-1.5 pb-2">
+        <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-white">
           P&ID Cross-Validation
         </h1>
+        <p className="text-xs text-neutral-400 font-normal max-w-lg mx-auto">
+          Automated ingestion and deterministic validation of physical P&ID drawings against DCS I/O point registers.
+        </p>
       </div>
 
-      {/* Quick 1-Click Benchmark Action Card */}
-      <div className="adobe-card p-5 sm:p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <div className="w-11 h-11 rounded-full bg-white/10 text-white flex items-center justify-center shrink-0 border border-white/10">
-            <Zap size={20} className="text-[#eb1000]" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2.5">
-              <span className="text-base font-extrabold text-white">Preloaded Separator Loop</span>
-            </div>
-            <p className="text-xs text-slate-400 font-medium mt-0.5">
-              sample_pid_01.pdf & sample_io_list.xlsx (24 I/O Channels)
-            </p>
-          </div>
-        </div>
-
-        <Button
-          type="button"
-          onClick={loadSampleFiles}
-          disabled={isSubmitting}
-          variant="primary"
-          size="md"
-          className="w-full sm:w-auto font-bold whitespace-nowrap"
-        >
-          <Sparkles size={14} className="text-[#eb1000]" />
-          <span>Run 1-Click Benchmark</span>
-          <ArrowRight size={14} />
-        </Button>
-      </div>
-
-      {/* Main Upload Editorial Card */}
-      <Card variant="card" className="p-6 sm:p-8 space-y-6">
+      {/* Main Upload Container */}
+      <div className="adobe-card p-6 sm:p-8 space-y-6">
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             
             {/* Target 1: P&ID Drawing Blueprint */}
-            <div className="space-y-2.5">
-              <label className="text-xs font-bold text-slate-200 flex items-center justify-between">
-                <span className="flex items-center gap-2">
-                  <FileCode2 size={16} className="text-[#eb1000]" />
+            <div className="space-y-2">
+              <label className="text-xs font-medium text-neutral-200 flex items-center justify-between">
+                <span className="flex items-center gap-1.5">
+                  <FileCode2 size={15} className="text-blue-400" />
                   <span>1. P&ID Blueprint (PDF)</span>
                 </span>
-                <span className="text-[11px] font-bold text-slate-400 px-2.5 py-0.5 rounded-md bg-white/[0.06] border border-white/[0.08]">
+                <span className="text-[10px] text-neutral-500 font-normal">
                   Max 50MB
                 </span>
               </label>
@@ -293,7 +264,7 @@ export const UploadPage: React.FC = () => {
             </Button>
           </div>
         </form>
-      </Card>
+      </div>
 
     </div>
   );

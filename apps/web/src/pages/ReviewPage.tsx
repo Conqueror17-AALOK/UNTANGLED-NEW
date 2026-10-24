@@ -117,40 +117,40 @@ export const ReviewPage: React.FC = () => {
         </div>
       )}
 
-      {/* Editorial Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-white/[0.12]">
+      {/* Refined Engineering Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#2d313a]">
         <div>
-          <h1 className="text-3xl sm:text-4xl font-display font-black text-white tracking-tight mb-1">
+          <h1 className="text-2xl sm:text-3xl font-semibold text-white tracking-tight mb-1">
             Review Queue
           </h1>
-          <p className="text-sm text-neutral-400 font-bold">
+          <p className="text-xs text-neutral-400 font-normal">
             Deterministic operator verification and automated topology cross-check.
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2">
           <button
             onClick={handleRebuild}
             disabled={isRebuilding}
-            className="bg-white text-black font-bold h-10 px-5 rounded-full flex items-center gap-2 hover:bg-neutral-200 transition-all text-sm disabled:opacity-50"
+            className="bg-neutral-100 text-neutral-900 font-medium h-9 px-4 rounded-lg flex items-center gap-2 hover:bg-white transition-all text-xs disabled:opacity-50"
             title="Rebuild Topology (Hotkey: 'r')"
           >
-            <RotateCcw size={14} className={`stroke-[2.5] ${isRebuilding ? 'animate-spin' : ''}`} />
+            <RotateCcw size={13} className={`stroke-[2] ${isRebuilding ? 'animate-spin' : ''}`} />
             <span>Rebuild</span>
-            <kbd className="hidden sm:inline px-1.5 py-0.5 rounded bg-black/10 text-[10px] font-mono font-bold">r</kbd>
+            <kbd className="hidden sm:inline px-1 py-0.2 rounded bg-neutral-300 text-[10px] font-mono font-medium">r</kbd>
           </button>
 
           <Link to={`/workspace/${jobId}`}>
-            <button className="h-10 px-4 rounded-full border border-white/20 text-white font-bold hover:bg-white/10 flex items-center gap-2 transition-all text-sm">
-              <Workflow size={14} className="text-neutral-300" />
+            <button className="h-9 px-3.5 rounded-lg border border-[#2d313a] bg-[#20232a] text-neutral-300 hover:text-white hover:bg-[#252831] flex items-center gap-2 transition-all text-xs font-medium">
+              <Workflow size={13} className="text-neutral-400" />
               <span>Canvas</span>
             </button>
           </Link>
         </div>
       </div>
 
-      {/* Filter Tabs - Docked Pill Strip */}
-      <div className="flex rounded-full bg-[#141414] p-1.5 border border-white/[0.12] text-xs max-w-fit">
+      {/* Filter Tabs */}
+      <div className="flex rounded-lg bg-[#20232a] p-1 border border-[#2d313a] text-xs max-w-fit">
         {(['needs_review', 'resolved', 'all'] as const).map((tab) => {
           const count =
             tab === 'needs_review'
@@ -165,17 +165,17 @@ export const ReviewPage: React.FC = () => {
             <button
               key={tab}
               onClick={() => setFilter(tab)}
-              className={`px-4 py-1.5 rounded-full transition-all duration-150 flex items-center gap-2 font-bold ${
+              className={`px-3 py-1 rounded-md transition-all duration-150 flex items-center gap-2 font-medium text-xs ${
                 isActive
-                  ? 'bg-white text-black font-black'
+                  ? 'bg-[#2d313a] text-white font-semibold'
                   : 'text-neutral-400 hover:text-white'
               }`}
             >
               <span>{tab === 'needs_review' ? 'Needs Review' : tab === 'resolved' ? 'Resolved' : 'All Tags'}</span>
-              <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
+              <span className={`text-[10px] px-1.5 py-0.2 rounded font-medium ${
                 isActive
-                  ? 'bg-black/15 text-black'
-                  : 'bg-white/[0.08] text-neutral-400'
+                  ? 'bg-neutral-700 text-white'
+                  : 'bg-white/[0.04] text-neutral-400'
               }`}>
                 {count}
               </span>
@@ -192,17 +192,17 @@ export const ReviewPage: React.FC = () => {
           <div className="adobe-card p-0 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
-                <thead className="bg-[#1a1a1a] text-neutral-400 text-xs font-black uppercase tracking-wider border-b border-white/[0.1]">
+                <thead className="bg-[#252831] text-neutral-400 text-xs font-medium uppercase tracking-wider border-b border-[#2d313a]">
                   <tr>
-                    <th className="py-3.5 px-4 font-black">Raw Read</th>
-                    <th className="py-3.5 px-4 font-black">Target Tag</th>
-                    <th className="py-3.5 px-4 font-black">Type</th>
-                    <th className="py-3.5 px-4 font-black">Conf</th>
-                    <th className="py-3.5 px-4 font-black">Status</th>
-                    <th className="py-3.5 px-4 text-right font-black">Edit</th>
+                    <th className="py-3 px-4 font-medium">Raw Read</th>
+                    <th className="py-3 px-4 font-medium">Target Tag</th>
+                    <th className="py-3 px-4 font-medium">Type</th>
+                    <th className="py-3 px-4 font-medium">Conf</th>
+                    <th className="py-3 px-4 font-medium">Status</th>
+                    <th className="py-3 px-4 text-right font-medium">Edit</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/[0.06] bg-transparent">
+                <tbody className="divide-y divide-[#2d313a] bg-transparent">
                   {displayedTags.length > 0 ? (
                     displayedTags.map((tag) => {
                       const isEditing = editingTagId === tag.id;
@@ -214,8 +214,8 @@ export const ReviewPage: React.FC = () => {
                           onClick={() => setSelectedTag(tag)}
                           className={`cursor-pointer transition-colors ${
                             isSelected
-                              ? 'bg-white/[0.08] border-l-4 border-l-[#eb1000]'
-                              : 'hover:bg-white/[0.03]'
+                              ? 'bg-white/[0.05] border-l-2 border-l-blue-500'
+                              : 'hover:bg-white/[0.02]'
                           }`}
                         >
                           {/* Raw OCR Read */}

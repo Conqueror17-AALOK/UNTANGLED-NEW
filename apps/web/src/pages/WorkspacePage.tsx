@@ -157,54 +157,54 @@ export const WorkspacePage: React.FC = () => {
   }, [graph?.edges, visibleNodes]);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-6 animate-fade-in">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-6 animate-fade-in font-sans">
       
-      {/* Editorial Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-white/[0.12]">
+      {/* Refined Engineering Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#2d313a]">
         <div>
-          <h1 className="text-3xl sm:text-4xl font-display font-black text-white tracking-tight mb-1">
+          <h1 className="text-2xl sm:text-3xl font-semibold text-white tracking-tight mb-1">
             Process Topology
           </h1>
-          <p className="text-sm text-neutral-400 font-bold">
+          <p className="text-xs text-neutral-400 font-normal">
             Interactive ISA-5.1 verified process diagram with live telemetry & cross-validation.
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2.5">
+        <div className="flex flex-wrap items-center gap-2">
           <a
             href={`/api/v1/jobs/${jobId}/simplified-diagram/pdf`}
             download={`simplified_diagram_${jobId.slice(0, 8)}.pdf`}
             target="_blank"
             rel="noopener noreferrer"
           >
-            <button className="bg-white text-black font-bold h-10 px-5 rounded-full flex items-center gap-2 hover:bg-neutral-200 transition-all text-sm">
-              <Download size={14} className="stroke-[2.5]" />
+            <button className="bg-neutral-100 text-neutral-900 font-medium h-9 px-4 rounded-lg flex items-center gap-2 hover:bg-white transition-all text-xs">
+              <Download size={13} />
               <span>Download PDF</span>
             </button>
           </a>
 
           <button
             onClick={() => setShowBeforeAfter(!showBeforeAfter)}
-            className={`h-10 px-4 rounded-full border text-sm font-bold flex items-center gap-2 transition-all ${
+            className={`h-9 px-3.5 rounded-lg border text-xs font-medium flex items-center gap-1.5 transition-all ${
               showBeforeAfter
-                ? 'bg-white text-black border-white'
-                : 'bg-transparent text-white border-white/20 hover:bg-white/10'
+                ? 'bg-[#2d313a] text-white border-[#3a3f4c]'
+                : 'bg-[#20232a] text-neutral-300 border-[#2d313a] hover:bg-[#252831]'
             }`}
           >
-            <Columns size={14} />
-            <span>Compare View</span>
+            <Columns size={13} />
+            <span>Compare</span>
           </button>
 
           <Link to={`/review/${jobId}`}>
-            <button className="h-10 px-4 rounded-full border border-white/20 text-white font-bold hover:bg-white/10 flex items-center gap-2 transition-all text-sm">
-              <CheckCircle2 size={14} className="text-amber-400" />
+            <button className="h-9 px-3.5 rounded-lg border border-[#2d313a] bg-[#20232a] text-neutral-300 hover:text-white hover:bg-[#252831] flex items-center gap-1.5 transition-all text-xs font-medium">
+              <CheckCircle2 size={13} className="text-amber-400" />
               <span>Review Queue</span>
             </button>
           </Link>
 
           <Link to={`/report/${jobId}`}>
-            <button className="h-10 px-4 rounded-full border border-white/20 text-white font-bold hover:bg-white/10 flex items-center gap-2 transition-all text-sm">
-              <FileSpreadsheet size={14} className="text-cyan-400" />
+            <button className="h-9 px-3.5 rounded-lg border border-[#2d313a] bg-[#20232a] text-neutral-300 hover:text-white hover:bg-[#252831] flex items-center gap-1.5 transition-all text-xs font-medium">
+              <FileSpreadsheet size={13} className="text-blue-400" />
               <span>Audit Report</span>
             </button>
           </Link>
@@ -217,44 +217,44 @@ export const WorkspacePage: React.FC = () => {
         {/* Canvas Area (Col span 2) */}
         <div className="lg:col-span-2 space-y-4">
           
-          {/* Controls Bar - Docked Pill Strip */}
-          <div className="flex flex-wrap items-center justify-between gap-3 p-2 rounded-full bg-[#141414] border border-white/[0.12] text-xs">
+          {/* Controls Bar */}
+          <div className="flex flex-wrap items-center justify-between gap-3 p-2 rounded-lg bg-[#20232a] border border-[#2d313a] text-xs">
             
             {/* Layer Toggles */}
-            <div className="flex items-center gap-1.5 bg-[#0a0a0a] p-1 rounded-full border border-white/[0.08]">
-              <span className="text-neutral-400 text-xs px-2 font-bold uppercase tracking-wider">
+            <div className="flex items-center gap-1 bg-[#1a1c22] p-1 rounded-md border border-[#2d313a]">
+              <span className="text-neutral-400 text-xs px-2 font-medium">
                 Layers:
               </span>
               {(['all', 'equipment', 'instrument', 'valve'] as const).map((layer) => (
                 <button
                   key={layer}
                   onClick={() => setActiveLayer(layer)}
-                  className={`px-3 py-1 rounded-full text-xs font-bold transition-all duration-150 ${
+                  className={`px-2.5 py-1 rounded text-xs font-medium capitalize transition-all ${
                     activeLayer === layer
-                      ? 'bg-white text-black font-black'
+                      ? 'bg-[#2d313a] text-white font-semibold'
                       : 'text-neutral-400 hover:text-white'
                   }`}
                 >
-                  {layer.toUpperCase()}
+                  {layer}
                 </button>
               ))}
             </div>
 
             {/* Pan & Zoom Controls */}
-            <div className="flex items-center gap-1.5 pr-1">
+            <div className="flex items-center gap-1 pr-1">
               <button
                 onClick={() => setZoom((z) => Math.min(z + 0.15, 2.5))}
-                className="w-8 h-8 rounded-full bg-white/[0.06] hover:bg-white/[0.14] text-white border border-white/[0.1] transition-all flex items-center justify-center"
+                className="w-7 h-7 rounded-md bg-[#252831] hover:bg-[#2b2e38] text-neutral-300 hover:text-white border border-[#2d313a] transition-all flex items-center justify-center"
                 title="Zoom In (+)"
               >
-                <ZoomIn size={14} />
+                <ZoomIn size={13} />
               </button>
               <button
                 onClick={() => setZoom((z) => Math.max(z - 0.15, 0.5))}
-                className="w-8 h-8 rounded-full bg-white/[0.06] hover:bg-white/[0.14] text-white border border-white/[0.1] transition-all flex items-center justify-center"
+                className="w-7 h-7 rounded-md bg-[#252831] hover:bg-[#2b2e38] text-neutral-300 hover:text-white border border-[#2d313a] transition-all flex items-center justify-center"
                 title="Zoom Out (-)"
               >
-                <ZoomOut size={14} />
+                <ZoomOut size={13} />
               </button>
               <button
                 onClick={resetViewport}
