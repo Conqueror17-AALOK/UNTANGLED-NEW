@@ -86,3 +86,8 @@ debug_output/
 runs/
 yolo11*.pt
 !models/yolo11_pid.pt
+
+# Florence-2 Large Model Weights & Checkpoints (Local)
+models/florence2*/*.safetensors
+models/florence2*/*.bin
+data/florence_dataset/
