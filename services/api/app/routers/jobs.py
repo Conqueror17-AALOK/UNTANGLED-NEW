@@ -453,6 +453,7 @@ def export_job(
                         graph_data = json.load(f)
                     graph_schema = GraphSchema(**graph_data)
                     tag_meta = {}
+                    items_list = []
                     if os.path.exists(res_path):
                         with open(res_path, "r", encoding="utf-8") as f:
                             res_data = json.load(f)
@@ -461,7 +462,20 @@ def export_job(
                                 tag_meta[it.get("normalized_tag", "")] = it
                                 tag_meta[it.get("id", "")] = it
 
-                    pdf_bytes = generate_smart_vector_pdf(graph_schema, job_id, tag_meta)
+                    report_path = os.path.join(job_dir, "report.json")
+                    diagnostics = []
+                    if os.path.exists(report_path):
+                        try:
+                            with open(report_path, "r", encoding="utf-8") as rf:
+                                rpt = json.load(rf)
+                                diagnostics = rpt.get("connection_validation", {}).get("diagnostics", [])
+                        except Exception:
+                            pass
+                    if not diagnostics:
+                        from services.api.app.engine.validator import ConnectionValidator
+                        diagnostics = ConnectionValidator.validate_connections(graph_schema, items_list).get("diagnostics", [])
+
+                    pdf_bytes = generate_smart_vector_pdf(graph_schema, job_id, tag_meta, diagnostics=diagnostics)
                     with open(pdf_path, "wb") as f:
                         f.write(pdf_bytes)
                 except Exception as e:
@@ -522,6 +536,7 @@ def download_simplified_diagram_pdf(job_id: str, db: Session = Depends(get_db)):
                 graph_data = json.load(f)
             graph_schema = GraphSchema(**graph_data)
             tag_meta = {}
+            items_list = []
             if os.path.exists(res_path):
                 with open(res_path, "r", encoding="utf-8") as f:
                     res_data = json.load(f)
@@ -530,7 +545,20 @@ def download_simplified_diagram_pdf(job_id: str, db: Session = Depends(get_db)):
                         tag_meta[it.get("normalized_tag", "")] = it
                         tag_meta[it.get("id", "")] = it
 
-            pdf_bytes = generate_smart_vector_pdf(graph_schema, job_id, tag_meta)
+            report_path = os.path.join(job_dir, "report.json")
+            diagnostics = []
+            if os.path.exists(report_path):
+                try:
+                    with open(report_path, "r", encoding="utf-8") as rf:
+                        rpt = json.load(rf)
+                        diagnostics = rpt.get("connection_validation", {}).get("diagnostics", [])
+                except Exception:
+                    pass
+            if not diagnostics:
+                from services.api.app.engine.validator import ConnectionValidator
+                diagnostics = ConnectionValidator.validate_connections(graph_schema, items_list).get("diagnostics", [])
+
+            pdf_bytes = generate_smart_vector_pdf(graph_schema, job_id, tag_meta, diagnostics=diagnostics)
             with open(pdf_path, "wb") as f:
                 f.write(pdf_bytes)
         else:

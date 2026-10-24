@@ -77,7 +77,7 @@ def get_node_boundary_point(node: GraphNode, target_x: float, target_y: float) -
     return port_x, port_y
 
 
-def render_symbol_svg(node: GraphNode) -> str:
+def _render_symbol_base(node: GraphNode) -> str:
     x, y = float(node.x), float(node.y)
     tag = node.id
     cat = node.category.lower()
@@ -289,17 +289,92 @@ def render_symbol_svg(node: GraphNode) -> str:
         """
 
 
-def generate_svg_sketch(graph: GraphSchema) -> str:
+def render_symbol_svg(node: GraphNode, issue: Optional[Dict[str, Any]] = None) -> str:
+    """
+    Render standard ISA-5.1 symbol and decorate with priority alert callouts
+    (P1 Critical Red, P2 Operational Amber, P3/Low Accuracy Purple) if an issue exists.
+    """
+    raw_svg = _render_symbol_base(node)
+    
+    # Check if this node has an active diagnostic issue or low accuracy
+    has_issue = issue is not None and issue.get("priority") in ("P1", "P2", "P3")
+    is_low_conf = node.confidence < 0.70
+
+    if not has_issue and not is_low_conf:
+        return raw_svg
+
+    x, y = float(node.x), float(node.y)
+    conf_pct = int(node.confidence * 100)
+    pri = issue.get("priority", "P3") if issue else "P3"
+    rule = issue.get("rule", "LOW_ACCURACY") if issue else "LOW_ACCURACY"
+
+    if pri == "P1":
+        alert_markup = f"""
+        <!-- P1 Critical Safety Hazard Callout -->
+        <circle cx="{x}" cy="{y}" r="42" fill="none" stroke="#EF4444" stroke-width="3" stroke-dasharray="6,3" />
+        <g class="hazard-callout" transform="translate({x-70}, {y-52})">
+            <rect width="140" height="18" rx="3.5" fill="#EF4444" stroke="#FFFFFF" stroke-width="0.8" />
+            <text x="70" y="12.5" font-family="Inter, sans-serif" font-size="8" font-weight="800" fill="#FFFFFF" text-anchor="middle">P1: CRITICAL ({rule[:14]})</text>
+        </g>
+        """
+    elif pri == "P2":
+        alert_markup = f"""
+        <!-- P2 Operational Warning Callout -->
+        <circle cx="{x}" cy="{y}" r="40" fill="none" stroke="#F59E0B" stroke-width="2.5" stroke-dasharray="5,2" />
+        <g class="hazard-callout" transform="translate({x-70}, {y-50})">
+            <rect width="140" height="17" rx="3.5" fill="#F59E0B" stroke="#000000" stroke-width="0.6" />
+            <text x="70" y="12" font-family="Inter, sans-serif" font-size="7.8" font-weight="700" fill="#000000" text-anchor="middle">P2: WARNING ({rule[:14]})</text>
+        </g>
+        """
+    else:
+        alert_markup = f"""
+        <!-- Low Accuracy / Model Confidence Callout -->
+        <circle cx="{x}" cy="{y}" r="38" fill="none" stroke="#A855F7" stroke-width="2" stroke-dasharray="4,2" />
+        <g class="hazard-callout" transform="translate({x-70}, {y-48})">
+            <rect width="140" height="16" rx="3" fill="#8B5CF6" stroke="#FFFFFF" stroke-width="0.6" />
+            <text x="70" y="11.5" font-family="Inter, sans-serif" font-size="7.5" font-weight="700" fill="#FFFFFF" text-anchor="middle">LOW ACCURACY ({conf_pct}%)</text>
+        </g>
+        """
+
+    last_g = raw_svg.rfind("</g>")
+    if last_g != -1:
+        return raw_svg[:last_g] + alert_markup + raw_svg[last_g:]
+    return raw_svg + alert_markup
+
+
+def generate_svg_sketch(
+    graph: GraphSchema,
+    diagnostics: Optional[List[Dict[str, Any]]] = None
+) -> str:
     """
     Render clean, interactive, responsive SVG process sketch from simplified GraphSchema.
     Features:
       - Authentic ISA-5.1 instrument bubbles, control valves, vessels, and pumps.
       - Full loop numbers preserved (e.g. 14-FIC-15701 Line 1: '14-FIC', Line 2: '15701').
       - Manhattan orthogonal pipe routing with port boundary snapping.
+      - Priority-wise connection error highlights (P1 Red, P2 Amber, Low Accuracy Purple).
       - Crisp flow direction arrows.
       - Engineering title block and symbol legend.
     """
     node_map = {n.id: n for n in graph.nodes}
+
+    # Index diagnostics by element_id
+    node_issues: Dict[str, Dict[str, Any]] = {}
+    edge_issues: Dict[str, Dict[str, Any]] = {}
+    if diagnostics:
+        priority_rank = {"P1": 0, "P2": 1, "P3": 2, "P4": 3}
+        for d in diagnostics:
+            el_type = d.get("element_type")
+            el_id = d.get("element_id")
+            pri = d.get("priority", "P4")
+            if el_type == "node" and el_id:
+                cur = node_issues.get(el_id)
+                if not cur or priority_rank.get(pri, 4) < priority_rank.get(cur.get("priority", "P4"), 4):
+                    node_issues[el_id] = d
+            elif el_type == "edge" and el_id:
+                cur = edge_issues.get(el_id)
+                if not cur or priority_rank.get(pri, 4) < priority_rank.get(cur.get("priority", "P4"), 4):
+                    edge_issues[el_id] = d
 
     # Calculate bounding envelope with generous margins
     max_x = max((n.x for n in graph.nodes), default=1200) + 200
@@ -321,6 +396,9 @@ def generate_svg_sketch(graph: GraphSchema) -> str:
             <marker id="arrow-opc" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
                 <path d="M 0 1.5 L 9 5 L 0 8.5 z" fill="#10B981" />
             </marker>
+            <marker id="arrow-error" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                <path d="M 0 1.5 L 9 5 L 0 8.5 z" fill="#EF4444" />
+            </marker>
             <!-- Engineering Grid Background -->
             <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
                 <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#161F30" stroke-width="0.8" />
@@ -341,11 +419,19 @@ def generate_svg_sketch(graph: GraphSchema) -> str:
         if not src or not dst:
             continue
 
+        edge_issue = edge_issues.get(edge.id)
+        has_edge_issue = edge_issue is not None and edge_issue.get("priority") in ("P1", "P2")
+
         is_process = edge.line_type == "process"
         is_cross_sheet = "opc_bridge" in (edge.id or "")
         
         # Color & Stroke attributes
-        if is_cross_sheet:
+        if has_edge_issue:
+            color = "#EF4444"
+            width_stroke = 3.5
+            dash = 'stroke-dasharray="6,3"'
+            marker = 'marker-end="url(#arrow-error)"'
+        elif is_cross_sheet:
             color = "#10B981"
             width_stroke = 3.0
             dash = 'stroke-dasharray="8,4"'
@@ -381,12 +467,24 @@ def generate_svg_sketch(graph: GraphSchema) -> str:
             f'<path d="{d_path}" fill="none" stroke="{color}" stroke-width="{width_stroke}" {dash} {marker} '
             f'data-source="{edge.source}" data-target="{edge.target}" data-line-type="{edge.line_type}" opacity="0.9" />'
         )
+
+        if has_edge_issue:
+            mid_x = (p1_x + p2_x) / 2.0
+            mid_y = (p1_y + p2_y) / 2.0
+            svg_parts.append(f"""
+            <!-- Edge Alert Hazard Icon -->
+            <g class="edge-alert" transform="translate({mid_x-10}, {mid_y-10})">
+                <rect width="20" height="20" rx="3" fill="#EF4444" stroke="#FFFFFF" stroke-width="1.2" />
+                <text x="10" y="14" font-family="Inter, sans-serif" font-size="11" font-weight="900" fill="#FFFFFF" text-anchor="middle">!</text>
+            </g>
+            """)
     svg_parts.append('</g>')
 
-    # Draw Nodes (ISA-5.1 Symbols)
+    # Draw Nodes (ISA-5.1 Symbols with Priority Diagnostics)
     svg_parts.append('<g class="nodes-layer">')
     for node in graph.nodes:
-        svg_parts.append(render_symbol_svg(node))
+        issue = node_issues.get(node.id)
+        svg_parts.append(render_symbol_svg(node, issue=issue))
     svg_parts.append('</g>')
 
     # Engineering Title Block (Bottom Right)
@@ -414,27 +512,37 @@ def generate_svg_sketch(graph: GraphSchema) -> str:
     </g>
     """)
 
-    # Symbol Legend Block (Bottom Left)
-    leg_w, leg_h = 360, 85
+    # Symbol Legend Block (Bottom Left) with Priority Alert Indicators
+    leg_w, leg_h = 480, 92
     leg_x = 25
     leg_y = height - leg_h - 25
     svg_parts.append(f"""
     <!-- Legend Block -->
     <g class="legend-block" transform="translate({leg_x}, {leg_y})">
         <rect width="{leg_w}" height="{leg_h}" fill="#0B132B" stroke="#1E293B" stroke-width="1.2" rx="4" opacity="0.95" />
-        <text x="12" y="18" font-family="Inter, sans-serif" font-size="9.5" font-weight="700" fill="#F8FAFC">LEGEND &amp; LINE TYPES</text>
-        <!-- Major Process Line -->
-        <line x1="12" y1="36" x2="45" y2="36" stroke="#38BDF8" stroke-width="2.5" />
-        <text x="52" y="39" font-family="Inter, sans-serif" font-size="8.5" fill="#94A3B8">Major Process Pipe</text>
-        <!-- Signal / Electrical Line -->
-        <line x1="180" y1="36" x2="215" y2="36" stroke="#C084FC" stroke-width="1.5" stroke-dasharray="4,3" />
-        <text x="222" y="39" font-family="Inter, sans-serif" font-size="8.5" fill="#94A3B8">DCS Signal Line</text>
-        <!-- OPC Bridge Line -->
-        <line x1="12" y1="58" x2="45" y2="58" stroke="#10B981" stroke-width="2.5" stroke-dasharray="6,3" />
-        <text x="52" y="61" font-family="Inter, sans-serif" font-size="8.5" fill="#94A3B8">Multi-Sheet OPC Bridge</text>
-        <!-- Instrument Bubble Pill -->
-        <circle cx="192" cy="58" r="6" fill="#0F172A" stroke="#E2E8F0" stroke-width="1.2" />
-        <text x="206" y="61" font-family="Inter, sans-serif" font-size="8.5" fill="#94A3B8">ISA-5.1 Instrument</text>
+        <text x="12" y="18" font-family="Inter, sans-serif" font-size="9.5" font-weight="700" fill="#F8FAFC">LEGEND &amp; PRIORITY INDICATORS</text>
+        <!-- Row 1: Line types -->
+        <line x1="12" y1="36" x2="40" y2="36" stroke="#38BDF8" stroke-width="2.5" />
+        <text x="46" y="39" font-family="Inter, sans-serif" font-size="8" fill="#94A3B8">Major Process Pipe</text>
+        
+        <line x1="140" y1="36" x2="168" y2="36" stroke="#C084FC" stroke-width="1.5" stroke-dasharray="4,3" />
+        <text x="174" y="39" font-family="Inter, sans-serif" font-size="8" fill="#94A3B8">DCS Signal Line</text>
+
+        <line x1="260" y1="36" x2="288" y2="36" stroke="#10B981" stroke-width="2.5" stroke-dasharray="6,3" />
+        <text x="294" y="39" font-family="Inter, sans-serif" font-size="8" fill="#94A3B8">OPC Bridge</text>
+
+        <line x1="370" y1="36" x2="398" y2="36" stroke="#EF4444" stroke-width="2.5" stroke-dasharray="4,2" />
+        <text x="404" y="39" font-family="Inter, sans-serif" font-size="8" fill="#EF4444">Routing Error</text>
+
+        <!-- Row 2: Priority Badges -->
+        <circle cx="22" cy="62" r="7" fill="none" stroke="#EF4444" stroke-width="2" stroke-dasharray="3,2" />
+        <text x="36" y="65" font-family="Inter, sans-serif" font-size="8" font-weight="700" fill="#EF4444">P1: Critical Safety</text>
+
+        <circle cx="150" cy="62" r="7" fill="none" stroke="#F59E0B" stroke-width="2" stroke-dasharray="3,2" />
+        <text x="164" y="65" font-family="Inter, sans-serif" font-size="8" font-weight="700" fill="#F59E0B">P2: Operational</text>
+
+        <circle cx="270" cy="62" r="7" fill="none" stroke="#A855F7" stroke-width="2" stroke-dasharray="3,2" />
+        <text x="284" y="65" font-family="Inter, sans-serif" font-size="8" font-weight="700" fill="#A855F7">Low Accuracy (&lt;70%)</text>
     </g>
     """)
 

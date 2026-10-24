@@ -129,9 +129,15 @@ export interface ConnectionDiagnostic {
   element_type: 'node' | 'edge';
   status: 'CORRECT' | 'WARNING' | 'WRONG';
   severity: 'info' | 'warning' | 'error';
+  priority?: 'P1' | 'P2' | 'P3' | 'P4';
+  priority_label?: string;
   rule: string;
   message: string;
   recommendation: string;
+  time_savings_action?: string;
+  bbox?: [number, number, number, number];
+  page?: number;
+  confidence?: number;
 }
 
 export interface ConnectionValidationData {
@@ -141,6 +147,11 @@ export interface ConnectionValidationData {
   correct_count: number;
   warning_count: number;
   error_count: number;
+  p1_critical_count?: number;
+  p2_high_count?: number;
+  p3_medium_count?: number;
+  p4_low_count?: number;
+  priority_summary?: string;
   diagnostics: ConnectionDiagnostic[];
 }
 

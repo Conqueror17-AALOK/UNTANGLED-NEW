@@ -18,6 +18,7 @@ import {
   RotateCcw,
   Sparkles,
   Layers,
+  X,
 } from 'lucide-react';
 import { apiClient } from '../api/client';
 import { ReportData } from '../types';
@@ -32,6 +33,17 @@ export const ReportPage: React.FC = () => {
   const [previewMode, setPreviewMode] = useState<'overlay' | 'original'>('overlay');
   const [previewPage, setPreviewPage] = useState<number>(1);
   const [previewZoom, setPreviewZoom] = useState<number>(1.0);
+
+  // Priority Connection Filter & CAD Snippet Inspection States
+  const [priorityFilter, setPriorityFilter] = useState<'ALL' | 'P1' | 'P2' | 'P3' | 'P4'>('ALL');
+  const [inspectSnippet, setInspectSnippet] = useState<{
+    bbox: [number, number, number, number];
+    page: number;
+    tag: string;
+    action: string;
+    priority: string;
+    rule: string;
+  } | null>(null);
   const [previewsInfo, setPreviewsInfo] = useState<{
     job_id: string;
     total_pages: number;
@@ -668,10 +680,15 @@ export const ReportPage: React.FC = () => {
       <div className="adobe-card p-5 space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-white/[0.1]">
           <div className="flex items-center gap-2.5">
-            <GitBranch size={16} className="text-white" />
-            <h3 className="text-sm font-display font-black text-white tracking-tight">
-              P&ID Topological Connection Verification (Correct vs. Wrong)
-            </h3>
+            <GitBranch size={16} className="text-cyan-400" />
+            <div>
+              <h3 className="text-sm font-display font-black text-white tracking-tight">
+                P&ID Priority-Wise Connection Errors &amp; Fast-Track Actions
+              </h3>
+              <p className="text-[11px] text-neutral-400 font-mono">
+                Optimized for instant engineering resolution without wasting time rechecking full drawings.
+              </p>
+            </div>
           </div>
           {report.connection_validation && (
             <div className="flex items-center gap-2.5">
@@ -690,64 +707,159 @@ export const ReportPage: React.FC = () => {
         </div>
 
         {report.connection_validation ? (
-          <div className="space-y-3">
-            <div className="grid grid-cols-3 gap-3 text-center text-xs py-3 bg-[#1a1a1a] rounded-xl border border-white/[0.08]">
-              <div>
-                <span className="text-neutral-400 block text-[10px] uppercase font-black">Validated</span>
-                <span className="text-emerald-400 font-display font-black text-xl">{report.connection_validation.correct_count}</span>
+          <div className="space-y-4">
+            {/* 4 Priority Summary Metric Cards */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-center text-xs font-mono">
+              <div className="p-2.5 bg-red-500/10 rounded-xl border border-red-500/25">
+                <span className="text-red-400 block text-[10px] uppercase font-bold tracking-wider">P1 Critical Safety</span>
+                <span className="text-red-300 font-bold text-xl">{report.connection_validation.p1_critical_count ?? report.connection_validation.error_count}</span>
               </div>
-              <div>
-                <span className="text-neutral-400 block text-[10px] uppercase font-black">Warnings</span>
-                <span className="text-amber-400 font-display font-black text-xl">{report.connection_validation.warning_count}</span>
+              <div className="p-2.5 bg-amber-500/10 rounded-xl border border-amber-500/25">
+                <span className="text-amber-400 block text-[10px] uppercase font-bold tracking-wider">P2 Operational</span>
+                <span className="text-amber-300 font-bold text-xl">{report.connection_validation.p2_high_count ?? report.connection_validation.warning_count}</span>
               </div>
-              <div>
-                <span className="text-neutral-400 block text-[10px] uppercase font-black">Errors</span>
-                <span className="text-[#eb1000] font-display font-black text-xl">{report.connection_validation.error_count}</span>
+              <div className="p-2.5 bg-purple-500/10 rounded-xl border border-purple-500/25">
+                <span className="text-purple-400 block text-[10px] uppercase font-bold tracking-wider">P3 Low Accuracy</span>
+                <span className="text-purple-300 font-bold text-xl">{report.connection_validation.p3_medium_count ?? 0}</span>
+              </div>
+              <div className="p-2.5 bg-emerald-500/10 rounded-xl border border-emerald-500/25">
+                <span className="text-emerald-400 block text-[10px] uppercase font-bold tracking-wider">P4 Safe &amp; Verified</span>
+                <span className="text-emerald-300 font-bold text-xl">{report.connection_validation.p4_low_count ?? report.connection_validation.correct_count}</span>
               </div>
             </div>
 
-            <div className="max-h-60 overflow-y-auto space-y-2 pr-1 text-xs">
-              {report.connection_validation.diagnostics.map((diag, i) => (
-                <div
-                  key={i}
-                  className={`p-3.5 rounded-xl border flex items-start justify-between gap-3 ${
-                    diag.status === 'CORRECT'
-                      ? 'bg-[#1a1a1a] border-white/[0.08] text-neutral-200'
-                      : diag.status === 'WARNING'
-                      ? 'bg-amber-500/10 border-amber-400/30 text-amber-200'
-                      : 'bg-[#eb1000]/10 border-[#eb1000]/30 text-red-200'
-                  }`}
-                >
-                  <div className="flex items-start gap-2.5">
-                    {diag.status === 'CORRECT' ? (
-                      <CheckCircle2 size={16} className="text-emerald-400 mt-0.5 shrink-0" />
-                    ) : diag.status === 'WARNING' ? (
-                      <AlertTriangle size={16} className="text-amber-400 mt-0.5 shrink-0" />
-                    ) : (
-                      <XCircle size={16} className="text-[#eb1000] mt-0.5 shrink-0" />
-                    )}
-                    <div>
-                      <p className="font-bold text-xs">{diag.message}</p>
-                      {diag.status !== 'CORRECT' && (
-                        <p className="text-xs text-neutral-400 mt-0.5 font-bold">
-                          Action: {diag.recommendation}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                  <span
-                    className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full shrink-0 uppercase ${
-                      diag.status === 'CORRECT'
-                        ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-400/30'
-                        : diag.status === 'WARNING'
-                        ? 'bg-amber-500/15 text-amber-300 border border-amber-400/30'
-                        : 'bg-[#eb1000]/15 text-[#eb1000] border border-[#eb1000]/30'
+            {/* Interactive Priority Filter Pills */}
+            <div className="flex flex-wrap items-center gap-1.5 pt-1 font-mono text-xs">
+              <span className="text-slate-400 text-[11px] mr-1">Filter Priority:</span>
+              {(['ALL', 'P1', 'P2', 'P3', 'P4'] as const).map((pri) => {
+                const count = pri === 'ALL'
+                  ? report.connection_validation!.diagnostics.length
+                  : pri === 'P1'
+                  ? (report.connection_validation!.p1_critical_count ?? report.connection_validation!.error_count)
+                  : pri === 'P2'
+                  ? (report.connection_validation!.p2_high_count ?? report.connection_validation!.warning_count)
+                  : pri === 'P3'
+                  ? (report.connection_validation!.p3_medium_count ?? 0)
+                  : (report.connection_validation!.p4_low_count ?? report.connection_validation!.correct_count);
+
+                return (
+                  <button
+                    key={pri}
+                    onClick={() => setPriorityFilter(pri)}
+                    className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all ${
+                      priorityFilter === pri
+                        ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-400/40 shadow-[0_0_10px_rgba(56,189,248,0.25)]'
+                        : 'bg-white/[0.03] text-slate-400 border border-white/[0.08] hover:text-white hover:bg-white/[0.06]'
                     }`}
                   >
-                    {diag.status}
-                  </span>
-                </div>
-              ))}
+                    {pri === 'ALL' ? 'All Issues' : `${pri} Hazards`} ({count})
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Diagnostics List with Action Callouts & Blueprint Inspection */}
+            <div className="max-h-96 overflow-y-auto space-y-2.5 pr-1 font-mono text-xs">
+              {report.connection_validation.diagnostics
+                .filter((diag) => {
+                  if (priorityFilter === 'ALL') return true;
+                  return diag.priority === priorityFilter;
+                })
+                .map((diag, i) => {
+                  const pri = diag.priority || (diag.status === 'WRONG' ? 'P1' : diag.status === 'WARNING' ? 'P2' : 'P4');
+                  const isCritical = pri === 'P1';
+                  const isWarning = pri === 'P2';
+                  const isAudit = pri === 'P3';
+
+                  return (
+                    <div
+                      key={i}
+                      className={`p-3.5 rounded-xl border flex flex-col gap-2.5 backdrop-blur-md transition-all ${
+                        isCritical
+                          ? 'bg-red-500/10 border-red-400/30 text-red-200'
+                          : isWarning
+                          ? 'bg-amber-500/10 border-amber-400/30 text-amber-200'
+                          : isAudit
+                          ? 'bg-purple-500/10 border-purple-400/30 text-purple-200'
+                          : 'bg-white/[0.02] border-white/[0.08] text-slate-200'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-start gap-2.5">
+                          {isCritical ? (
+                            <XCircle size={16} className="text-red-400 mt-0.5 shrink-0" />
+                          ) : isWarning ? (
+                            <AlertTriangle size={16} className="text-amber-400 mt-0.5 shrink-0" />
+                          ) : isAudit ? (
+                            <HelpCircle size={16} className="text-purple-400 mt-0.5 shrink-0" />
+                          ) : (
+                            <CheckCircle2 size={16} className="text-emerald-400 mt-0.5 shrink-0" />
+                          )}
+                          <div>
+                            <div className="flex items-center gap-2 mb-1 flex-wrap">
+                              <span className="font-bold text-white text-xs px-2 py-0.5 rounded bg-white/[0.06] border border-white/[0.1]">
+                                {diag.element_id}
+                              </span>
+                              <span className="text-[10px] text-slate-400 font-sans">
+                                Rule: {diag.rule}
+                              </span>
+                            </div>
+                            <p className="font-medium text-xs leading-relaxed">{diag.message}</p>
+                          </div>
+                        </div>
+
+                        {/* Priority Badge */}
+                        <span
+                          className={`text-[9px] font-bold px-2.5 py-1 rounded-full shrink-0 uppercase tracking-wider ${
+                            isCritical
+                              ? 'bg-red-500/20 text-red-300 border border-red-400/40'
+                              : isWarning
+                              ? 'bg-amber-500/20 text-amber-300 border border-amber-400/40'
+                              : isAudit
+                              ? 'bg-purple-500/20 text-purple-300 border border-purple-400/40'
+                              : 'bg-emerald-500/15 text-emerald-300 border border-emerald-400/30'
+                          }`}
+                        >
+                          {diag.priority_label || pri}
+                        </span>
+                      </div>
+
+                      {/* Immediate Time-Saving Engineering Action Callout */}
+                      {(diag.time_savings_action || diag.recommendation) && diag.status !== 'CORRECT' && (
+                        <div className="p-2.5 rounded-lg bg-black/40 border border-cyan-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                          <div className="space-y-0.5">
+                            <span className="text-[9.5px] font-bold text-cyan-400 uppercase tracking-wider block">
+                              Fast-Track Action (No Drawing Recheck Required):
+                            </span>
+                            <p className="text-[11.5px] text-slate-200 font-sans">
+                              {diag.time_savings_action || diag.recommendation}
+                            </p>
+                          </div>
+
+                          {/* Inspect CAD Blueprint Snippet Button */}
+                          {diag.bbox && (
+                            <button
+                              onClick={() =>
+                                setInspectSnippet({
+                                  bbox: diag.bbox!,
+                                  page: diag.page || 1,
+                                  tag: diag.element_id,
+                                  action: diag.time_savings_action || diag.recommendation,
+                                  priority: pri,
+                                  rule: diag.rule,
+                                })
+                              }
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 border border-cyan-400/40 text-[11px] font-bold shrink-0 transition-all shadow-[0_0_10px_rgba(56,189,248,0.2)]"
+                            >
+                              <Eye size={12} className="text-cyan-400" />
+                              <span>View Blueprint Snippet</span>
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
             </div>
           </div>
         ) : (
@@ -816,6 +928,67 @@ export const ReportPage: React.FC = () => {
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* Interactive Blueprint CAD Snippet Modal */}
+      {inspectSnippet && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in print:hidden">
+          <div className="relative w-full max-w-2xl bg-[#090d16] border border-cyan-500/40 rounded-2xl p-6 shadow-[0_0_50px_rgba(56,189,248,0.25)] space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-white/[0.1]">
+              <div className="flex items-center gap-2">
+                <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase ${
+                  inspectSnippet.priority === 'P1'
+                    ? 'bg-red-500/20 text-red-300 border border-red-400/40'
+                    : inspectSnippet.priority === 'P2'
+                    ? 'bg-amber-500/20 text-amber-300 border border-amber-400/40'
+                    : 'bg-purple-500/20 text-purple-300 border border-purple-400/40'
+                }`}>
+                  {inspectSnippet.priority}: {inspectSnippet.rule}
+                </span>
+                <h4 className="font-heading font-bold text-white text-base">
+                  Component CAD Crop: <span className="text-cyan-300 font-mono">{inspectSnippet.tag}</span>
+                </h4>
+              </div>
+              <button
+                onClick={() => setInspectSnippet(null)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/[0.08] transition-all"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* High-Resolution CAD Crop Image */}
+            <div className="rounded-xl overflow-hidden border border-white/[0.1] bg-black/60 flex items-center justify-center min-h-[220px]">
+              <img
+                src={`/api/v1/jobs/${jobId}/source/${inspectSnippet.page}/crop?bbox=${inspectSnippet.bbox.join(',')}`}
+                alt={`CAD snippet for ${inspectSnippet.tag}`}
+                className="max-h-[300px] w-auto object-contain"
+              />
+            </div>
+
+            {/* Direct Action Highlight */}
+            <div className="p-3.5 rounded-xl bg-cyan-950/40 border border-cyan-400/30 space-y-1">
+              <span className="text-[10px] font-bold text-cyan-400 uppercase tracking-wider block font-mono">
+                Immediate Fast-Track Engineering Action:
+              </span>
+              <p className="text-xs text-slate-100 font-sans leading-relaxed">
+                {inspectSnippet.action}
+              </p>
+              <p className="text-[10px] font-mono text-slate-400 pt-1">
+                CAD Location: Page {inspectSnippet.page} | Bounding Box: [{inspectSnippet.bbox.map((v) => Math.round(v)).join(', ')}]
+              </p>
+            </div>
+
+            <div className="flex justify-end pt-2">
+              <button
+                onClick={() => setInspectSnippet(null)}
+                className="px-4 py-1.5 rounded-full border border-white/[0.15] bg-white/[0.05] hover:bg-white/[0.1] text-white font-mono text-xs transition-all"
+              >
+                Close Snippet
+              </button>
+            </div>
           </div>
         </div>
       )}

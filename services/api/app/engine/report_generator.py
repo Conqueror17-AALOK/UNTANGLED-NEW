@@ -1,10 +1,14 @@
 import io
+import json
 import os
 import time
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 import fitz
+from PIL import Image, ImageDraw
+
 from services.api.app.config import get_settings
-from services.api.app.db.schemas import ReportSchema
+from services.api.app.db.schemas import GraphSchema, ReportSchema
+from services.api.app.engine.svg_generator import generate_svg_sketch
 
 # Localized translations for discrepancy items and report headings
 TRANSLATIONS = {
@@ -98,16 +102,113 @@ def localize_report(report: ReportSchema, lang: str = "en") -> Dict[str, Any]:
     return dict_report
 
 
+def _extract_blueprint_crop(
+    source_path: str,
+    bbox: List[float],
+    img_w: float = 9934.0,
+    img_h: float = 7016.0,
+    color_rgb: Tuple[int, int, int] = (239, 68, 68),
+    pad_pts: float = 45.0,
+    page_idx: int = 0
+) -> Optional[bytes]:
+    """
+    Extract a high-resolution visual crop from the original CAD blueprint (PDF or raster),
+    annotated with a bold high-visibility bounding box for direct engineering verification.
+    """
+    if not source_path or not os.path.exists(source_path):
+        return None
+
+    bx1, by1, bx2, by2 = bbox
+    # Handle raster source drawing image
+    if source_path.lower().endswith((".png", ".jpg", ".jpeg")):
+        try:
+            img = Image.open(source_path).convert("RGB")
+            pad = 80
+            cx1 = max(0, int(min(bx1, bx2) - pad))
+            cy1 = max(0, int(min(by1, by2) - pad))
+            cx2 = min(img.width, int(max(bx1, bx2) + pad))
+            cy2 = min(img.height, int(max(by1, by2) + pad))
+            if cx2 <= cx1 or cy2 <= cy1:
+                return None
+            cropped = img.crop((cx1, cy1, cx2, cy2))
+            draw = ImageDraw.Draw(cropped)
+            rx1 = min(bx1, bx2) - cx1
+            ry1 = min(by1, by2) - cy1
+            rx2 = max(bx1, bx2) - cx1
+            ry2 = max(by1, by2) - cy1
+            for o in range(3):
+                draw.rectangle([rx1 - o, ry1 - o, rx2 + o, ry2 + o], outline=color_rgb)
+            buf = io.BytesIO()
+            cropped.save(buf, format="PNG")
+            return buf.getvalue()
+        except Exception:
+            return None
+
+    # Handle vector PDF source drawing
+    try:
+        doc = fitz.open(source_path)
+        if len(doc) == 0:
+            return None
+        page = doc[max(0, min(page_idx, len(doc) - 1))]
+
+        # Scale perception pixel coordinates to PDF point coordinates
+        sx = page.rect.width / max(img_w, 1.0)
+        sy = page.rect.height / max(img_h, 1.0)
+
+        px1 = min(bx1, bx2) * sx
+        py1 = min(by1, by2) * sy
+        px2 = max(bx1, bx2) * sx
+        py2 = max(by1, by2) * sy
+
+        clip_r = fitz.Rect(
+            max(0, px1 - pad_pts),
+            max(0, py1 - pad_pts),
+            min(page.rect.width, px2 + pad_pts),
+            min(page.rect.height, py2 + pad_pts)
+        )
+        if clip_r.width < 5 or clip_r.height < 5:
+            doc.close()
+            return None
+
+        pix = page.get_pixmap(clip=clip_r, dpi=150)
+        img = Image.open(io.BytesIO(pix.tobytes("png"))).convert("RGB")
+        draw = ImageDraw.Draw(img)
+
+        # Map PDF point coordinates to pixmap image coordinates
+        spx = pix.width / clip_r.width
+        spy = pix.height / clip_r.height
+        cx1 = (px1 - clip_r.x0) * spx
+        cy1 = (py1 - clip_r.y0) * spy
+        cx2 = (px2 - clip_r.x0) * spx
+        cy2 = (py2 - clip_r.y0) * spy
+
+        # Draw 3px bold rectangle
+        for o in range(3):
+            draw.rectangle([cx1 - o, cy1 - o, cx2 + o, cy2 + o], outline=color_rgb)
+
+        buf = io.BytesIO()
+        img.save(buf, format="PNG")
+        doc.close()
+        return buf.getvalue()
+    except Exception:
+        return None
+
+
 def generate_pdf_report(
     job_id: str,
     report_data: Dict[str, Any],
     lang: str = "en",
-    overlay_image_path: Optional[str] = None
+    overlay_image_path: Optional[str] = None,
+    graph_data: Optional[Dict[str, Any]] = None,
+    source_pdf_path: Optional[str] = None
 ) -> bytes:
     """
-    Generate an official engineering cross-validation audit PDF report with KPIs,
-    three-tier resolution distribution, discrepancy tables, and embedded high-resolution
-    visual detection preview overlay (Page 2) for spatial audit verification.
+    Generate an enhanced, vector-first engineering cross-validation audit PDF report.
+    Structure:
+      Page 1: Executive Summary, Priority KPI Cards (P1, P2, P3, P4), Fast-Track Action Matrix.
+      Page 2: Smart Vector Process & Instrumentation Diagram (P&ID) with Vector Priority Highlights.
+      Page 3: Optimized Resolution: High-Resolution Original Blueprint Crops with Direct Actions.
+      Page 4: Visual Spatial Audit: Full AI Detection Overlay.
     """
     selected_lang = lang if lang in TRANSLATIONS else "en"
     labels = TRANSLATIONS[selected_lang]
@@ -116,62 +217,118 @@ def generate_pdf_report(
     missing_io = report_data.get("missing_in_io_list", [])
     type_mismatches = report_data.get("type_mismatches", [])
 
-    # Locate detection overlay image if not provided
+    # Priority Connection Diagnostics
+    conn_val = report_data.get("connection_validation") or {}
+    diagnostics = conn_val.get("diagnostics", [])
+
+    # Discover artifacts on disk
     settings = get_settings()
-    if not overlay_image_path:
-        default_overlay = os.path.join(settings.DATA_DIR, job_id, "debug_overlay_page_1.png")
+    job_dir = os.path.join(settings.DATA_DIR, job_id)
+
+    if not overlay_image_path and os.path.exists(job_dir):
+        default_overlay = os.path.join(job_dir, "debug_overlay_page_1.png")
         if os.path.exists(default_overlay):
             overlay_image_path = default_overlay
 
-    has_overlay = overlay_image_path is not None and os.path.exists(overlay_image_path)
-    total_pages_str = "Page 1 of 2" if has_overlay else "Page 1 of 1"
+    if not source_pdf_path and os.path.exists(job_dir):
+        for fname in sorted(os.listdir(job_dir)):
+            if (fname.endswith((".pdf", ".png", ".jpg", ".jpeg")) and
+                fname != "simplified_diagram.pdf" and
+                not fname.startswith("untangle_audit_report") and
+                not fname.startswith("debug_overlay")):
+                source_pdf_path = os.path.join(job_dir, fname)
+                break
+
+    if not graph_data and os.path.exists(job_dir):
+        gpath = os.path.join(job_dir, "graph.json")
+        if os.path.exists(gpath):
+            try:
+                with open(gpath, "r", encoding="utf-8") as f:
+                    graph_data = json.load(f)
+            except Exception:
+                pass
+
+    # If diagnostics not present or lacks priority classification, dynamically compute from graph
+    if (not diagnostics or not any("priority" in d for d in diagnostics)) and graph_data:
+        try:
+            from services.api.app.engine.validator import ConnectionValidator
+            resolved_tags = []
+            res_path = os.path.join(job_dir, "resolved_items.json")
+            if os.path.exists(res_path):
+                with open(res_path, "r", encoding="utf-8") as f:
+                    rdata = json.load(f)
+                    resolved_tags = rdata.get("items", []) if isinstance(rdata, dict) else rdata
+            graph_schema_temp = GraphSchema(**graph_data)
+            conn_val = ConnectionValidator.validate_connections(graph_schema_temp, resolved_tags)
+            diagnostics = conn_val.get("diagnostics", [])
+        except Exception:
+            pass
+
+    p1_count = conn_val.get("p1_critical_count", sum(1 for d in diagnostics if d.get("priority") == "P1"))
+    p2_count = conn_val.get("p2_high_count", sum(1 for d in diagnostics if d.get("priority") == "P2"))
+    p3_count = conn_val.get("p3_medium_count", sum(1 for d in diagnostics if d.get("priority") == "P3"))
+    p4_count = conn_val.get("p4_low_count", sum(1 for d in diagnostics if d.get("priority") == "P4"))
+
+    # Perception image dimensions
+    img_w, img_h = 9934.0, 7016.0
+    if os.path.exists(job_dir):
+        perc_path = os.path.join(job_dir, "perception.json")
+        if os.path.exists(perc_path):
+            try:
+                with open(perc_path, "r", encoding="utf-8") as f:
+                    pdata = json.load(f)
+                    if "pages" in pdata and len(pdata["pages"]) > 0:
+                        img_w = float(pdata["pages"][0].get("width", 9934.0))
+                        img_h = float(pdata["pages"][0].get("height", 7016.0))
+            except Exception:
+                pass
 
     doc = fitz.open()
 
     # =========================================================================
-    # PAGE 1: AUDIT SUMMARY, KPIS & DISCREPANCY MATRICES
+    # PAGE 1: AUDIT SUMMARY, PRIORITY KPIS & FAST-TRACK ACTION PLAN
     # =========================================================================
-    page = doc.new_page(width=612, height=792)  # 8.5 x 11 inch
+    page1 = doc.new_page(width=612, height=792)  # Standard Letter size
 
     # Background subtle official watermark
-    page.insert_text(fitz.Point(120, 480), "UNTANGLED CERTIFIED AUDIT", fontsize=28, color=(0.93, 0.94, 0.97), fontname="helv")
+    page1.insert_text(fitz.Point(120, 480), "UNTANGLED CERTIFIED AUDIT", fontsize=28, color=(0.94, 0.95, 0.97), fontname="helv")
 
     # Header Banner (Dark industrial navy)
-    page.draw_rect(fitz.Rect(0, 0, 612, 65), color=None, fill=(0.06, 0.09, 0.16))
-    page.insert_text(fitz.Point(36, 34), "UNTANGLED", fontsize=16, color=(0.0, 0.88, 1.0), fontname="helv")
-    page.insert_text(fitz.Point(145, 34), "|  Engineering Audit & Cross-Validation Report", fontsize=12, color=(0.85, 0.9, 0.95), fontname="helv")
-    page.insert_text(fitz.Point(36, 52), labels["audit_stamp"], fontsize=8, color=(0.4, 0.7, 0.6), fontname="helv")
+    page1.draw_rect(fitz.Rect(0, 0, 612, 65), color=None, fill=(0.06, 0.09, 0.16))
+    page1.insert_text(fitz.Point(36, 34), "UNTANGLED", fontsize=16, color=(0.0, 0.88, 1.0), fontname="helv")
+    page1.insert_text(fitz.Point(145, 34), "|  Engineering Audit & Cross-Validation Report", fontsize=12, color=(0.85, 0.9, 0.95), fontname="helv")
+    page1.insert_text(fitz.Point(36, 52), labels["audit_stamp"], fontsize=8, color=(0.4, 0.7, 0.6), fontname="helv")
 
     # Metadata Row
-    y_cursor = 88
-    page.insert_text(fitz.Point(36, y_cursor), f"JOB ID: {job_id}", fontsize=8, color=(0.3, 0.35, 0.45), fontname="helv")
+    y_cursor = 86
+    page1.insert_text(fitz.Point(36, y_cursor), f"JOB ID: {job_id}", fontsize=8, color=(0.3, 0.35, 0.45), fontname="helv")
     date_str = time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime())
-    page.insert_text(fitz.Point(260, y_cursor), f"GENERATED: {date_str}", fontsize=8, color=(0.3, 0.35, 0.45), fontname="helv")
-    page.insert_text(fitz.Point(480, y_cursor), f"LANG: {selected_lang.upper()}", fontsize=8, color=(0.0, 0.6, 0.8), fontname="helv")
+    page1.insert_text(fitz.Point(260, y_cursor), f"GENERATED: {date_str}", fontsize=8, color=(0.3, 0.35, 0.45), fontname="helv")
+    page1.insert_text(fitz.Point(480, y_cursor), f"LANG: {selected_lang.upper()}", fontsize=8, color=(0.0, 0.6, 0.8), fontname="helv")
 
-    # KPI Summary Cards (4 Cards)
-    y_cursor = 105
+    # Priority Summary KPI Cards (4 Cards)
+    y_cursor = 100
     kpis = [
-        ("TOTAL TAGS", str(summary.get("tags_total", 0)), (0.9, 0.9, 0.95)),
-        ("RESOLVED & VERIFIED", str(summary.get("resolved", 0)), (0.1, 0.8, 0.5)),
-        ("REVIEW REQUIRED", str(summary.get("needs_review", 0)), (0.95, 0.65, 0.15)),
-        ("AUTO-ACCEPTED", f"{summary.get('auto_pct', 0)}%", (0.0, 0.8, 0.95))
+        ("P1 CRITICAL HAZARDS", str(p1_count), (0.93, 0.27, 0.27)),
+        ("P2 OPERATIONAL RISKS", str(p2_count), (0.96, 0.62, 0.10)),
+        ("P3 LOW ACCURACY (<70%)", str(p3_count), (0.66, 0.36, 0.96)),
+        ("P4 SAFE & VERIFIED", str(p4_count if p4_count > 0 else summary.get("resolved", 0)), (0.06, 0.72, 0.50))
     ]
 
     card_w = 127
     for i, (title, val, val_col) in enumerate(kpis):
         x = 36 + i * (card_w + 10)
-        page.draw_rect(fitz.Rect(x, y_cursor, x + card_w, y_cursor + 52), color=(0.2, 0.25, 0.35), fill=(0.08, 0.12, 0.2))
-        page.insert_text(fitz.Point(x + 10, y_cursor + 18), title, fontsize=7, color=(0.55, 0.6, 0.7), fontname="helv")
-        page.insert_text(fitz.Point(x + 10, y_cursor + 42), val, fontsize=17, color=val_col, fontname="helv")
+        page1.draw_rect(fitz.Rect(x, y_cursor, x + card_w, y_cursor + 50), color=(0.2, 0.25, 0.35), fill=(0.08, 0.12, 0.2))
+        page1.insert_text(fitz.Point(x + 10, y_cursor + 17), title, fontsize=7, color=(0.55, 0.6, 0.7), fontname="helv")
+        page1.insert_text(fitz.Point(x + 10, y_cursor + 40), val, fontsize=16, color=val_col, fontname="helv")
 
     # Three-Tier Decision Distribution Bar
-    y_cursor = 175
-    page.insert_text(fitz.Point(36, y_cursor), "THREE-TIER RESOLUTION DISTRIBUTION", fontsize=9, color=(0.2, 0.25, 0.35), fontname="helv")
+    y_cursor = 166
+    page1.insert_text(fitz.Point(36, y_cursor), "THREE-TIER RESOLUTION DISTRIBUTION", fontsize=8.5, color=(0.2, 0.25, 0.35), fontname="helv")
     
-    bar_y = y_cursor + 8
+    bar_y = y_cursor + 7
     bar_w = 540
-    page.draw_rect(fitz.Rect(36, bar_y, 36 + bar_w, bar_y + 12), color=(0.15, 0.2, 0.28), fill=(0.08, 0.12, 0.18))
+    page1.draw_rect(fitz.Rect(36, bar_y, 36 + bar_w, bar_y + 11), color=(0.15, 0.2, 0.28), fill=(0.08, 0.12, 0.18))
     
     auto_pct = float(summary.get("auto_pct", 0)) / 100.0
     llm_pct = float(summary.get("llm_pct", 0)) / 100.0
@@ -182,97 +339,221 @@ def generate_pdf_report(
     w_human = bar_w * human_pct
 
     if w_auto > 0:
-        page.draw_rect(fitz.Rect(36, bar_y, 36 + w_auto, bar_y + 12), color=None, fill=(0.1, 0.8, 0.5))
+        page1.draw_rect(fitz.Rect(36, bar_y, 36 + w_auto, bar_y + 11), color=None, fill=(0.1, 0.8, 0.5))
     if w_llm > 0:
-        page.draw_rect(fitz.Rect(36 + w_auto, bar_y, 36 + w_auto + w_llm, bar_y + 12), color=None, fill=(0.0, 0.8, 0.95))
+        page1.draw_rect(fitz.Rect(36 + w_auto, bar_y, 36 + w_auto + w_llm, bar_y + 11), color=None, fill=(0.0, 0.8, 0.95))
     if w_human > 0:
-        page.draw_rect(fitz.Rect(36 + w_auto + w_llm, bar_y, 36 + bar_w, bar_y + 12), color=None, fill=(0.95, 0.65, 0.15))
+        page1.draw_rect(fitz.Rect(36 + w_auto + w_llm, bar_y, 36 + bar_w, bar_y + 11), color=None, fill=(0.95, 0.65, 0.15))
 
-    legend_y = bar_y + 22
-    page.insert_text(fitz.Point(36, legend_y), f"Auto-Accepted: {summary.get('auto_pct', 0)}%", fontsize=8, color=(0.1, 0.7, 0.4), fontname="helv")
-    page.insert_text(fitz.Point(210, legend_y), f"LLM Resolved: {summary.get('llm_pct', 0)}%", fontsize=8, color=(0.0, 0.7, 0.85), fontname="helv")
-    page.insert_text(fitz.Point(390, legend_y), f"Human Review Queue: {summary.get('human_pct', 0)}%", fontsize=8, color=(0.85, 0.55, 0.1), fontname="helv")
+    legend_y = bar_y + 19
+    page1.insert_text(fitz.Point(36, legend_y), f"Auto-Accepted: {summary.get('auto_pct', 0)}%", fontsize=7.5, color=(0.1, 0.7, 0.4), fontname="helv")
+    page1.insert_text(fitz.Point(210, legend_y), f"LLM Resolved: {summary.get('llm_pct', 0)}%", fontsize=7.5, color=(0.0, 0.7, 0.85), fontname="helv")
+    page1.insert_text(fitz.Point(390, legend_y), f"Human Review Queue: {summary.get('human_pct', 0)}%", fontsize=7.5, color=(0.85, 0.55, 0.1), fontname="helv")
 
-    # Section 1: Missing in Drawing
-    y_cursor = 230
-    page.draw_rect(fitz.Rect(36, y_cursor - 12, 576, y_cursor + 6), color=None, fill=(0.92, 0.94, 0.98))
-    page.insert_text(fitz.Point(42, y_cursor), "DISCREPANCY 1: DEFINED IN DCS IO LIST, MISSING IN P&ID DRAWING", fontsize=8.5, color=(0.8, 0.1, 0.1), fontname="helv")
+    # Section: Fast-Track Action Plan for Engineers (Time Optimization)
+    y_cursor = 214
+    page1.draw_rect(fitz.Rect(36, y_cursor - 11, 576, y_cursor + 7), color=None, fill=(0.92, 0.94, 0.98))
+    page1.insert_text(fitz.Point(42, y_cursor), "FAST-TRACK ACTION PLAN FOR ENGINEERS (PRIORITY RESOLUTION)", fontsize=8.5, color=(0.8, 0.1, 0.1), fontname="helv")
+
+    # Filter priority issues (P1, P2, P3)
+    priority_issues = [d for d in diagnostics if d.get("priority") in ("P1", "P2", "P3")]
+    y_cursor += 16
+    if priority_issues:
+        # Table Header
+        page1.draw_rect(fitz.Rect(36, y_cursor - 9, 576, y_cursor + 7), color=None, fill=(0.12, 0.16, 0.24))
+        page1.insert_text(fitz.Point(42, y_cursor), "PRIORITY", fontsize=7, color=(0.9, 0.95, 1.0), fontname="helv")
+        page1.insert_text(fitz.Point(100, y_cursor), "ELEMENT / RULE", fontsize=7, color=(0.9, 0.95, 1.0), fontname="helv")
+        page1.insert_text(fitz.Point(240, y_cursor), "DIRECT TIME-SAVING ACTION (ENGINEER RESOLUTION)", fontsize=7, color=(0.9, 0.95, 1.0), fontname="helv")
+        y_cursor += 18
+
+        for d in priority_issues[:5]:
+            pri = d.get("priority", "P3")
+            pri_color = (0.9, 0.15, 0.15) if pri == "P1" else ((0.9, 0.55, 0.0) if pri == "P2" else (0.55, 0.25, 0.85))
+            el_str = f"{d.get('element_id', '')} ({d.get('rule', '')[:14]})"
+            act_str = d.get("time_savings_action", d.get("recommendation", ""))[:85]
+
+            page1.draw_rect(fitz.Rect(36, y_cursor - 9, 576, y_cursor + 11), color=(0.86, 0.89, 0.94), fill=(0.98, 0.99, 1.0))
+            page1.insert_text(fitz.Point(42, y_cursor + 1), f"[{pri}]", fontsize=7.5, color=pri_color, fontname="helv")
+            page1.insert_text(fitz.Point(100, y_cursor + 1), el_str[:25], fontsize=7.5, color=(0.2, 0.25, 0.35), fontname="helv")
+            page1.insert_text(fitz.Point(240, y_cursor + 1), act_str, fontsize=7.2, color=(0.1, 0.15, 0.25), fontname="helv")
+            y_cursor += 22
+    else:
+        page1.insert_text(fitz.Point(45, y_cursor + 2), "No critical topological connection errors. All components structurally connected.", fontsize=8, color=(0.2, 0.6, 0.3), fontname="helv")
+        y_cursor += 20
+
+    # Section 1: Defined in DCS IO list, Missing in Drawing
+    y_cursor += 8
+    page1.draw_rect(fitz.Rect(36, y_cursor - 10, 576, y_cursor + 6), color=None, fill=(0.92, 0.94, 0.98))
+    page1.insert_text(fitz.Point(42, y_cursor), "DISCREPANCY 1: DEFINED IN DCS IO LIST, MISSING IN P&ID DRAWING", fontsize=8, color=(0.8, 0.1, 0.1), fontname="helv")
     
-    y_cursor += 18
+    y_cursor += 16
     if missing_drawing:
-        for item in missing_drawing[:6]:
+        for item in missing_drawing[:3]:
             io_tag = item.get("io_tag", "UNKNOWN")
             desc = item.get("description", "Not found on drawing.")
-            page.draw_rect(fitz.Rect(36, y_cursor - 10, 576, y_cursor + 12), color=(0.85, 0.88, 0.92), fill=(0.98, 0.98, 1.0))
-            page.insert_text(fitz.Point(45, y_cursor + 2), io_tag, fontsize=8.5, color=(0.8, 0.15, 0.15), fontname="helv")
-            page.insert_text(fitz.Point(150, y_cursor + 2), desc[:85], fontsize=8, color=(0.3, 0.35, 0.4), fontname="helv")
-            y_cursor += 24
+            page1.draw_rect(fitz.Rect(36, y_cursor - 8, 576, y_cursor + 10), color=(0.85, 0.88, 0.92), fill=(0.98, 0.98, 1.0))
+            page1.insert_text(fitz.Point(45, y_cursor + 1), io_tag, fontsize=8, color=(0.8, 0.15, 0.15), fontname="helv")
+            page1.insert_text(fitz.Point(150, y_cursor + 1), desc[:85], fontsize=7.5, color=(0.3, 0.35, 0.4), fontname="helv")
+            y_cursor += 20
     else:
-        page.insert_text(fitz.Point(45, y_cursor + 2), "No missing items detected. All DCS IO tags identified on drawing.", fontsize=8, color=(0.2, 0.6, 0.3), fontname="helv")
-        y_cursor += 22
+        page1.insert_text(fitz.Point(45, y_cursor + 1), "No missing items detected. All DCS IO tags identified on drawing.", fontsize=7.5, color=(0.2, 0.6, 0.3), fontname="helv")
+        y_cursor += 18
 
-    # Section 2: Found in Drawing, Missing in IO List
-    y_cursor += 10
-    page.draw_rect(fitz.Rect(36, y_cursor - 12, 576, y_cursor + 6), color=None, fill=(0.92, 0.94, 0.98))
-    page.insert_text(fitz.Point(42, y_cursor), "DISCREPANCY 2: FOUND IN DRAWING, MISSING IN DCS IO LIST (MECHANICAL / MANUAL)", fontsize=8.5, color=(0.7, 0.4, 0.05), fontname="helv")
-    
+    # Section 2: Type & Signal Discrepancies
+    y_cursor += 6
+    page1.draw_rect(fitz.Rect(36, y_cursor - 10, 576, y_cursor + 6), color=None, fill=(0.92, 0.94, 0.98))
+    page1.insert_text(fitz.Point(42, y_cursor), "INSTRUMENT TYPE & SIGNAL DISCREPANCY AUDIT", fontsize=8, color=(0.0, 0.4, 0.6), fontname="helv")
+
+    y_cursor += 16
+    page1.draw_rect(fitz.Rect(36, y_cursor - 8, 576, y_cursor + 8), color=None, fill=(0.15, 0.2, 0.28))
+    page1.insert_text(fitz.Point(45, y_cursor + 1), "TAG", fontsize=7, color=(0.9, 0.95, 1.0), fontname="helv")
+    page1.insert_text(fitz.Point(150, y_cursor + 1), "DRAWING REPRESENTATION", fontsize=7, color=(0.9, 0.95, 1.0), fontname="helv")
+    page1.insert_text(fitz.Point(340, y_cursor + 1), "DCS REGISTERED SIGNAL", fontsize=7, color=(0.9, 0.95, 1.0), fontname="helv")
+    page1.insert_text(fitz.Point(500, y_cursor + 1), "STATUS", fontsize=7, color=(0.9, 0.95, 1.0), fontname="helv")
     y_cursor += 18
-    if missing_io:
-        for item in missing_io[:5]:
-            tag = item.get("tag", "UNKNOWN")
-            page.draw_rect(fitz.Rect(36, y_cursor - 10, 576, y_cursor + 12), color=(0.85, 0.88, 0.92), fill=(0.98, 0.98, 1.0))
-            page.insert_text(fitz.Point(45, y_cursor + 2), tag, fontsize=8.5, color=(0.7, 0.45, 0.05), fontname="helv")
-            page.insert_text(fitz.Point(150, y_cursor + 2), "Physical manual equipment / hand valve with no electrical DCS IO point.", fontsize=8, color=(0.3, 0.35, 0.4), fontname="helv")
-            y_cursor += 24
-    else:
-        page.insert_text(fitz.Point(45, y_cursor + 2), "None. All drawing equipment have corresponding electrical IO points.", fontsize=8, color=(0.2, 0.6, 0.3), fontname="helv")
-        y_cursor += 22
 
-    # Section 3: Type Mismatches
-    y_cursor += 10
-    page.draw_rect(fitz.Rect(36, y_cursor - 12, 576, y_cursor + 6), color=None, fill=(0.92, 0.94, 0.98))
-    page.insert_text(fitz.Point(42, y_cursor), "INSTRUMENT TYPE & SIGNAL DISCREPANCY AUDIT", fontsize=8.5, color=(0.0, 0.4, 0.6), fontname="helv")
-
-    y_cursor += 18
-    # Table Header
-    page.draw_rect(fitz.Rect(36, y_cursor - 10, 576, y_cursor + 8), color=None, fill=(0.15, 0.2, 0.28))
-    page.insert_text(fitz.Point(45, y_cursor + 2), "TAG", fontsize=7.5, color=(0.9, 0.95, 1.0), fontname="helv")
-    page.insert_text(fitz.Point(150, y_cursor + 2), "DRAWING REPRESENTATION", fontsize=7.5, color=(0.9, 0.95, 1.0), fontname="helv")
-    page.insert_text(fitz.Point(340, y_cursor + 2), "DCS REGISTERED SIGNAL", fontsize=7.5, color=(0.9, 0.95, 1.0), fontname="helv")
-    page.insert_text(fitz.Point(500, y_cursor + 2), "STATUS", fontsize=7.5, color=(0.9, 0.95, 1.0), fontname="helv")
-    y_cursor += 22
-
-    for m in type_mismatches[:8]:
-        page.draw_rect(fitz.Rect(36, y_cursor - 10, 576, y_cursor + 12), color=(0.85, 0.88, 0.92), fill=(1.0, 1.0, 1.0))
-        page.insert_text(fitz.Point(45, y_cursor + 2), str(m.get("tag", "")), fontsize=8, color=(0.0, 0.4, 0.7), fontname="helv")
-        page.insert_text(fitz.Point(150, y_cursor + 2), str(m.get("drawing_type", "")), fontsize=8, color=(0.25, 0.3, 0.35), fontname="helv")
-        page.insert_text(fitz.Point(340, y_cursor + 2), str(m.get("io_signal", "")), fontsize=8, color=(0.1, 0.6, 0.35), fontname="helv")
-        page.insert_text(fitz.Point(500, y_cursor + 2), "VERIFIED", fontsize=7.5, color=(0.1, 0.65, 0.35), fontname="helv")
-        y_cursor += 24
+    for m in type_mismatches[:4]:
+        page1.draw_rect(fitz.Rect(36, y_cursor - 8, 576, y_cursor + 10), color=(0.85, 0.88, 0.92), fill=(1.0, 1.0, 1.0))
+        page1.insert_text(fitz.Point(45, y_cursor + 1), str(m.get("tag", "")), fontsize=7.5, color=(0.0, 0.4, 0.7), fontname="helv")
+        page1.insert_text(fitz.Point(150, y_cursor + 1), str(m.get("drawing_type", "")), fontsize=7.5, color=(0.25, 0.3, 0.35), fontname="helv")
+        page1.insert_text(fitz.Point(340, y_cursor + 1), str(m.get("io_signal", "")), fontsize=7.5, color=(0.1, 0.6, 0.35), fontname="helv")
+        page1.insert_text(fitz.Point(500, y_cursor + 1), "VERIFIED", fontsize=7, color=(0.1, 0.65, 0.35), fontname="helv")
+        y_cursor += 20
 
     # Footer Page 1
-    page.draw_line(fitz.Point(36, 750), fitz.Point(576, 750), color=(0.8, 0.85, 0.9), width=0.5)
-    page.insert_text(fitz.Point(36, 765), "UNTANGLE Automated Engineering Blueprint & DCS IO Untangling System", fontsize=7.5, color=(0.5, 0.55, 0.6), fontname="helv")
-    page.insert_text(fitz.Point(520, 765), total_pages_str, fontsize=7.5, color=(0.5, 0.55, 0.6), fontname="helv")
+    page1.draw_line(fitz.Point(36, 755), fitz.Point(576, 755), color=(0.8, 0.85, 0.9), width=0.5)
+    page1.insert_text(fitz.Point(36, 768), "UNTANGLE Automated Engineering Blueprint & DCS IO Untangling System", fontsize=7, color=(0.5, 0.55, 0.6), fontname="helv")
 
     # =========================================================================
-    # PAGE 2: VISUAL SPATIAL AUDIT & AI DETECTION OVERLAY
+    # PAGE 2: PURE VECTOR P&ID PROCESS FLOW SCHEMATIC WITH PRIORITY HIGHLIGHTS
     # =========================================================================
-    if has_overlay:
-        page2 = doc.new_page(width=612, height=792)
+    if graph_data:
+        try:
+            graph_schema = GraphSchema(**graph_data)
+            svg_markup = generate_svg_sketch(graph_schema, diagnostics=diagnostics)
+            svg_doc = fitz.open(stream=svg_markup.encode("utf-8"), filetype="svg")
+            vec_pdf_bytes = svg_doc.convert_to_pdf()
+            svg_doc.close()
+
+            vec_doc = fitz.open(stream=vec_pdf_bytes, filetype="pdf")
+            doc.insert_pdf(vec_doc)
+            vec_doc.close()
+        except Exception as e:
+            pass
+
+    # =========================================================================
+    # PAGE 3: OPTIMIZED RESOLUTION: ORIGINAL BLUEPRINT CROPS FOR PRIORITY ISSUES
+    # =========================================================================
+    items_to_crop = [d for d in priority_issues if d.get("bbox") is not None]
+    if source_pdf_path and items_to_crop:
+        page3 = doc.new_page(width=612, height=792)
 
         # Header Banner (Navy)
-        page2.draw_rect(fitz.Rect(0, 0, 612, 60), color=None, fill=(0.06, 0.09, 0.16))
-        page2.insert_text(fitz.Point(36, 30), "UNTANGLED", fontsize=15, color=(0.0, 0.88, 1.0), fontname="helv")
-        page2.insert_text(fitz.Point(140, 30), f"|  {labels.get('visual_audit_title', 'Visual Spatial Audit & AI Detection Overlay')}", fontsize=11, color=(0.85, 0.9, 0.95), fontname="helv")
-        page2.insert_text(fitz.Point(36, 48), "Confirmed 100% detection coverage across physical blueprint.", fontsize=8, color=(0.4, 0.7, 0.6), fontname="helv")
-        page2.insert_text(fitz.Point(460, 48), f"JOB: {job_id[:12]}", fontsize=8, color=(0.5, 0.6, 0.7), fontname="helv")
+        page3.draw_rect(fitz.Rect(0, 0, 612, 60), color=None, fill=(0.06, 0.09, 0.16))
+        page3.insert_text(fitz.Point(36, 28), "UNTANGLED", fontsize=15, color=(0.0, 0.88, 1.0), fontname="helv")
+        page3.insert_text(fitz.Point(140, 28), "|  Original Blueprint Zoomed Crops for Priority Issues", fontsize=11, color=(0.85, 0.9, 0.95), fontname="helv")
+        page3.insert_text(fitz.Point(36, 46), "Direct zoomed visual context from CAD drawing. Eliminates manual drawing search.", fontsize=8, color=(0.4, 0.7, 0.6), fontname="helv")
+        page3.insert_text(fitz.Point(480, 46), f"JOB: {job_id[:10]}", fontsize=8, color=(0.5, 0.6, 0.7), fontname="helv")
+
+        # Render up to 4 prominent priority issues
+        y_item = 72
+        item_h = 160
+        for it in items_to_crop[:4]:
+            pri = it.get("priority", "P3")
+            bbox = it.get("bbox")
+            tag_id = it.get("element_id", "UNKNOWN")
+            rule = it.get("rule", "CONNECTION_ERROR")
+            action = it.get("time_savings_action", it.get("recommendation", "Inspect drawing."))
+            conf = int(it.get("confidence", 0.0) * 100) if it.get("confidence") is not None else 0
+
+            if pri == "P1":
+                color_rgb = (239, 68, 68)
+                pri_label = "P1: CRITICAL SAFETY RISK"
+                pri_bg = (0.93, 0.27, 0.27)
+            elif pri == "P2":
+                color_rgb = (245, 158, 11)
+                pri_label = "P2: OPERATIONAL WARNING"
+                pri_bg = (0.96, 0.62, 0.10)
+            else:
+                color_rgb = (139, 92, 246)
+                pri_label = f"LOW ACCURACY ({conf}% CONFIDENCE)"
+                pri_bg = (0.55, 0.36, 0.96)
+
+            # Extract high-res original blueprint crop
+            crop_bytes = _extract_blueprint_crop(
+                source_pdf_path,
+                bbox=bbox,
+                img_w=img_w,
+                img_h=img_h,
+                color_rgb=color_rgb,
+                pad_pts=50.0,
+                page_idx=max(0, it.get("page", 1) - 1)
+            )
+
+            # Outer Card Frame
+            page3.draw_rect(fitz.Rect(36, y_item, 576, y_item + item_h), color=(0.82, 0.86, 0.92), fill=(0.98, 0.99, 1.0))
+
+            # Left side: Blueprint crop image
+            img_box = fitz.Rect(44, y_item + 10, 240, y_item + item_h - 10)
+            page3.draw_rect(img_box, color=(0.75, 0.8, 0.88), fill=(0.08, 0.12, 0.18))
+            if crop_bytes:
+                try:
+                    page3.insert_image(img_box, stream=crop_bytes, keep_proportion=True)
+                except Exception:
+                    page3.insert_text(fitz.Point(60, y_item + 70), "Original Blueprint Crop", fontsize=9, color=(0.6, 0.7, 0.8), fontname="helv")
+            else:
+                page3.insert_text(fitz.Point(60, y_item + 70), "Original Blueprint Crop", fontsize=9, color=(0.6, 0.7, 0.8), fontname="helv")
+
+            # Right side: Diagnostic & Actionable Recommendation
+            rx_start = 252
+            # Priority badge pill
+            page3.draw_rect(fitz.Rect(rx_start, y_item + 12, rx_start + 180, y_item + 28), color=None, fill=pri_bg)
+            page3.insert_text(fitz.Point(rx_start + 8, y_item + 23), pri_label, fontsize=7.5, color=(1.0, 1.0, 1.0), fontname="helv")
+
+            # Component Tag & Rule
+            page3.insert_text(fitz.Point(rx_start, y_item + 45), f"COMPONENT TAG: {tag_id}", fontsize=10, color=(0.06, 0.12, 0.24), fontname="helv")
+            page3.insert_text(fitz.Point(rx_start, y_item + 59), f"DIAGNOSTIC RULE: {rule}", fontsize=8, color=(0.4, 0.45, 0.55), fontname="helv")
+
+            # Direct Action Callout Box
+            act_box = fitz.Rect(rx_start, y_item + 68, 568, y_item + 126)
+            page3.draw_rect(act_box, color=(0.15, 0.22, 0.35), fill=(0.08, 0.12, 0.2))
+            page3.insert_text(fitz.Point(rx_start + 8, y_item + 82), "DIRECT TIME-SAVING ACTION (DO NOT RECHECK FULL P&ID):", fontsize=7, color=(0.0, 0.85, 1.0), fontname="helv")
+
+            # Word-wrap the action instruction
+            words = action.split()
+            line1 = " ".join(words[:11])
+            line2 = " ".join(words[11:23])
+            page3.insert_text(fitz.Point(rx_start + 8, y_item + 98), line1, fontsize=8, color=(0.95, 0.97, 1.0), fontname="helv")
+            if line2:
+                page3.insert_text(fitz.Point(rx_start + 8, y_item + 112), line2, fontsize=8, color=(0.95, 0.97, 1.0), fontname="helv")
+
+            # Location & Coordinates
+            bbox_str = f"X1:{int(bbox[0])}, Y1:{int(bbox[1])}, X2:{int(bbox[2])}, Y2:{int(bbox[3])}"
+            page3.insert_text(fitz.Point(rx_start, y_item + 142), f"CAD Drawing Coordinates: Page {it.get('page', 1)} | {bbox_str}", fontsize=7.5, color=(0.45, 0.5, 0.6), fontname="helv")
+
+            y_item += item_h + 12
+
+        # Footer Page 3
+        page3.draw_line(fitz.Point(36, 755), fitz.Point(576, 755), color=(0.8, 0.85, 0.9), width=0.5)
+        page3.insert_text(fitz.Point(36, 768), "UNTANGLE Fast-Track Engineering Verification - Original Blueprint Cropped Evidence", fontsize=7, color=(0.5, 0.55, 0.6), fontname="helv")
+
+    # =========================================================================
+    # PAGE 4: VISUAL SPATIAL AUDIT & AI DETECTION OVERLAY
+    # =========================================================================
+    if overlay_image_path and os.path.exists(overlay_image_path):
+        page4 = doc.new_page(width=612, height=792)
+
+        # Header Banner (Navy)
+        page4.draw_rect(fitz.Rect(0, 0, 612, 60), color=None, fill=(0.06, 0.09, 0.16))
+        page4.insert_text(fitz.Point(36, 30), "UNTANGLED", fontsize=15, color=(0.0, 0.88, 1.0), fontname="helv")
+        page4.insert_text(fitz.Point(140, 30), f"|  {labels.get('visual_audit_title', 'Visual Spatial Audit & AI Detection Overlay')}", fontsize=11, color=(0.85, 0.9, 0.95), fontname="helv")
+        page4.insert_text(fitz.Point(36, 48), "Confirmed 100% detection coverage across physical blueprint.", fontsize=8, color=(0.4, 0.7, 0.6), fontname="helv")
+        page4.insert_text(fitz.Point(460, 48), f"JOB: {job_id[:12]}", fontsize=8, color=(0.5, 0.6, 0.7), fontname="helv")
 
         # Color-Coded Detection Legend Bar
         leg_y = 68
-        page2.draw_rect(fitz.Rect(36, leg_y, 576, leg_y + 26), color=(0.85, 0.88, 0.92), fill=(0.95, 0.96, 0.99))
+        page4.draw_rect(fitz.Rect(36, leg_y, 576, leg_y + 26), color=(0.85, 0.88, 0.92), fill=(0.95, 0.96, 0.99))
         
-        # Legend items
         legend_items = [
             ("Cyan", (0.0, 0.75, 0.9), "Tag Text"),
             ("Yellow", (0.85, 0.75, 0.0), "Instruments"),
@@ -283,18 +564,25 @@ def generate_pdf_report(
         ]
         cur_lx = 42
         for name, col, lbl in legend_items:
-            page2.draw_circle(fitz.Point(cur_lx + 4, leg_y + 13), 3.5, color=col, fill=col)
-            page2.insert_text(fitz.Point(cur_lx + 12, leg_y + 16), lbl, fontsize=7.5, color=(0.2, 0.25, 0.35), fontname="helv")
+            page4.draw_circle(fitz.Point(cur_lx + 4, leg_y + 13), 3.5, color=col, fill=col)
+            page4.insert_text(fitz.Point(cur_lx + 12, leg_y + 16), lbl, fontsize=7.5, color=(0.2, 0.25, 0.35), fontname="helv")
             cur_lx += 86
 
         # Embed High-Resolution Detection Overlay Image
         img_rect = fitz.Rect(36, 102, 576, 740)
-        page2.draw_rect(img_rect, color=(0.8, 0.85, 0.9), fill=None, width=0.8)
-        page2.insert_image(img_rect, filename=overlay_image_path, keep_proportion=True)
+        page4.draw_rect(img_rect, color=(0.8, 0.85, 0.9), fill=None, width=0.8)
+        page4.insert_image(img_rect, filename=overlay_image_path, keep_proportion=True)
 
-        # Footer Page 2
-        page2.draw_line(fitz.Point(36, 755), fitz.Point(576, 755), color=(0.8, 0.85, 0.9), width=0.5)
-        page2.insert_text(fitz.Point(36, 770), "UNTANGLE Visual Traceability Audit - High-Resolution Spatial Model Predictions", fontsize=7.5, color=(0.5, 0.55, 0.6), fontname="helv")
-        page2.insert_text(fitz.Point(520, 770), "Page 2 of 2", fontsize=7.5, color=(0.5, 0.55, 0.6), fontname="helv")
+        # Footer Page 4
+        page4.draw_line(fitz.Point(36, 755), fitz.Point(576, 755), color=(0.8, 0.85, 0.9), width=0.5)
+        page4.insert_text(fitz.Point(36, 768), "UNTANGLE Visual Traceability Audit - High-Resolution Spatial Model Predictions", fontsize=7, color=(0.5, 0.55, 0.6), fontname="helv")
 
-    return doc.tobytes()
+    # Final Pass: Number all standard pages
+    total_pages = len(doc)
+    for idx, page in enumerate(doc):
+        # Insert page string at bottom right
+        page.insert_text(fitz.Point(520, 768), f"Page {idx + 1} of {total_pages}", fontsize=7.5, color=(0.5, 0.55, 0.6), fontname="helv")
+
+    pdf_bytes = doc.tobytes()
+    doc.close()
+    return pdf_bytes
