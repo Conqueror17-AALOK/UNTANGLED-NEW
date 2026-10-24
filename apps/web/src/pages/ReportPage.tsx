@@ -19,9 +19,6 @@ import {
   Sparkles,
   Layers,
 } from 'lucide-react';
-import { Card } from '../components/ui/Card';
-import { Button } from '../components/ui/Button';
-import { Badge } from '../components/ui/Badge';
 import { apiClient } from '../api/client';
 import { ReportData } from '../types';
 
@@ -104,36 +101,36 @@ export const ReportPage: React.FC = () => {
 
   return (
     <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6 animate-fade-in print:p-0 print:space-y-4">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/[0.08]">
+      {/* Editorial Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-white/[0.12]">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <h1 className="text-xl sm:text-2xl font-heading font-bold text-white tracking-tight">
+          <div className="flex items-center gap-3 mb-1">
+            <h1 className="text-3xl sm:text-4xl font-display font-black text-white tracking-tight">
               {labels.report_title || 'Audit Report'}
             </h1>
-            <span className="text-xs font-mono text-cyan-300 px-2.5 py-0.5 rounded-full bg-white/[0.05] border border-white/[0.1] backdrop-blur-md">
-              {jobId}
+            <span className="adobe-chip text-xs">
+              {jobId.slice(0, 8)}
             </span>
           </div>
-          <p className="text-xs text-slate-400 font-mono">
-            P&ID Drawing vs DCS IO Register Verification
+          <p className="text-sm text-neutral-400 font-bold">
+            P&ID Drawing vs DCS IO Register deterministic verification audit.
           </p>
         </div>
 
         {/* Action Controls & Multi-lingual Switcher */}
         <div className="flex flex-wrap items-center gap-2.5 print:hidden">
-          {/* Language Selector */}
-          <div className="flex items-center bg-white/[0.04] p-1 rounded-xl border border-white/[0.1] backdrop-blur-xl shadow-[inset_0_1px_0_0_rgba(255,255,255,0.08)] text-xs font-mono">
-            <Globe size={13} className="text-slate-400 ml-1.5 mr-1" />
+          {/* Language Selector - Docked Pill Strip */}
+          <div className="flex items-center bg-[#141414] p-1.5 rounded-full border border-white/[0.12] text-xs">
+            <Globe size={13} className="text-neutral-400 ml-2 mr-1.5" />
             {(['en', 'hi', 'mr'] as const).map((l) => (
               <button
                 key={l}
                 id={`lang-${l}-btn`}
                 onClick={() => setLang(l)}
-                className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all ${
+                className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${
                   lang === l
-                    ? 'bg-white/[0.15] text-white font-bold border border-white/20 shadow-[0_2px_8px_rgba(0,0,0,0.3),inset_0_1px_0_0_rgba(255,255,255,0.25)]'
-                    : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
+                    ? 'bg-white text-black font-black'
+                    : 'text-neutral-400 hover:text-white'
                 }`}
               >
                 {l === 'en' ? 'EN' : l === 'hi' ? 'HI' : 'MR'}
@@ -147,251 +144,242 @@ export const ReportPage: React.FC = () => {
             target="_blank"
             rel="noopener noreferrer"
           >
-            <Button
-              variant="secondary"
-              size="sm"
-              className="font-mono text-xs flex items-center gap-1.5 border-cyan-400/50 text-cyan-300 hover:bg-cyan-500/10 shadow-[0_0_12px_rgba(56,189,248,0.2)]"
-            >
-              <Sparkles size={13} className="text-cyan-400" />
+            <button className="bg-white text-black font-bold h-10 px-5 rounded-full flex items-center gap-2 hover:bg-neutral-200 transition-all text-sm">
+              <Download size={14} className="stroke-[2.5]" />
               <span>Smart Vector PDF</span>
-            </Button>
+            </button>
           </a>
 
-          <Button
-            variant="secondary"
-            size="sm"
+          <button
             onClick={handleDownloadPDF}
-            className="font-mono text-xs flex items-center gap-1.5 border-blue-500/30 text-blue-300 hover:bg-blue-500/10"
+            className="h-10 px-4 rounded-full border border-white/20 text-white font-bold hover:bg-white/10 flex items-center gap-2 transition-all text-sm"
           >
-            <FileCheck2 size={13} className="text-blue-400" />
+            <FileCheck2 size={14} className="text-neutral-300" />
             <span>Audit PDF (with Overlay)</span>
-          </Button>
+          </button>
 
-          <Button
-            variant="secondary"
-            size="sm"
+          <button
             onClick={handlePrint}
-            className="font-mono text-xs flex items-center gap-1.5"
+            className="h-10 px-4 rounded-full border border-white/20 text-white font-bold hover:bg-white/10 flex items-center gap-2 transition-all text-sm"
           >
-            <Printer size={13} />
+            <Printer size={14} />
             <span className="hidden sm:inline">Print</span>
-          </Button>
+          </button>
 
-          <Button
-            variant="secondary"
-            size="sm"
+          <button
             onClick={handleExportJSON}
-            className="font-mono text-xs flex items-center gap-1.5"
+            className="h-10 px-4 rounded-full border border-white/20 text-white font-bold hover:bg-white/10 flex items-center gap-2 transition-all text-sm"
           >
-            <Download size={13} />
+            <Download size={14} />
             <span>JSON</span>
-          </Button>
+          </button>
         </div>
       </div>
 
-      {/* KPI Cards - Glowing Frosted Glass */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 font-mono">
-        <Card variant="glass" accent="cyan" className="p-4 space-y-1">
-          <span className="text-[10px] text-cyan-300 uppercase tracking-wider block font-semibold">
+      {/* KPI Cards - Editorial Containers */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div className="adobe-card p-5 space-y-2">
+          <span className="text-xs text-neutral-400 uppercase tracking-wider block font-black">
             {labels.total_tags_title || 'Total Tags'}
           </span>
-          <p className="text-2xl font-heading font-extrabold text-white tabular-nums">{summary.tags_total}</p>
-        </Card>
+          <p className="text-3xl sm:text-4xl font-display font-black text-white tabular-nums tracking-tight">{summary.tags_total}</p>
+          <span className="text-xs text-neutral-500 font-bold block">Extracted elements</span>
+        </div>
 
-        <Card variant="glass" accent="emerald" className="p-4 space-y-1">
-          <span className="text-[10px] text-emerald-300 uppercase tracking-wider block font-semibold">
+        <div className="adobe-card p-5 space-y-2">
+          <span className="text-xs text-emerald-400 uppercase tracking-wider block font-black">
             {labels.resolved_title || 'Verified'}
           </span>
-          <p className="text-2xl font-heading font-extrabold text-emerald-300 tabular-nums">{summary.resolved}</p>
-          <span className="text-[10px] text-slate-400 block">
+          <p className="text-3xl sm:text-4xl font-display font-black text-emerald-400 tabular-nums tracking-tight">{summary.resolved}</p>
+          <span className="text-xs text-neutral-400 font-bold block">
             {summary.tags_total > 0 ? Math.round((summary.resolved / summary.tags_total) * 100) : 0}% matched
           </span>
-        </Card>
+        </div>
 
-        <Card variant="glass" accent="amber" className="p-4 space-y-1">
-          <span className="text-[10px] text-amber-300 uppercase tracking-wider block font-semibold">
+        <div className="adobe-card p-5 space-y-2">
+          <span className="text-xs text-amber-400 uppercase tracking-wider block font-black">
             {labels.review_req_title || 'Needs Review'}
           </span>
-          <p className="text-2xl font-heading font-extrabold text-amber-300 tabular-nums">{summary.needs_review}</p>
-          <span className="text-[10px] text-slate-400 block">
+          <p className="text-3xl sm:text-4xl font-display font-black text-amber-400 tabular-nums tracking-tight">{summary.needs_review}</p>
+          <span className="text-xs text-neutral-400 font-bold block">
             {summary.needs_review === 0 ? 'All cleared' : 'Action items'}
           </span>
-        </Card>
+        </div>
 
-        <Card variant="glass" accent="purple" className="p-4 space-y-1">
-          <span className="text-[10px] text-purple-300 uppercase tracking-wider block font-semibold">
+        <div className="adobe-card p-5 space-y-2">
+          <span className="text-xs text-neutral-400 uppercase tracking-wider block font-black">
             Decision Split
           </span>
-          <p className="text-2xl font-heading font-extrabold text-purple-200 tabular-nums">
+          <p className="text-3xl sm:text-4xl font-display font-black text-white tabular-nums tracking-tight">
             {summary.auto_pct}%
           </p>
-          <span className="text-[10px] text-slate-400 block">
+          <span className="text-xs text-neutral-400 font-bold block">
             {summary.llm_pct}% LLM • {summary.human_pct}% Manual
           </span>
-        </Card>
+        </div>
       </div>
 
       {/* Decision Distribution Bar */}
-      <Card variant="glass" className="p-5 space-y-3">
-        <div className="flex items-center justify-between text-xs font-mono">
-          <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-300">
+      <div className="adobe-card p-5 space-y-3.5">
+        <div className="flex items-center justify-between text-xs">
+          <span className="text-xs font-black uppercase tracking-wider text-neutral-300">
             Decision Distribution
           </span>
-          <div className="flex items-center gap-4 text-slate-300">
+          <div className="flex items-center gap-4 text-neutral-300 font-bold">
             <span className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-400" /> Auto ({summary.auto_pct}%)
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400" /> Auto ({summary.auto_pct}%)
             </span>
             <span className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-blue-400" /> LLM ({summary.llm_pct}%)
+              <span className="w-2.5 h-2.5 rounded-full bg-blue-400" /> LLM ({summary.llm_pct}%)
             </span>
             <span className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-amber-400" /> Review ({summary.human_pct}%)
+              <span className="w-2.5 h-2.5 rounded-full bg-amber-400" /> Review ({summary.human_pct}%)
             </span>
           </div>
         </div>
 
-        <div className="w-full h-2.5 rounded-full bg-white/[0.04] p-0.5 flex overflow-hidden border border-white/[0.08] backdrop-blur-md">
+        <div className="w-full h-3 rounded-full bg-[#0a0a0a] p-0.5 flex overflow-hidden border border-white/[0.08]">
           <div style={{ width: `${summary.auto_pct}%` }} className="bg-emerald-400 rounded-l-full" />
           <div style={{ width: `${summary.llm_pct}%` }} className="bg-blue-400" />
           <div style={{ width: `${summary.human_pct}%` }} className="bg-amber-400 rounded-r-full" />
         </div>
-      </Card>
+      </div>
 
       {/* Multi-Signal Confidence & Reliability Report */}
-      <Card variant="glass" className="p-4 sm:p-5 space-y-4 border border-industrial-800">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-industrial-800">
-          <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-400">
-              <ShieldCheck size={18} />
+      <div className="adobe-card p-6 space-y-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/[0.1]">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-full bg-white/[0.08] text-white">
+              <ShieldCheck size={20} className="stroke-[2.5]" />
             </div>
             <div>
-              <h2 className="text-sm font-heading font-bold text-white tracking-tight">
+              <h2 className="text-base font-display font-black text-white tracking-tight">
                 Multi-Signal Confidence & Model Accuracy Report
               </h2>
-              <p className="text-[11px] font-mono text-slate-400">
-                Calibrated multi-signal validation fusing OCR, Fine-Tuned YOLO11 symbols, DCS I/O lists, ISA-5.1 grammar, and piping topology
+              <p className="text-xs text-neutral-400 font-bold">
+                Calibrated multi-signal validation fusing OCR, Fine-Tuned YOLO11 symbols, DCS I/O lists, and ISA-5.1 grammar.
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <div className="text-right font-mono">
-              <span className="text-[10px] text-slate-400 uppercase tracking-wider block">Mean Confidence</span>
-              <span className="text-lg font-bold text-emerald-400 tabular-nums">
+          <div className="flex items-center gap-3">
+            <div className="text-right">
+              <span className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider block">Mean Confidence</span>
+              <span className="text-xl font-display font-black text-emerald-400 tabular-nums">
                 {summary.average_confidence ? `${summary.average_confidence}%` : '93.5%'}
               </span>
             </div>
-            <Badge variant="high" size="sm">
+            <span className="text-xs font-bold px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-400/30">
               High Reliability
-            </Badge>
+            </span>
           </div>
         </div>
 
         {/* Confidence Tier Distribution */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 font-mono">
-          <div className="p-3 rounded-lg bg-emerald-950/20 border border-emerald-800/30 flex items-center justify-between">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="p-4 rounded-xl bg-[#1a1a1a] border border-white/[0.08] flex items-center justify-between">
             <div>
-              <span className="text-[10px] uppercase tracking-wider text-emerald-400 block font-semibold">
+              <span className="text-xs uppercase tracking-wider text-emerald-400 block font-black">
                 High Certainty (&gt;= 85%)
               </span>
-              <span className="text-xl font-bold text-white tabular-nums">
+              <span className="text-2xl font-display font-black text-white tabular-nums">
                 {summary.high_confidence_count ?? summary.resolved}
               </span>
             </div>
-            <span className="text-[11px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+            <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">
               Auto-Approved
             </span>
           </div>
 
-          <div className="p-3 rounded-lg bg-amber-950/20 border border-amber-800/30 flex items-center justify-between">
+          <div className="p-4 rounded-xl bg-[#1a1a1a] border border-white/[0.08] flex items-center justify-between">
             <div>
-              <span className="text-[10px] uppercase tracking-wider text-amber-400 block font-semibold">
+              <span className="text-xs uppercase tracking-wider text-amber-400 block font-black">
                 Medium Certainty (70-84%)
               </span>
-              <span className="text-xl font-bold text-white tabular-nums">
+              <span className="text-2xl font-display font-black text-white tabular-nums">
                 {summary.medium_confidence_count ?? summary.needs_review}
               </span>
             </div>
-            <span className="text-[11px] text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
+            <span className="text-[10px] font-bold text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded-full border border-amber-500/20">
               Verification Needed
             </span>
           </div>
 
-          <div className="p-3 rounded-lg bg-red-950/20 border border-red-800/30 flex items-center justify-between">
+          <div className="p-4 rounded-xl bg-[#1a1a1a] border border-white/[0.08] flex items-center justify-between">
             <div>
-              <span className="text-[10px] uppercase tracking-wider text-red-400 block font-semibold">
+              <span className="text-xs uppercase tracking-wider text-[#eb1000] block font-black">
                 Low Certainty (&lt; 70%)
               </span>
-              <span className="text-xl font-bold text-white tabular-nums">
+              <span className="text-2xl font-display font-black text-white tabular-nums">
                 {summary.low_confidence_count ?? summary.rejected}
               </span>
             </div>
-            <span className="text-[11px] text-red-400 bg-red-500/10 px-2 py-0.5 rounded border border-red-500/20">
-              Flagged / Discarded
+            <span className="text-[10px] font-bold text-[#eb1000] bg-[#eb1000]/10 px-2.5 py-1 rounded-full border border-[#eb1000]/20">
+              Flagged
             </span>
           </div>
         </div>
 
         {/* Signal Component Breakdown Meters */}
-        <div className="space-y-2.5 pt-1">
-          <span className="text-[11px] font-mono font-semibold uppercase tracking-wider text-slate-400 block">
+        <div className="space-y-3 pt-1">
+          <span className="text-xs font-black uppercase tracking-wider text-neutral-400 block">
             Signal Reliability Breakdown
           </span>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs font-mono">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
             {/* OCR */}
-            <div className="p-2.5 rounded-lg bg-industrial-950/80 border border-industrial-800 space-y-1.5">
-              <div className="flex justify-between text-slate-300">
+            <div className="p-3.5 rounded-xl bg-[#1a1a1a] border border-white/[0.08] space-y-2">
+              <div className="flex justify-between text-neutral-300 font-bold">
                 <span>OCR Text Clarity (Vector + Dual-OCR)</span>
-                <span className="text-blue-400 font-bold tabular-nums">
+                <span className="text-white font-mono font-bold tabular-nums">
                   {summary.confidence_breakdown_avg?.ocr ?? 95.0}%
                 </span>
               </div>
-              <div className="w-full h-1.5 rounded-full bg-industrial-900 overflow-hidden">
-                <div style={{ width: `${summary.confidence_breakdown_avg?.ocr ?? 95.0}%` }} className="h-full bg-blue-500 rounded-full" />
+              <div className="w-full h-2 rounded-full bg-black/60 overflow-hidden">
+                <div style={{ width: `${summary.confidence_breakdown_avg?.ocr ?? 95.0}%` }} className="h-full bg-white rounded-full" />
               </div>
             </div>
 
             {/* YOLO11 Symbol Detection */}
-            <div className="p-2.5 rounded-lg bg-industrial-950/80 border border-industrial-800 space-y-1.5">
-              <div className="flex justify-between text-slate-300">
+            <div className="p-3.5 rounded-xl bg-[#1a1a1a] border border-white/[0.08] space-y-2">
+              <div className="flex justify-between text-neutral-300 font-bold">
                 <span>Neural Symbol Detection (Fine-Tuned YOLO11)</span>
-                <span className="text-emerald-400 font-bold tabular-nums">
+                <span className="text-emerald-400 font-mono font-bold tabular-nums">
                   {summary.confidence_breakdown_avg?.symbol ?? 94.2}%
                 </span>
               </div>
-              <div className="w-full h-1.5 rounded-full bg-industrial-900 overflow-hidden">
-                <div style={{ width: `${summary.confidence_breakdown_avg?.symbol ?? 94.2}%` }} className="h-full bg-emerald-500 rounded-full" />
+              <div className="w-full h-2 rounded-full bg-black/60 overflow-hidden">
+                <div style={{ width: `${summary.confidence_breakdown_avg?.symbol ?? 94.2}%` }} className="h-full bg-emerald-400 rounded-full" />
               </div>
             </div>
 
             {/* DCS I/O Match */}
-            <div className="p-2.5 rounded-lg bg-industrial-950/80 border border-industrial-800 space-y-1.5">
-              <div className="flex justify-between text-slate-300">
+            <div className="p-3.5 rounded-xl bg-[#1a1a1a] border border-white/[0.08] space-y-2">
+              <div className="flex justify-between text-neutral-300 font-bold">
                 <span>DCS I/O Register Cross-Verification</span>
-                <span className="text-purple-400 font-bold tabular-nums">
+                <span className="text-cyan-400 font-mono font-bold tabular-nums">
                   {summary.confidence_breakdown_avg?.io_match ?? 92.5}%
                 </span>
               </div>
-              <div className="w-full h-1.5 rounded-full bg-industrial-900 overflow-hidden">
-                <div style={{ width: `${summary.confidence_breakdown_avg?.io_match ?? 92.5}%` }} className="h-full bg-purple-500 rounded-full" />
+              <div className="w-full h-2 rounded-full bg-black/60 overflow-hidden">
+                <div style={{ width: `${summary.confidence_breakdown_avg?.io_match ?? 92.5}%` }} className="h-full bg-cyan-400 rounded-full" />
               </div>
             </div>
 
             {/* ISA-5.1 Syntax & Grammar */}
-            <div className="p-2.5 rounded-lg bg-industrial-950/80 border border-industrial-800 space-y-1.5">
-              <div className="flex justify-between text-slate-300">
+            <div className="p-3.5 rounded-xl bg-[#1a1a1a] border border-white/[0.08] space-y-2">
+              <div className="flex justify-between text-neutral-300 font-bold">
                 <span>ISA-5.1 Deterministic Tag Grammar</span>
-                <span className="text-cyan-400 font-bold tabular-nums">
+                <span className="text-purple-400 font-mono font-bold tabular-nums">
                   {summary.confidence_breakdown_avg?.grammar ?? 96.0}%
                 </span>
               </div>
-              <div className="w-full h-1.5 rounded-full bg-industrial-900 overflow-hidden">
-                <div style={{ width: `${summary.confidence_breakdown_avg?.grammar ?? 96.0}%` }} className="h-full bg-cyan-500 rounded-full" />
+              <div className="w-full h-2 rounded-full bg-black/60 overflow-hidden">
+                <div style={{ width: `${summary.confidence_breakdown_avg?.grammar ?? 96.0}%` }} className="h-full bg-purple-400 rounded-full" />
               </div>
             </div>
           </div>
         </div>
-      </Card>
+      </div>
 
       {/* SECTION: AI Detection Preview & Spatial Verification */}
       <Card variant="glass" className="p-4 sm:p-5 space-y-4 border border-industrial-800">
@@ -585,117 +573,119 @@ export const ReportPage: React.FC = () => {
       {/* Discrepancy Breakdown Sections */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         {/* Table 1: In IO List, Missing in Drawing */}
-        <Card variant="glass" className="p-5 space-y-3.5">
-          <div className="flex items-center justify-between pb-2.5 border-b border-white/[0.08]">
-            <h3 className="text-xs font-heading font-bold text-slate-200 flex items-center gap-2">
-              <AlertTriangle size={15} className="text-red-400" />
+        <div className="adobe-card p-5 space-y-4">
+          <div className="flex items-center justify-between pb-3 border-b border-white/[0.1]">
+            <h3 className="text-xs font-black uppercase tracking-wider text-white flex items-center gap-2">
+              <AlertTriangle size={15} className="text-[#eb1000]" />
               <span>{labels.missing_drawing_title || 'In IO List, Missing in Drawing'}</span>
             </h3>
-            <Badge variant="low" size="xs">{report.missing_in_drawing.length}</Badge>
+            <span className="adobe-chip text-xs">{report.missing_in_drawing.length}</span>
           </div>
 
-          <div className="space-y-2 font-mono text-xs">
+          <div className="space-y-2.5 text-xs">
             {report.missing_in_drawing.length > 0 ? (
               report.missing_in_drawing.map((item) => (
-                <div key={item.io_tag} className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.08] backdrop-blur-md flex items-center justify-between shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]">
+                <div key={item.io_tag} className="p-3.5 rounded-xl bg-[#1a1a1a] border border-white/[0.08] flex items-center justify-between">
                   <div>
-                    <span className="font-bold text-red-300">{item.io_tag}</span>
-                    <p className="text-[11px] text-slate-400 mt-0.5">{item.description}</p>
+                    <span className="font-mono font-bold text-[#eb1000]">{item.io_tag}</span>
+                    <p className="text-xs text-neutral-400 font-bold mt-0.5">{item.description}</p>
                   </div>
-                  <span className="text-[10px] font-mono text-red-300 bg-red-500/15 px-2.5 py-0.5 rounded-full border border-red-400/30">
+                  <span className="text-[10px] font-bold text-[#eb1000] bg-[#eb1000]/15 px-2.5 py-1 rounded-full border border-[#eb1000]/30">
                     Missing in Drawing
                   </span>
                 </div>
               ))
             ) : (
-              <p className="py-4 text-center text-slate-500 text-xs">No missing tags</p>
+              <p className="py-4 text-center text-neutral-500 font-bold text-xs">No missing tags</p>
             )}
           </div>
-        </Card>
+        </div>
 
         {/* Table 2: In Drawing, Missing in IO List */}
-        <Card variant="glass" className="p-5 space-y-3.5">
-          <div className="flex items-center justify-between pb-2.5 border-b border-white/[0.08]">
-            <h3 className="text-xs font-heading font-bold text-slate-200 flex items-center gap-2">
+        <div className="adobe-card p-5 space-y-4">
+          <div className="flex items-center justify-between pb-3 border-b border-white/[0.1]">
+            <h3 className="text-xs font-black uppercase tracking-wider text-white flex items-center gap-2">
               <HelpCircle size={15} className="text-amber-400" />
               <span>{labels.missing_io_title || 'In Drawing, Missing in IO List'}</span>
             </h3>
-            <Badge variant="medium" size="xs">{report.missing_in_io_list.length}</Badge>
+            <span className="adobe-chip text-xs">{report.missing_in_io_list.length}</span>
           </div>
 
-          <div className="space-y-2 font-mono text-xs">
+          <div className="space-y-2.5 text-xs">
             {report.missing_in_io_list.length > 0 ? (
               report.missing_in_io_list.map((item) => (
-                <div key={item.tag} className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.08] backdrop-blur-md flex items-center justify-between shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]">
+                <div key={item.tag} className="p-3.5 rounded-xl bg-[#1a1a1a] border border-white/[0.08] flex items-center justify-between">
                   <div>
-                    <span className="font-bold text-amber-300">{item.tag}</span>
-                    <span className="text-[11px] text-slate-400 block">Mechanical / Manual</span>
+                    <span className="font-mono font-bold text-amber-300">{item.tag}</span>
+                    <span className="text-xs text-neutral-400 block font-bold">Mechanical / Manual</span>
                   </div>
-                  <span className="text-[10px] font-mono text-amber-300 bg-amber-500/15 px-2.5 py-0.5 rounded-full border border-amber-400/30">
+                  <span className="text-[10px] font-bold text-amber-300 bg-amber-500/15 px-2.5 py-1 rounded-full border border-amber-400/30">
                     No DCS Point
                   </span>
                 </div>
               ))
             ) : (
-              <p className="py-4 text-center text-slate-500 text-xs">No missing IO points</p>
+              <p className="py-4 text-center text-neutral-500 font-bold text-xs">No missing IO points</p>
             )}
           </div>
-        </Card>
+        </div>
       </div>
 
       {/* Signal Verification Matrix */}
-      <Card variant="glass" className="p-5 space-y-4">
-        <div className="flex items-center justify-between pb-2.5 border-b border-white/[0.08]">
-          <h3 className="text-xs font-heading font-bold text-slate-200 flex items-center gap-2">
-            <FileSpreadsheet size={15} className="text-cyan-400" />
+      <div className="adobe-card p-5 space-y-4">
+        <div className="flex items-center justify-between pb-3 border-b border-white/[0.1]">
+          <h3 className="text-xs font-black uppercase tracking-wider text-white flex items-center gap-2">
+            <FileSpreadsheet size={15} className="text-white" />
             <span>{labels.type_mismatch_title || 'Signal & Type Alignment'}</span>
           </h3>
-          <span className="text-xs font-mono text-slate-400">
+          <span className="adobe-chip text-xs">
             {report.type_mismatches.length} Signals Verified
           </span>
         </div>
 
-        <div className="overflow-x-auto rounded-xl border border-white/[0.08]">
-          <table className="w-full text-left text-xs font-mono">
-            <thead className="bg-white/[0.04] text-slate-400 text-[10px] uppercase tracking-wider border-b border-white/[0.08]">
+        <div className="overflow-x-auto rounded-xl border border-white/[0.1]">
+          <table className="w-full text-left text-xs">
+            <thead className="bg-[#1a1a1a] text-neutral-400 text-xs font-black uppercase tracking-wider border-b border-white/[0.1]">
               <tr>
-                <th className="py-3 px-4">Tag</th>
-                <th className="py-3 px-4">Drawing Type</th>
-                <th className="py-3 px-4">DCS Registered</th>
-                <th className="py-3 px-4 text-right">Status</th>
+                <th className="py-3 px-4 font-black">Tag</th>
+                <th className="py-3 px-4 font-black">Drawing Type</th>
+                <th className="py-3 px-4 font-black">DCS Registered</th>
+                <th className="py-3 px-4 text-right font-black">Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/[0.05] bg-transparent">
+            <tbody className="divide-y divide-white/[0.06] bg-transparent">
               {report.type_mismatches.map((m) => (
-                <tr key={m.tag} className="hover:bg-white/[0.04] transition-colors">
-                  <td className="py-2.5 px-4 font-bold text-cyan-300">{m.tag}</td>
-                  <td className="py-2.5 px-4 text-slate-200">{m.drawing_type}</td>
-                  <td className="py-2.5 px-4 text-emerald-300">{m.io_signal}</td>
-                  <td className="py-2.5 px-4 text-right">
-                    <Badge variant="high" size="xs">{labels.matched_status || 'MATCHED'}</Badge>
+                <tr key={m.tag} className="hover:bg-white/[0.03] transition-colors">
+                  <td className="py-3 px-4 font-mono font-bold text-white">{m.tag}</td>
+                  <td className="py-3 px-4 text-neutral-300 font-bold">{m.drawing_type}</td>
+                  <td className="py-3 px-4 text-emerald-300 font-mono font-bold">{m.io_signal}</td>
+                  <td className="py-3 px-4 text-right">
+                    <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-400/30">
+                      {labels.matched_status || 'MATCHED'}
+                    </span>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-      </Card>
+      </div>
 
       {/* SECTION: P&ID Connection Verification */}
-      <Card variant="glass" className="p-5 space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2.5 border-b border-white/[0.08]">
-          <div className="flex items-center gap-2">
-            <GitBranch size={16} className="text-blue-400" />
-            <h3 className="text-sm font-heading font-bold text-white">
+      <div className="adobe-card p-5 space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-white/[0.1]">
+          <div className="flex items-center gap-2.5">
+            <GitBranch size={16} className="text-white" />
+            <h3 className="text-sm font-display font-black text-white tracking-tight">
               P&ID Topological Connection Verification (Correct vs. Wrong)
             </h3>
           </div>
           {report.connection_validation && (
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-mono text-slate-400">
+            <div className="flex items-center gap-2.5">
+              <span className="text-xs text-neutral-400 font-bold">
                 Health Score: <strong className="text-emerald-400">{report.connection_validation.health_score_pct}%</strong>
               </span>
-              <span className={`text-[10px] font-mono px-2.5 py-0.5 rounded-full font-semibold ${
+              <span className={`text-[10px] font-bold px-3 py-1 rounded-full ${
                 report.connection_validation.status === 'PASSED'
                   ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-400/30'
                   : 'bg-amber-500/15 text-amber-300 border border-amber-400/30'
@@ -708,57 +698,57 @@ export const ReportPage: React.FC = () => {
 
         {report.connection_validation ? (
           <div className="space-y-3">
-            <div className="grid grid-cols-3 gap-3 text-center text-xs font-mono py-2.5 bg-white/[0.03] rounded-xl border border-white/[0.08] backdrop-blur-md">
+            <div className="grid grid-cols-3 gap-3 text-center text-xs py-3 bg-[#1a1a1a] rounded-xl border border-white/[0.08]">
               <div>
-                <span className="text-slate-400 block text-[10px] uppercase font-semibold">Validated</span>
-                <span className="text-emerald-300 font-bold text-lg">{report.connection_validation.correct_count}</span>
+                <span className="text-neutral-400 block text-[10px] uppercase font-black">Validated</span>
+                <span className="text-emerald-400 font-display font-black text-xl">{report.connection_validation.correct_count}</span>
               </div>
               <div>
-                <span className="text-slate-400 block text-[10px] uppercase font-semibold">Warnings</span>
-                <span className="text-amber-300 font-bold text-lg">{report.connection_validation.warning_count}</span>
+                <span className="text-neutral-400 block text-[10px] uppercase font-black">Warnings</span>
+                <span className="text-amber-400 font-display font-black text-xl">{report.connection_validation.warning_count}</span>
               </div>
               <div>
-                <span className="text-slate-400 block text-[10px] uppercase font-semibold">Errors</span>
-                <span className="text-red-300 font-bold text-lg">{report.connection_validation.error_count}</span>
+                <span className="text-neutral-400 block text-[10px] uppercase font-black">Errors</span>
+                <span className="text-[#eb1000] font-display font-black text-xl">{report.connection_validation.error_count}</span>
               </div>
             </div>
 
-            <div className="max-h-60 overflow-y-auto space-y-2 pr-1 font-mono text-xs">
+            <div className="max-h-60 overflow-y-auto space-y-2 pr-1 text-xs">
               {report.connection_validation.diagnostics.map((diag, i) => (
                 <div
                   key={i}
-                  className={`p-3 rounded-xl border flex items-start justify-between gap-3 backdrop-blur-md ${
+                  className={`p-3.5 rounded-xl border flex items-start justify-between gap-3 ${
                     diag.status === 'CORRECT'
-                      ? 'bg-white/[0.02] border-white/[0.08] text-slate-200'
+                      ? 'bg-[#1a1a1a] border-white/[0.08] text-neutral-200'
                       : diag.status === 'WARNING'
                       ? 'bg-amber-500/10 border-amber-400/30 text-amber-200'
-                      : 'bg-red-500/10 border-red-400/30 text-red-200'
+                      : 'bg-[#eb1000]/10 border-[#eb1000]/30 text-red-200'
                   }`}
                 >
                   <div className="flex items-start gap-2.5">
                     {diag.status === 'CORRECT' ? (
-                      <CheckCircle2 size={15} className="text-emerald-400 mt-0.5 shrink-0" />
+                      <CheckCircle2 size={16} className="text-emerald-400 mt-0.5 shrink-0" />
                     ) : diag.status === 'WARNING' ? (
-                      <AlertTriangle size={15} className="text-amber-400 mt-0.5 shrink-0" />
+                      <AlertTriangle size={16} className="text-amber-400 mt-0.5 shrink-0" />
                     ) : (
-                      <XCircle size={15} className="text-red-400 mt-0.5 shrink-0" />
+                      <XCircle size={16} className="text-[#eb1000] mt-0.5 shrink-0" />
                     )}
                     <div>
-                      <p className="font-semibold text-xs">{diag.message}</p>
+                      <p className="font-bold text-xs">{diag.message}</p>
                       {diag.status !== 'CORRECT' && (
-                        <p className="text-[11px] text-slate-400 mt-0.5 font-sans">
+                        <p className="text-xs text-neutral-400 mt-0.5 font-bold">
                           Action: {diag.recommendation}
                         </p>
                       )}
                     </div>
                   </div>
                   <span
-                    className={`text-[9px] font-bold px-2 py-0.5 rounded-full shrink-0 uppercase ${
+                    className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full shrink-0 uppercase ${
                       diag.status === 'CORRECT'
                         ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-400/30'
                         : diag.status === 'WARNING'
                         ? 'bg-amber-500/15 text-amber-300 border border-amber-400/30'
-                        : 'bg-red-500/15 text-red-300 border border-red-400/30'
+                        : 'bg-[#eb1000]/15 text-[#eb1000] border border-[#eb1000]/30'
                     }`}
                   >
                     {diag.status}
@@ -768,62 +758,62 @@ export const ReportPage: React.FC = () => {
             </div>
           </div>
         ) : (
-          <p className="text-xs text-slate-500 text-center py-2 font-mono">
+          <p className="text-xs text-neutral-500 text-center py-2 font-bold">
             Topology connection analysis completed. All pipelines verified.
           </p>
         )}
-      </Card>
+      </div>
 
       {/* SECTION: DCS I/O List Full Verification Audit */}
       {report.io_verification && (
-        <Card variant="glass" className="p-5 space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2.5 border-b border-white/[0.08]">
-            <div className="flex items-center gap-2">
+        <div className="adobe-card p-5 space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-white/[0.1]">
+            <div className="flex items-center gap-2.5">
               <ShieldCheck size={16} className="text-emerald-400" />
-              <h3 className="text-sm font-heading font-bold text-white">
+              <h3 className="text-sm font-display font-black text-white tracking-tight">
                 DCS I/O Register Full Verification Audit (Correct vs. Wrong)
               </h3>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-mono text-slate-400">
+            <div className="flex items-center gap-2.5">
+              <span className="text-xs text-neutral-400 font-bold">
                 Accuracy: <strong className="text-emerald-400">{report.io_verification.accuracy_score_pct}%</strong>
               </span>
-              <span className={`text-[10px] font-mono px-2.5 py-0.5 rounded-full font-semibold ${
+              <span className={`text-[10px] font-bold px-3 py-1 rounded-full ${
                 report.io_verification.status === 'PASSED'
                   ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-400/30'
-                  : 'bg-red-500/15 text-red-300 border border-red-400/30'
+                  : 'bg-[#eb1000]/15 text-[#eb1000] border border-[#eb1000]/30'
               }`}>
                 {report.io_verification.status}
               </span>
             </div>
           </div>
 
-          <div className="overflow-x-auto rounded-xl border border-white/[0.08]">
-            <table className="w-full text-left text-xs font-mono">
-              <thead className="bg-white/[0.04] text-slate-400 text-[10px] uppercase tracking-wider border-b border-white/[0.08]">
+          <div className="overflow-x-auto rounded-xl border border-white/[0.1]">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-[#1a1a1a] text-neutral-400 text-xs font-black uppercase tracking-wider border-b border-white/[0.1]">
                 <tr>
-                  <th className="py-3 px-4">Tag</th>
-                  <th className="py-3 px-4">Type</th>
-                  <th className="py-3 px-4">DCS Signal</th>
-                  <th className="py-3 px-4">Span / Units</th>
-                  <th className="py-3 px-4">Audit Details</th>
-                  <th className="py-3 px-4 text-right">Verdict</th>
+                  <th className="py-3 px-4 font-black">Tag</th>
+                  <th className="py-3 px-4 font-black">Type</th>
+                  <th className="py-3 px-4 font-black">DCS Signal</th>
+                  <th className="py-3 px-4 font-black">Span / Units</th>
+                  <th className="py-3 px-4 font-black">Audit Details</th>
+                  <th className="py-3 px-4 text-right font-black">Verdict</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/[0.05] bg-transparent">
+              <tbody className="divide-y divide-white/[0.06] bg-transparent">
                 {report.io_verification.items_audit.map((item) => (
-                  <tr key={item.tag} className="hover:bg-white/[0.04] transition-colors">
-                    <td className="py-2.5 px-4 font-bold text-cyan-300">{item.tag}</td>
-                    <td className="py-2.5 px-4 text-slate-300">{item.drawing_type || '—'}</td>
-                    <td className="py-2.5 px-4 text-slate-400">{item.io_signal_type || '—'}</td>
-                    <td className="py-2.5 px-4 text-slate-400">{item.range_span || item.units || '—'}</td>
-                    <td className="py-2.5 px-4 text-[11px] text-slate-300 max-w-xs">{item.message}</td>
-                    <td className="py-2.5 px-4 text-right">
+                  <tr key={item.tag} className="hover:bg-white/[0.03] transition-colors">
+                    <td className="py-3 px-4 font-mono font-bold text-white">{item.tag}</td>
+                    <td className="py-3 px-4 text-neutral-300 font-bold">{item.drawing_type || '—'}</td>
+                    <td className="py-3 px-4 text-neutral-400 font-mono">{item.io_signal_type || '—'}</td>
+                    <td className="py-3 px-4 text-neutral-400 font-mono">{item.range_span || item.units || '—'}</td>
+                    <td className="py-3 px-4 text-xs text-neutral-300 max-w-xs font-bold">{item.message}</td>
+                    <td className="py-3 px-4 text-right">
                       <span
-                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                        className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${
                           item.status === 'CORRECT'
                             ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-400/30'
-                            : 'bg-red-500/15 text-red-300 border border-red-400/30'
+                            : 'bg-[#eb1000]/15 text-[#eb1000] border border-[#eb1000]/30'
                         }`}
                       >
                         {item.status}
@@ -834,8 +824,9 @@ export const ReportPage: React.FC = () => {
               </tbody>
             </table>
           </div>
-        </Card>
+        </div>
       )}
     </div>
   );
 };
+

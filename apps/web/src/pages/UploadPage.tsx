@@ -86,37 +86,37 @@ export const UploadPage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-10 pb-24 space-y-8 animate-fade-in">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-12 pb-24 space-y-8 animate-fade-in">
       
-      {/* Minimal Aesthetic Header */}
+      {/* Editorial Hero (Adobe Clean Display Black, 900 weight, tight tracking) */}
       <div className="text-center space-y-3">
-        <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-mono text-cyan-300 bg-cyan-950/50 border border-cyan-400/35 backdrop-blur-md shadow-[0_0_20px_rgba(6,182,212,0.25),inset_0_1px_0_0_rgba(255,255,255,0.2)]">
-          <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+        <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-md text-xs font-bold text-white bg-[#2b211a] border border-white/10">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#eb1000]" />
           <span>ISA-5.1 · DETERMINISTIC CROSS-VALIDATION</span>
         </div>
 
-        <h1 className="text-3xl sm:text-5xl font-heading font-extrabold tracking-tight text-white drop-shadow-sm">
+        <h1 className="text-4xl sm:text-6xl font-heading font-black tracking-[-0.035em] text-white">
           P&ID Cross-Validation
         </h1>
-        <p className="text-sm text-slate-400 max-w-xl mx-auto leading-relaxed">
+        <p className="text-base sm:text-lg text-slate-400 font-bold max-w-xl mx-auto leading-relaxed">
           Upload engineering drawings and DCS schedules to detect discrepancies, resolve port connectivity, and generate clean process topology.
         </p>
       </div>
 
       {/* Quick 1-Click Benchmark Action Card */}
-      <div className="premium-glass rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4 border border-white/[0.12] hover:border-cyan-400/40 transition-all shadow-[0_12px_36px_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.2)]">
-        <div className="flex items-center gap-3.5">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500/20 to-blue-600/20 border border-cyan-400/30 text-cyan-300 flex items-center justify-center shrink-0 shadow-[0_0_16px_rgba(6,182,212,0.25)]">
-            <Zap size={18} />
+      <div className="adobe-card p-5 sm:p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <div className="w-11 h-11 rounded-full bg-white/10 text-white flex items-center justify-center shrink-0 border border-white/10">
+            <Zap size={20} className="text-[#eb1000]" />
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-semibold text-white">Preloaded Separator Loop</span>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-cyan-500/15 border border-cyan-400/30 text-cyan-300">
+            <div className="flex items-center gap-2.5">
+              <span className="text-base font-extrabold text-white">Preloaded Separator Loop</span>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#2b211a] text-white border border-white/10">
                 BENCHMARK READY
               </span>
             </div>
-            <p className="text-xs text-slate-400 font-mono mt-0.5">
+            <p className="text-xs text-slate-400 font-bold mt-0.5">
               sample_pid_01.pdf & sample_io_list.xlsx (24 I/O Channels)
             </p>
           </div>
@@ -126,39 +126,39 @@ export const UploadPage: React.FC = () => {
           type="button"
           onClick={loadSampleFiles}
           disabled={isSubmitting}
-          variant="engineering"
-          size="sm"
-          className="w-full sm:w-auto font-mono text-xs flex items-center justify-center gap-1.5 whitespace-nowrap shadow-md"
+          variant="primary"
+          size="md"
+          className="w-full sm:w-auto font-bold whitespace-nowrap"
         >
-          <Sparkles size={13} />
+          <Sparkles size={14} className="text-[#eb1000]" />
           <span>Run 1-Click Benchmark</span>
-          <ArrowRight size={13} />
+          <ArrowRight size={14} />
         </Button>
       </div>
 
-      {/* Main Upload Frosted Glass Card */}
-      <Card variant="glass" className="p-6 sm:p-8 space-y-6">
+      {/* Main Upload Editorial Card */}
+      <Card variant="card" className="p-6 sm:p-8 space-y-6">
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             
             {/* Target 1: P&ID Drawing Blueprint */}
             <div className="space-y-2.5">
-              <label className="text-xs font-semibold text-slate-200 flex items-center justify-between">
+              <label className="text-xs font-bold text-slate-200 flex items-center justify-between">
                 <span className="flex items-center gap-2">
-                  <FileCode2 size={16} className="text-cyan-400" />
+                  <FileCode2 size={16} className="text-[#eb1000]" />
                   <span>1. P&ID Blueprint (PDF)</span>
                 </span>
-                <span className="text-[11px] font-mono text-slate-400 px-2 py-0.5 rounded-full bg-white/[0.05] border border-white/[0.08]">
+                <span className="text-[11px] font-bold text-slate-400 px-2.5 py-0.5 rounded-md bg-white/[0.06] border border-white/[0.08]">
                   Max 50MB
                 </span>
               </label>
 
               <label
                 htmlFor="pdf-upload"
-                className={`group relative flex flex-col items-center justify-center p-8 rounded-2xl border transition-all duration-300 cursor-pointer ${
+                className={`group relative flex flex-col items-center justify-center p-8 rounded-2xl border transition-all duration-200 cursor-pointer ${
                   pdfFile
-                    ? 'border-emerald-400/60 bg-emerald-950/30 shadow-[0_0_25px_rgba(16,185,129,0.2),inset_0_1px_1px_rgba(255,255,255,0.3)] backdrop-blur-xl'
-                    : 'glass-well hover:border-cyan-400/60 hover:bg-cyan-500/[0.03] shadow-[inset_0_2px_8px_rgba(0,0,0,0.5),0_1px_1px_rgba(255,255,255,0.1)]'
+                    ? 'border-[#10b981] bg-[#10b981]/10'
+                    : 'adobe-well'
                 }`}
               >
                 <input
@@ -171,31 +171,31 @@ export const UploadPage: React.FC = () => {
 
                 {pdfFile ? (
                   <div className="text-center space-y-2">
-                    <div className="w-12 h-12 mx-auto rounded-2xl bg-emerald-500/20 text-emerald-300 border border-emerald-400/40 flex items-center justify-center shadow-[0_0_20px_rgba(16,185,129,0.3)]">
+                    <div className="w-12 h-12 mx-auto rounded-full bg-[#10b981]/20 text-[#10b981] flex items-center justify-center border border-[#10b981]/30">
                       <CheckCircle2 size={24} />
                     </div>
                     <div>
-                      <p className="text-xs font-mono font-medium text-white truncate max-w-[240px]">
+                      <p className="text-xs font-bold text-white truncate max-w-[240px]">
                         {pdfFile.name}
                       </p>
-                      <p className="text-[11px] text-emerald-400/90 font-mono mt-0.5">
+                      <p className="text-[11px] text-[#10b981] font-bold mt-0.5">
                         {(pdfFile.size / 1024).toFixed(1)} KB · READY
                       </p>
                     </div>
-                    <span className="text-[11px] text-cyan-300 hover:text-white underline font-mono">
+                    <span className="text-xs text-white hover:underline font-bold block pt-1">
                       Change blueprint file
                     </span>
                   </div>
                 ) : (
                   <div className="text-center space-y-2.5 py-2">
-                    <div className="w-12 h-12 mx-auto rounded-2xl bg-white/[0.06] border border-white/[0.15] text-slate-300 group-hover:text-cyan-300 group-hover:border-cyan-400/50 group-hover:shadow-[0_0_20px_rgba(6,182,212,0.3)] flex items-center justify-center transition-all duration-300">
+                    <div className="w-12 h-12 mx-auto rounded-full bg-white/[0.08] text-white flex items-center justify-center group-hover:bg-white group-hover:text-black transition-colors">
                       <UploadCloud size={22} />
                     </div>
                     <div>
-                      <p className="text-xs font-semibold text-slate-200 group-hover:text-white transition-colors">
+                      <p className="text-sm font-extrabold text-white">
                         Choose P&ID PDF Blueprint
                       </p>
-                      <p className="text-[11px] text-slate-400 mt-0.5">
+                      <p className="text-xs text-slate-400 font-bold mt-0.5">
                         Vector or scanned engineering drawing
                       </p>
                     </div>
@@ -206,22 +206,22 @@ export const UploadPage: React.FC = () => {
 
             {/* Target 2: DCS IO List Register */}
             <div className="space-y-2.5">
-              <label className="text-xs font-semibold text-slate-200 flex items-center justify-between">
+              <label className="text-xs font-bold text-slate-200 flex items-center justify-between">
                 <span className="flex items-center gap-2">
-                  <FileSpreadsheet size={16} className="text-emerald-400" />
+                  <FileSpreadsheet size={16} className="text-[#10b981]" />
                   <span>2. DCS IO Point Schedule (Excel)</span>
                 </span>
-                <span className="text-[11px] font-mono text-slate-400 px-2 py-0.5 rounded-full bg-white/[0.05] border border-white/[0.08]">
+                <span className="text-[11px] font-bold text-slate-400 px-2.5 py-0.5 rounded-md bg-white/[0.06] border border-white/[0.08]">
                   Max 10MB
                 </span>
               </label>
 
               <label
                 htmlFor="xlsx-upload"
-                className={`group relative flex flex-col items-center justify-center p-8 rounded-2xl border transition-all duration-300 cursor-pointer ${
+                className={`group relative flex flex-col items-center justify-center p-8 rounded-2xl border transition-all duration-200 cursor-pointer ${
                   xlsxFile
-                    ? 'border-emerald-400/60 bg-emerald-950/30 shadow-[0_0_25px_rgba(16,185,129,0.2),inset_0_1px_1px_rgba(255,255,255,0.3)] backdrop-blur-xl'
-                    : 'glass-well hover:border-emerald-400/60 hover:bg-emerald-500/[0.03] shadow-[inset_0_2px_8px_rgba(0,0,0,0.5),0_1px_1px_rgba(255,255,255,0.1)]'
+                    ? 'border-[#10b981] bg-[#10b981]/10'
+                    : 'adobe-well'
                 }`}
               >
                 <input
@@ -234,31 +234,31 @@ export const UploadPage: React.FC = () => {
 
                 {xlsxFile ? (
                   <div className="text-center space-y-2">
-                    <div className="w-12 h-12 mx-auto rounded-2xl bg-emerald-500/20 text-emerald-300 border border-emerald-400/40 flex items-center justify-center shadow-[0_0_20px_rgba(16,185,129,0.3)]">
+                    <div className="w-12 h-12 mx-auto rounded-full bg-[#10b981]/20 text-[#10b981] flex items-center justify-center border border-[#10b981]/30">
                       <CheckCircle2 size={24} />
                     </div>
                     <div>
-                      <p className="text-xs font-mono font-medium text-white truncate max-w-[240px]">
+                      <p className="text-xs font-bold text-white truncate max-w-[240px]">
                         {xlsxFile.name}
                       </p>
-                      <p className="text-[11px] text-emerald-400/90 font-mono mt-0.5">
+                      <p className="text-[11px] text-[#10b981] font-bold mt-0.5">
                         {(xlsxFile.size / 1024).toFixed(1)} KB · READY
                       </p>
                     </div>
-                    <span className="text-[11px] text-cyan-300 hover:text-white underline font-mono">
+                    <span className="text-xs text-white hover:underline font-bold block pt-1">
                       Change Excel file
                     </span>
                   </div>
                 ) : (
                   <div className="text-center space-y-2.5 py-2">
-                    <div className="w-12 h-12 mx-auto rounded-2xl bg-white/[0.06] border border-white/[0.15] text-slate-300 group-hover:text-emerald-300 group-hover:border-emerald-400/50 group-hover:shadow-[0_0_20px_rgba(16,185,129,0.3)] flex items-center justify-center transition-all duration-300">
+                    <div className="w-12 h-12 mx-auto rounded-full bg-white/[0.08] text-white flex items-center justify-center group-hover:bg-white group-hover:text-black transition-colors">
                       <UploadCloud size={22} />
                     </div>
                     <div>
-                      <p className="text-xs font-semibold text-slate-200 group-hover:text-white transition-colors">
+                      <p className="text-sm font-extrabold text-white">
                         Choose DCS IO List (.xlsx)
                       </p>
-                      <p className="text-[11px] text-slate-400 mt-0.5">
+                      <p className="text-xs text-slate-400 font-bold mt-0.5">
                         Channel addresses & point tag register
                       </p>
                     </div>
@@ -271,33 +271,33 @@ export const UploadPage: React.FC = () => {
 
           {/* Validation Error Alert */}
           {errorMsg && (
-            <div className="flex items-center gap-2.5 p-3.5 rounded-xl bg-red-500/15 border border-red-500/40 text-red-200 text-xs font-mono backdrop-blur-md shadow-[0_0_20px_rgba(239,68,68,0.2)]">
-              <AlertTriangle size={16} className="shrink-0 text-red-400" />
+            <div className="flex items-center gap-3 p-4 rounded-xl bg-[#eb1000]/15 border border-[#eb1000]/30 text-white text-xs font-bold">
+              <AlertTriangle size={18} className="shrink-0 text-[#eb1000]" />
               <span>{errorMsg}</span>
             </div>
           )}
 
-          {/* Clean Action Buttons */}
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-white/[0.08]">
+          {/* Clean Action Buttons (Adobe Pill Buttons) */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-5 border-t border-white/[0.1]">
             <Button
               type="button"
               onClick={loadSampleFiles}
               disabled={isSubmitting}
               variant="secondary"
-              size="sm"
-              className="w-full sm:w-auto text-xs text-slate-300 hover:text-white flex items-center gap-2"
+              size="md"
+              className="w-full sm:w-auto"
             >
-              <Sparkles size={13} className="text-cyan-400" />
+              <Sparkles size={14} className="text-[#eb1000]" />
               <span>Load Sample Files</span>
             </Button>
 
             <Button
               type="submit"
               size="md"
-              variant="engineering"
+              variant="primary"
               isLoading={isSubmitting}
               disabled={!pdfFile || !xlsxFile}
-              className="w-full sm:w-auto text-xs flex items-center justify-center gap-2 font-semibold shadow-lg"
+              className="w-full sm:w-auto"
             >
               <span>Validate & Process</span>
               <ArrowRight size={14} />

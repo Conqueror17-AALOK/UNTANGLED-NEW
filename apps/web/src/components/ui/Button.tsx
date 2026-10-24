@@ -1,7 +1,7 @@
 import React from 'react';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'outline' | 'danger' | 'ghost' | 'engineering';
+  variant?: 'primary' | 'secondary' | 'tertiary' | 'danger' | 'ghost' | 'engineering';
   size?: 'xs' | 'sm' | 'md' | 'lg';
   isLoading?: boolean;
 }
@@ -15,27 +15,35 @@ export const Button: React.FC<ButtonProps> = ({
   disabled,
   ...props
 }) => {
-  const base = "inline-flex items-center justify-center font-medium transition-all duration-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500/40 disabled:opacity-40 disabled:cursor-not-allowed select-none cursor-pointer";
+  const base = "inline-flex items-center justify-center font-bold tracking-tight transition-all duration-150 select-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#eb1000] disabled:opacity-40 disabled:cursor-not-allowed";
   
   const sizeClasses = {
-    xs: "px-2.5 py-1 text-[11px] gap-1.5 font-mono",
-    sm: "px-3.5 py-1.5 text-xs gap-1.5",
-    md: "px-4.5 py-2 text-xs sm:text-sm gap-2",
-    lg: "px-6 py-2.5 text-sm sm:text-base font-semibold gap-2.5 shadow-lg",
+    xs: "px-3 py-1 text-[11px] h-7 rounded-full font-mono gap-1.5",
+    sm: "px-4 py-1.5 text-xs h-8 rounded-full gap-2",
+    md: "px-6 py-2.5 text-sm h-10 rounded-full gap-2", // Matches 40px height & 13px 24px padding spec
+    lg: "px-8 py-3 text-base h-12 rounded-full gap-2.5",
   };
 
   const variantClasses = {
-    primary: "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold shadow-[0_4px_20px_rgba(37,99,235,0.4)] border border-blue-400/40 border-t-white/30 active:scale-[0.98] hover:shadow-[0_6px_28px_rgba(37,99,235,0.55)]",
-    engineering: "bg-gradient-to-r from-cyan-500 via-blue-600 to-indigo-600 hover:from-cyan-400 hover:via-blue-500 hover:to-indigo-500 text-white font-semibold shadow-[0_4px_24px_rgba(6,182,212,0.35)] border border-cyan-400/40 border-t-white/40 active:scale-[0.98] hover:shadow-[0_6px_32px_rgba(6,182,212,0.5)]",
-    secondary: "bg-white/[0.05] hover:bg-white/[0.09] text-white border border-white/[0.12] border-t-white/[0.25] shadow-[0_4px_16px_rgba(0,0,0,0.3),inset_0_1px_1px_0_rgba(255,255,255,0.2)] active:scale-[0.98] hover:border-white/25 backdrop-blur-xl",
-    outline: "border border-white/[0.12] hover:border-cyan-400/50 text-slate-300 hover:text-white bg-white/[0.02] hover:bg-cyan-500/[0.06] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.1)] backdrop-blur-md active:scale-[0.98]",
-    danger: "bg-red-500/15 hover:bg-red-500/25 text-red-300 border border-red-500/35 border-t-red-400/50 active:scale-[0.98] backdrop-blur-md shadow-[0_0_15px_rgba(239,68,68,0.2)]",
-    ghost: "text-slate-400 hover:text-white hover:bg-white/[0.06] active:scale-[0.98]",
+    // Adobe Firefly / Podcast Primary: Crisp pure white pill with deep black ink text, subtle tonal hover
+    primary: "bg-[#ffffff] text-[#000000] hover:bg-[#e5e7eb] active:scale-[0.98] border border-transparent font-bold",
+    // Engineering primary (same high-contrast white pill or crisp accent)
+    engineering: "bg-[#ffffff] text-[#000000] hover:bg-[#e5e7eb] active:scale-[0.98] border border-transparent font-bold",
+    // Adobe Firefly / Podcast Secondary: Rounded-full border-led pill
+    secondary: "bg-transparent text-[#ffffff] border border-white/25 hover:border-white/50 hover:bg-white/[0.06] active:scale-[0.98] font-bold",
+    // Adobe Tertiary: Transparent text button
+    tertiary: "bg-transparent text-[#d1d5db] hover:text-[#ffffff] p-0 font-bold hover:underline",
+    // Danger with Adobe Red #eb1000
+    danger: "bg-[#eb1000] text-white hover:bg-[#c90d00] active:scale-[0.98] font-bold rounded-full",
+    // Ghost
+    ghost: "bg-transparent text-[#9ca3af] hover:text-[#ffffff] hover:bg-white/[0.06] rounded-full font-bold",
   };
+
+  const isTertiary = variant === 'tertiary';
 
   return (
     <button
-      className={`${base} ${sizeClasses[size]} ${variantClasses[variant]} ${className}`}
+      className={`${base} ${isTertiary ? 'p-0 text-sm' : sizeClasses[size]} ${variantClasses[variant]} ${className}`}
       disabled={disabled || isLoading}
       {...props}
     >

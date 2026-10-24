@@ -10,9 +10,6 @@ import {
   ChevronRight,
   Download
 } from 'lucide-react';
-import { Card } from '../components/ui/Card';
-import { Badge } from '../components/ui/Badge';
-import { Button } from '../components/ui/Button';
 import { apiClient } from '../api/client';
 import { GraphData, GraphNode, Tag } from '../types';
 
@@ -160,119 +157,126 @@ export const WorkspacePage: React.FC = () => {
   }, [graph?.edges, visibleNodes]);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-4 animate-fade-in">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-6 animate-fade-in">
       
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b border-white/[0.08]">
+      {/* Editorial Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-white/[0.12]">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-heading font-bold text-white">
-            Process Topology
-          </h1>
-          <p className="text-xs text-slate-400 mt-0.5 font-mono">
-            Job {jobId.slice(0, 8)}
+          <div className="flex items-center gap-3 mb-1">
+            <h1 className="text-3xl sm:text-4xl font-display font-black text-white tracking-tight">
+              Process Topology
+            </h1>
+            <span className="adobe-chip text-xs">
+              Job {jobId.slice(0, 8)}
+            </span>
+          </div>
+          <p className="text-sm text-neutral-400 font-bold">
+            Interactive ISA-5.1 verified process diagram with live telemetry & cross-validation.
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2.5">
           <a
             href={`/api/v1/jobs/${jobId}/simplified-diagram/pdf`}
             download={`simplified_diagram_${jobId.slice(0, 8)}.pdf`}
             target="_blank"
             rel="noopener noreferrer"
           >
-            <Button variant="primary" size="sm" className="font-mono text-xs flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white">
-              <Download size={13} />
+            <button className="bg-white text-black font-bold h-10 px-5 rounded-full flex items-center gap-2 hover:bg-neutral-200 transition-all text-sm">
+              <Download size={14} className="stroke-[2.5]" />
               <span>Download PDF</span>
-            </Button>
+            </button>
           </a>
 
-          <Button
-            variant={showBeforeAfter ? 'engineering' : 'secondary'}
-            size="sm"
+          <button
             onClick={() => setShowBeforeAfter(!showBeforeAfter)}
-            className="font-mono text-xs"
+            className={`h-10 px-4 rounded-full border text-sm font-bold flex items-center gap-2 transition-all ${
+              showBeforeAfter
+                ? 'bg-white text-black border-white'
+                : 'bg-transparent text-white border-white/20 hover:bg-white/10'
+            }`}
           >
-            <Columns size={13} />
+            <Columns size={14} />
             <span>Compare View</span>
-          </Button>
+          </button>
 
           <Link to={`/review/${jobId}`}>
-            <Button variant="secondary" size="sm" className="font-mono text-xs">
-              <CheckCircle2 size={13} className="text-amber-400" />
+            <button className="h-10 px-4 rounded-full border border-white/20 text-white font-bold hover:bg-white/10 flex items-center gap-2 transition-all text-sm">
+              <CheckCircle2 size={14} className="text-amber-400" />
               <span>Review Queue</span>
-            </Button>
+            </button>
           </Link>
 
           <Link to={`/report/${jobId}`}>
-            <Button variant="secondary" size="sm" className="font-mono text-xs">
-              <FileSpreadsheet size={13} className="text-cyan-400" />
+            <button className="h-10 px-4 rounded-full border border-white/20 text-white font-bold hover:bg-white/10 flex items-center gap-2 transition-all text-sm">
+              <FileSpreadsheet size={14} className="text-cyan-400" />
               <span>Audit Report</span>
-            </Button>
+            </button>
           </Link>
         </div>
       </div>
 
       {/* Main Workspace Layout (Canvas + Inspector) */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         {/* Canvas Area (Col span 2) */}
-        <div className="lg:col-span-2 space-y-3">
+        <div className="lg:col-span-2 space-y-4">
           
-          {/* Controls Bar - Frosted Glass Panel */}
-          <div className="flex flex-wrap items-center justify-between gap-2 p-2 rounded-xl bg-white/[0.03] backdrop-blur-xl border border-white/[0.1] shadow-[0_4px_20px_rgba(0,0,0,0.35),inset_0_1px_0_0_rgba(255,255,255,0.12)] text-xs">
+          {/* Controls Bar - Docked Pill Strip */}
+          <div className="flex flex-wrap items-center justify-between gap-3 p-2 rounded-full bg-[#141414] border border-white/[0.12] text-xs">
             
             {/* Layer Toggles */}
-            <div className="flex items-center gap-1">
-              <span className="text-slate-400 font-mono text-[11px] px-1.5 uppercase font-medium">
+            <div className="flex items-center gap-1.5 bg-[#0a0a0a] p-1 rounded-full border border-white/[0.08]">
+              <span className="text-neutral-400 text-xs px-2 font-bold uppercase tracking-wider">
                 Layers:
               </span>
               {(['all', 'equipment', 'instrument', 'valve'] as const).map((layer) => (
                 <button
                   key={layer}
                   onClick={() => setActiveLayer(layer)}
-                  className={`px-2.5 py-1 rounded-lg text-[11px] font-mono uppercase transition-all duration-150 ${
+                  className={`px-3 py-1 rounded-full text-xs font-bold transition-all duration-150 ${
                     activeLayer === layer
-                      ? 'bg-white/[0.14] text-white font-bold border border-white/20 shadow-[0_2px_8px_rgba(0,0,0,0.3),inset_0_1px_0_0_rgba(255,255,255,0.25)]'
-                      : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
+                      ? 'bg-white text-black font-black'
+                      : 'text-neutral-400 hover:text-white'
                   }`}
                 >
-                  {layer}
+                  {layer.toUpperCase()}
                 </button>
               ))}
             </div>
 
             {/* Pan & Zoom Controls */}
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1.5 pr-1">
               <button
                 onClick={() => setZoom((z) => Math.min(z + 0.15, 2.5))}
-                className="p-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.09] text-slate-300 hover:text-white border border-white/[0.1] transition-all shadow-sm backdrop-blur-md"
+                className="w-8 h-8 rounded-full bg-white/[0.06] hover:bg-white/[0.14] text-white border border-white/[0.1] transition-all flex items-center justify-center"
                 title="Zoom In (+)"
               >
                 <ZoomIn size={14} />
               </button>
               <button
                 onClick={() => setZoom((z) => Math.max(z - 0.15, 0.5))}
-                className="p-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.09] text-slate-300 hover:text-white border border-white/[0.1] transition-all shadow-sm backdrop-blur-md"
+                className="w-8 h-8 rounded-full bg-white/[0.06] hover:bg-white/[0.14] text-white border border-white/[0.1] transition-all flex items-center justify-center"
                 title="Zoom Out (-)"
               >
                 <ZoomOut size={14} />
               </button>
               <button
                 onClick={resetViewport}
-                className="p-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.09] text-slate-300 hover:text-white border border-white/[0.1] transition-all shadow-sm backdrop-blur-md"
+                className="w-8 h-8 rounded-full bg-white/[0.06] hover:bg-white/[0.14] text-white border border-white/[0.1] transition-all flex items-center justify-center"
                 title="Reset View (0)"
               >
                 <RotateCcw size={14} />
               </button>
-              <span className="text-[11px] font-mono text-cyan-300 px-2 font-bold tabular-nums drop-shadow-[0_0_6px_rgba(6,182,212,0.4)]">
+              <span className="text-xs font-mono text-white px-2.5 font-bold tabular-nums">
                 {Math.round(zoom * 100)}%
               </span>
             </div>
 
           </div>
 
-          {/* SVG CAD Canvas Box with Frosted Glass Border */}
-          <div className="h-[400px] sm:h-[480px] lg:h-[560px] relative overflow-hidden bg-[#06080d]/80 backdrop-blur-md border border-white/[0.1] rounded-xl shadow-[0_12px_40px_rgba(0,0,0,0.6),inset_0_1px_0_0_rgba(255,255,255,0.1)] select-none">
+          {/* SVG CAD Canvas Box */}
+          <div className="h-[420px] sm:h-[500px] lg:h-[580px] relative overflow-hidden bg-[#0d0d0d] border border-white/[0.12] rounded-3xl select-none">
             {/* Coordinate Grid & Interactive Canvas */}
             <div
               className="absolute inset-0 cursor-grab active:cursor-grabbing bg-cad-grid touch-none z-0"
@@ -348,7 +352,7 @@ export const WorkspacePage: React.FC = () => {
                     const isSelected = selectedNode?.id === node.id;
                     const isHighConf = node.confidence >= 0.85;
                     const isMedConf = node.confidence >= 0.60 && node.confidence < 0.85;
-                    const haloColor = isHighConf ? '#10b981' : isMedConf ? '#f59e0b' : '#ef4444';
+                    const haloColor = isHighConf ? '#10b981' : isMedConf ? '#f59e0b' : '#eb1000';
 
                     // Parse ISA-5.1 tag prefix and loop number accurately
                     let prefix = node.id;
@@ -390,17 +394,17 @@ export const WorkspacePage: React.FC = () => {
                             <circle
                               r="32"
                               fill="none"
-                              stroke="#3b82f6"
+                              stroke="#ffffff"
                               strokeWidth="1.5"
                               strokeDasharray="4,3"
                               className="animate-spin"
                               style={{ animationDuration: '10s' }}
                             />
-                            {/* CAD Corner Ticks */}
-                            <line x1="-36" y1="0" x2="-28" y2="0" stroke="#3b82f6" strokeWidth="1.5" />
-                            <line x1="28" y1="0" x2="36" y2="0" stroke="#3b82f6" strokeWidth="1.5" />
-                            <line x1="0" y1="-36" x2="0" y2="-28" stroke="#3b82f6" strokeWidth="1.5" />
-                            <line x1="0" y1="28" x2="0" y2="36" stroke="#3b82f6" strokeWidth="1.5" />
+                            {/* Corner Ticks */}
+                            <line x1="-36" y1="0" x2="-28" y2="0" stroke="#ffffff" strokeWidth="1.5" />
+                            <line x1="28" y1="0" x2="36" y2="0" stroke="#ffffff" strokeWidth="1.5" />
+                            <line x1="0" y1="-36" x2="0" y2="-28" stroke="#ffffff" strokeWidth="1.5" />
+                            <line x1="0" y1="28" x2="0" y2="36" stroke="#ffffff" strokeWidth="1.5" />
                           </g>
                         )}
 
@@ -461,24 +465,21 @@ export const WorkspacePage: React.FC = () => {
                         {/* EQUIPMENT SYMBOL: PUMP */}
                         {node.category === 'equipment' && !isVessel && !isTank && !isExchanger && (
                           <g>
-                            {/* Pump Circular Body */}
                             <circle
                               r="24"
-                              fill="#12141c"
+                              fill="#141414"
                               stroke={haloColor}
                               strokeWidth={isSelected ? 2.5 : 1.8}
                             />
-                            {/* Tangential Nozzle Flange */}
                             <path d="M 12 -20 L 22 -30 L 8 -26 Z" fill="#38bdf8" />
-                            {/* Pump Impeller Hub */}
-                            <circle r="6" fill="#1e222d" stroke="#64748b" strokeWidth="1" />
+                            <circle r="6" fill="#1e1e1e" stroke="#64748b" strokeWidth="1" />
                             <text
                               textAnchor="middle"
                               dy="-8"
                               fontSize="9"
                               fontWeight="bold"
                               fontFamily="JetBrains Mono, monospace"
-                              fill="#f1f5f9"
+                              fill="#ffffff"
                             >
                               {node.id}
                             </text>
@@ -487,31 +488,28 @@ export const WorkspacePage: React.FC = () => {
                               dy="14"
                               fontSize="7.5"
                               fontFamily="JetBrains Mono, monospace"
-                              fill="#94a3b8"
+                              fill="#a3a3a3"
                             >
                               PUMP
                             </text>
                           </g>
                         )}
 
-                        {/* VALVE SYMBOL: CONTROL VALVE / MANUAL VALVE */}
+                        {/* VALVE SYMBOL */}
                         {node.category === 'valve' && (
                           <g>
-                            {/* Double Opposing Triangles (Hourglass) */}
                             <polygon
                               points="-16,-9 16,9 16,-9 -16,9"
-                              fill="#12141c"
+                              fill="#141414"
                               stroke={haloColor}
                               strokeWidth={isSelected ? 2.2 : 1.6}
                             />
-                            {/* Stem Line */}
-                            <line x1="0" y1="0" x2="0" y2="-12" stroke="#94a3b8" strokeWidth="1.5" />
-                            
+                            <line x1="0" y1="0" x2="0" y2="-12" stroke="#a3a3a3" strokeWidth="1.5" />
                             {/* Actuator Dome (Control Valve) vs Handwheel (Manual) */}
                             {node.id.startsWith('CV') || node.id.startsWith('FV') || node.id.startsWith('LV') || node.id.startsWith('PV') || node.id.startsWith('TV') ? (
-                              <path d="M -10 -12 Q 0 -22 10 -12 Z" fill="#1e222d" stroke="#38bdf8" strokeWidth="1.5" />
+                              <path d="M -10 -12 Q 0 -22 10 -12 Z" fill="#1e1e1e" stroke="#38bdf8" strokeWidth="1.5" />
                             ) : (
-                              <line x1="-8" y1="-12" x2="8" y2="-12" stroke="#94a3b8" strokeWidth="2" />
+                              <line x1="-8" y1="-12" x2="8" y2="-12" stroke="#a3a3a3" strokeWidth="2" />
                             )}
 
                             <text
@@ -520,7 +518,7 @@ export const WorkspacePage: React.FC = () => {
                               fontSize="8"
                               fontWeight="bold"
                               fontFamily="JetBrains Mono, monospace"
-                              fill="#f1f5f9"
+                              fill="#ffffff"
                             >
                               {node.id}
                             </text>
@@ -530,14 +528,12 @@ export const WorkspacePage: React.FC = () => {
                         {/* INSTRUMENT SYMBOL: ISA-5.1 BUBBLE */}
                         {node.category === 'instrument' && (
                           <g>
-                            {/* Outer ISA Bubble Circle */}
                             <circle
                               r="23"
-                              fill="#12141c"
+                              fill="#141414"
                               stroke={haloColor}
                               strokeWidth={isSelected ? 2.2 : 1.6}
                             />
-                            {/* Horizontal Dividing Line (DCS panel vs field) */}
                             <line
                               x1="-23"
                               y1="0"
@@ -547,41 +543,39 @@ export const WorkspacePage: React.FC = () => {
                               strokeWidth="1"
                             />
 
-                            {/* Function Prefix (Top Half) */}
                             <text
                               textAnchor="middle"
                               dy="-4"
                               fontSize="9.5"
                               fontWeight="bold"
                               fontFamily="JetBrains Mono, monospace"
-                              fill="#38bdf8"
+                              fill="#ffffff"
                             >
                               {prefix}
                             </text>
 
-                            {/* Loop Number (Bottom Half) */}
                             <text
                               textAnchor="middle"
                               dy="12"
                               fontSize="8.5"
                               fontWeight="bold"
                               fontFamily="JetBrains Mono, monospace"
-                              fill="#f1f5f9"
+                              fill="#a3a3a3"
                             >
                               {loopNum || prefix}
                             </text>
                           </g>
                         )}
 
-                        {/* Small Confidence Pill Badge Below Node */}
+                        {/* Confidence Pill Badge Below Node */}
                         <g transform="translate(0, 27)">
                           <rect
                             x="-14"
                             y="0"
                             width="28"
                             height="11"
-                            rx="2"
-                            fill="#090a0f"
+                            rx="5.5"
+                            fill="#000000"
                             stroke={haloColor}
                             strokeWidth="0.8"
                           />
@@ -606,10 +600,10 @@ export const WorkspacePage: React.FC = () => {
               </svg>
             </div>
 
-            {/* Canvas Footer Legend */}
-            <div className="absolute bottom-3 left-3 bg-[#12141c]/95 backdrop-blur-md px-3 py-1.5 rounded border border-[#1e222d] text-[10px] font-mono flex items-center gap-4 text-[#94a3b8]">
+            {/* Canvas Footer Legend - Docked Pill Strip */}
+            <div className="absolute bottom-4 left-4 bg-[#141414]/90 backdrop-blur-md px-4 py-2 rounded-full border border-white/[0.12] text-xs font-bold flex items-center gap-4 text-neutral-300">
               <span className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-emerald-400" /> ≥85% Auto Validated
+                <span className="w-2 h-2 rounded-full bg-emerald-400" /> ≥85% Validated
               </span>
               <span className="flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-amber-400" /> 60–85% Needs Review
@@ -626,109 +620,106 @@ export const WorkspacePage: React.FC = () => {
 
           {/* Before & After Comparison Split View */}
           {showBeforeAfter && (
-            <Card variant="glass" className="p-4 space-y-3">
+            <div className="adobe-card p-5 space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-xs font-semibold text-slate-200 flex items-center gap-2">
-                  <Columns size={14} className="text-cyan-400" />
-                  <span>Comparison View</span>
+                <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                  <Columns size={15} className="text-white" />
+                  <span>Before & After Comparison</span>
                 </h3>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 h-40 rounded-xl border border-white/[0.08] overflow-hidden text-xs">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-44 rounded-2xl border border-white/[0.1] overflow-hidden text-xs">
                 {/* Before: Raw Drawing */}
-                <div className="bg-white/[0.03] backdrop-blur-md p-4 flex flex-col justify-between border-r border-white/[0.08]">
-                  <span className="font-mono text-[10px] text-amber-400 font-semibold">ORIGINAL P&ID</span>
+                <div className="bg-[#1a1a1a] p-4 flex flex-col justify-between border-r border-white/[0.08]">
+                  <span className="text-xs text-amber-400 font-bold uppercase tracking-wider">ORIGINAL P&ID DRAWING</span>
                   <div className="my-auto text-center font-mono">
-                    <p className="text-slate-400">Scanned Engineering Drawing</p>
+                    <p className="text-neutral-400 font-bold">Scanned Legacy Drawing</p>
                     <p className="font-bold text-amber-300 mt-1">Raw OCR: PT10l · PCV-101</p>
                   </div>
-                  <span className="text-[10px] text-slate-500 font-mono">Unstructured symbols</span>
+                  <span className="text-xs text-neutral-500 font-bold">Unstructured symbols & scan skew</span>
                 </div>
 
                 {/* After: Synthesized Process Topology */}
-                <div className="bg-white/[0.05] backdrop-blur-md p-4 flex flex-col justify-between">
-                  <span className="font-mono text-[10px] text-emerald-400 font-semibold">RESOLVED TOPOLOGY</span>
+                <div className="bg-[#1a1a1a] p-4 flex flex-col justify-between">
+                  <span className="text-xs text-emerald-400 font-bold uppercase tracking-wider">RESOLVED TOPOLOGY</span>
                   <div className="my-auto text-center font-mono">
-                    <p className="text-slate-400">Clean Orthogonal Graph</p>
+                    <p className="text-neutral-400 font-bold">Orthogonal ISA-5.1 Graph</p>
                     <p className="font-bold text-emerald-300 mt-1">PT-101 (Channel AI-01)</p>
                   </div>
-                  <span className="text-[10px] text-cyan-400 font-mono">ISA-5.1 Validated</span>
+                  <span className="text-xs text-emerald-400 font-bold">ISA-5.1 & DCS Cross-Validated</span>
                 </div>
               </div>
-            </Card>
+            </div>
           )}
 
         </div>
 
-        {/* Right Sidebar: Tag Details */}
+        {/* Right Sidebar: Tag Details / Inspector */}
         <div className="space-y-4">
-          <Card variant="glass" className="p-4 space-y-4">
+          <div className="adobe-card p-5 space-y-4">
             
             {/* Header */}
-            <div className="flex items-center justify-between pb-3 border-b border-white/[0.08]">
-              <h2 className="text-xs font-bold uppercase tracking-wider text-slate-200">
-                Tag Details
+            <div className="flex items-center justify-between pb-3 border-b border-white/[0.1]">
+              <h2 className="text-xs font-black uppercase tracking-wider text-white">
+                Tag Inspector
               </h2>
               {selectedTag && (
-                <Badge
-                  variant={
-                    selectedTag.confidence >= 0.85
-                      ? 'high'
-                      : selectedTag.confidence >= 0.60
-                      ? 'medium'
-                      : 'low'
-                  }
-                  size="xs"
-                >
+                <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full ${
+                  selectedTag.confidence >= 0.85
+                    ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-400/30'
+                    : selectedTag.confidence >= 0.60
+                    ? 'bg-amber-500/15 text-amber-300 border border-amber-400/30'
+                    : 'bg-[#eb1000]/15 text-[#eb1000] border border-[#eb1000]/30'
+                }`}>
                   {Math.round(selectedTag.confidence * 100)}%
-                </Badge>
+                </span>
               )}
             </div>
 
             {selectedNode && selectedTag ? (
-              <div className="space-y-4 text-xs font-mono">
+              <div className="space-y-4 text-xs">
                 
                 {/* Tag Identity Block */}
-                <div className="p-3.5 rounded-xl bg-white/[0.03] border border-white/[0.08] backdrop-blur-md flex items-center justify-between shadow-[inset_0_1px_0_0_rgba(255,255,255,0.08)]">
+                <div className="p-4 rounded-xl bg-[#1a1a1a] border border-white/[0.08] flex items-center justify-between">
                   <div>
-                    <span className="text-base font-bold text-white block">
+                    <span className="text-xl font-display font-black text-white block tracking-tight">
                       {selectedTag.normalized_tag}
                     </span>
-                    <span className="text-[11px] text-slate-400">{selectedTag.type}</span>
+                    <span className="text-xs text-neutral-400 font-bold">{selectedTag.type}</span>
                   </div>
-                  <Badge variant="neutral" size="xs">
+                  <span className="adobe-chip text-xs">
                     {selectedTag.category.toUpperCase()}
-                  </Badge>
+                  </span>
                 </div>
 
-                {/* Tab Selector */}
-                <div className="flex rounded-xl bg-white/[0.04] p-1 border border-white/[0.08] backdrop-blur-md text-[11px]">
+                {/* Tab Selector - Docked Pill Strip */}
+                <div className="flex rounded-full bg-[#0a0a0a] p-1 border border-white/[0.08] text-xs">
                   <button
                     onClick={() => setInspectorTab('telemetry')}
-                    className={`flex-1 py-1 rounded-lg transition-all ${
+                    className={`flex-1 py-1.5 rounded-full transition-all text-xs ${
                       inspectorTab === 'telemetry'
-                        ? 'bg-gradient-to-r from-cyan-500/25 to-blue-600/25 border border-cyan-400/40 text-white font-semibold shadow-[0_0_12px_rgba(6,182,212,0.25)]'
-                        : 'text-slate-400 hover:text-white'
+                        ? 'bg-white text-black font-black'
+                        : 'text-neutral-400 hover:text-white font-bold'
                     }`}
                   >
                     Details
                   </button>
                   <button
                     onClick={() => setInspectorTab('confidence')}
-                    className={`flex-1 py-1 rounded-lg transition-all ${
+                    className={`flex-1 py-1.5 rounded-full transition-all text-xs ${
                       inspectorTab === 'confidence'
-                        ? 'bg-gradient-to-r from-cyan-500/25 to-blue-600/25 border border-cyan-400/40 text-white font-semibold shadow-[0_0_12px_rgba(6,182,212,0.25)]'
-                        : 'text-slate-400 hover:text-white'
+                        ? 'bg-white text-black font-black'
+                        : 'text-neutral-400 hover:text-white font-bold'
                     }`}
                   >
                     Confidence
                   </button>
                   <button
                     onClick={() => setInspectorTab('traceability')}
-                    className={`flex-1 py-1 rounded-lg transition-all ${
+                    className={`flex-1 py-1.5 rounded-full transition-all text-xs ${
                       inspectorTab === 'traceability'
-                        ? 'bg-gradient-to-r from-cyan-500/25 to-blue-600/25 border border-cyan-400/40 text-white font-semibold shadow-[0_0_12px_rgba(6,182,212,0.25)]'
-                        : 'text-slate-400 hover:text-white'
+                        ? 'bg-white text-black font-black'
+                        : 'text-neutral-400 hover:text-white font-bold'
                     }`}
                   >
                     Crop
@@ -737,28 +728,28 @@ export const WorkspacePage: React.FC = () => {
 
                 {/* Tab 1: Telemetry */}
                 {inspectorTab === 'telemetry' && (
-                  <div className="space-y-2 text-[11px]">
-                    <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.08] backdrop-blur-md space-y-1.5 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]">
+                  <div className="space-y-2.5 text-xs font-mono">
+                    <div className="p-3.5 rounded-xl bg-[#1a1a1a] border border-white/[0.08] space-y-2">
                       <div className="flex justify-between">
-                        <span className="text-slate-400">Raw Read:</span>
+                        <span className="text-neutral-400 font-sans font-bold">Raw Read:</span>
                         <span className="text-amber-300 font-bold">{selectedTag.raw_text}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-slate-400">DCS Match:</span>
+                        <span className="text-neutral-400 font-sans font-bold">DCS Match:</span>
                         <span className="text-emerald-400 font-bold">{selectedTag.io_match?.io_tag || 'None'}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-slate-400">Signal:</span>
-                        <span className="text-slate-200">{selectedTag.io_match?.signal_type || '4-20mA'}</span>
+                        <span className="text-neutral-400 font-sans font-bold">Signal:</span>
+                        <span className="text-white font-bold">{selectedTag.io_match?.signal_type || '4-20mA'}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-slate-400">Status:</span>
-                        <span className="text-cyan-400 uppercase font-semibold">{selectedTag.status}</span>
+                        <span className="text-neutral-400 font-sans font-bold">Status:</span>
+                        <span className="text-emerald-400 uppercase font-black">{selectedTag.status}</span>
                       </div>
                     </div>
 
                     {selectedTag.reasoning && (
-                      <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.08] backdrop-blur-md text-slate-300 text-[11px] leading-relaxed shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]">
+                      <div className="p-3.5 rounded-xl bg-[#1a1a1a] border border-white/[0.08] text-neutral-300 text-xs leading-relaxed font-sans font-bold">
                         {selectedTag.reasoning}
                       </div>
                     )}
@@ -767,41 +758,41 @@ export const WorkspacePage: React.FC = () => {
 
                 {/* Tab 2: Confidence Breakdown */}
                 {inspectorTab === 'confidence' && (
-                  <div className="space-y-3 text-[11px]">
+                  <div className="space-y-3 text-xs">
                     {selectedTag.conf_breakdown ? (
-                      <div className="space-y-2.5 p-3 rounded-xl bg-white/[0.03] border border-white/[0.08] backdrop-blur-md shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]">
+                      <div className="space-y-3 p-3.5 rounded-xl bg-[#1a1a1a] border border-white/[0.08]">
                         <div>
-                          <div className="flex justify-between text-slate-300 text-[10px] mb-1">
+                          <div className="flex justify-between text-neutral-300 text-xs mb-1 font-bold">
                             <span>OCR Consensus</span>
-                            <span className="font-bold text-cyan-300">{Math.round((selectedTag.conf_breakdown.ocr || 0) * 100)}%</span>
+                            <span className="font-bold text-white">{Math.round((selectedTag.conf_breakdown.ocr || 0) * 100)}%</span>
                           </div>
-                          <div className="w-full h-2 bg-white/[0.06] rounded-full overflow-hidden p-0.5 border border-white/[0.08]">
-                            <div className="h-full bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full shadow-[0_0_10px_rgba(6,182,212,0.5)]" style={{ width: `${(selectedTag.conf_breakdown.ocr || 0) * 100}%` }} />
+                          <div className="w-full h-2 bg-black/60 rounded-full overflow-hidden p-0.5 border border-white/[0.08]">
+                            <div className="h-full bg-white rounded-full" style={{ width: `${(selectedTag.conf_breakdown.ocr || 0) * 100}%` }} />
                           </div>
                         </div>
 
                         <div>
-                          <div className="flex justify-between text-slate-300 text-[10px] mb-1">
+                          <div className="flex justify-between text-neutral-300 text-xs mb-1 font-bold">
                             <span>Symbol Match</span>
-                            <span className="font-bold text-emerald-300">{Math.round((selectedTag.conf_breakdown.symbol || 0) * 100)}%</span>
+                            <span className="font-bold text-emerald-400">{Math.round((selectedTag.conf_breakdown.symbol || 0) * 100)}%</span>
                           </div>
-                          <div className="w-full h-2 bg-white/[0.06] rounded-full overflow-hidden p-0.5 border border-white/[0.08]">
-                            <div className="h-full bg-gradient-to-r from-emerald-400 to-teal-500 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.5)]" style={{ width: `${(selectedTag.conf_breakdown.symbol || 0) * 100}%` }} />
+                          <div className="w-full h-2 bg-black/60 rounded-full overflow-hidden p-0.5 border border-white/[0.08]">
+                            <div className="h-full bg-emerald-400 rounded-full" style={{ width: `${(selectedTag.conf_breakdown.symbol || 0) * 100}%` }} />
                           </div>
                         </div>
 
                         <div>
-                          <div className="flex justify-between text-slate-300 text-[10px] mb-1">
+                          <div className="flex justify-between text-neutral-300 text-xs mb-1 font-bold">
                             <span>DCS Verification</span>
-                            <span className="font-bold text-sky-300">{Math.round((selectedTag.conf_breakdown.io_match || 0) * 100)}%</span>
+                            <span className="font-bold text-cyan-400">{Math.round((selectedTag.conf_breakdown.io_match || 0) * 100)}%</span>
                           </div>
-                          <div className="w-full h-2 bg-white/[0.06] rounded-full overflow-hidden p-0.5 border border-white/[0.08]">
-                            <div className="h-full bg-gradient-to-r from-blue-400 to-indigo-500 rounded-full shadow-[0_0_10px_rgba(59,130,246,0.5)]" style={{ width: `${(selectedTag.conf_breakdown.io_match || 0) * 100}%` }} />
+                          <div className="w-full h-2 bg-black/60 rounded-full overflow-hidden p-0.5 border border-white/[0.08]">
+                            <div className="h-full bg-cyan-400 rounded-full" style={{ width: `${(selectedTag.conf_breakdown.io_match || 0) * 100}%` }} />
                           </div>
                         </div>
                       </div>
                     ) : (
-                      <div className="text-center py-4 text-slate-500">No score breakdown</div>
+                      <div className="text-center py-4 text-neutral-500 font-bold">No score breakdown</div>
                     )}
                   </div>
                 )}
@@ -809,33 +800,33 @@ export const WorkspacePage: React.FC = () => {
                 {/* Tab 3: Traceability Crop */}
                 {inspectorTab === 'traceability' && (
                   <div className="space-y-3">
-                    <div className="h-24 rounded-xl bg-white/[0.03] border border-white/[0.08] backdrop-blur-md flex items-center justify-center p-3 text-center shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]">
+                    <div className="h-28 rounded-xl bg-[#1a1a1a] border border-white/[0.08] flex items-center justify-center p-3 text-center">
                       <div>
-                        <span className="font-mono font-bold text-amber-300 text-sm block">
+                        <span className="font-mono font-bold text-amber-300 text-base block">
                           {selectedTag.raw_text}
                         </span>
-                        <span className="text-[10px] text-slate-500 block mt-1">
+                        <span className="text-xs text-neutral-500 font-mono block mt-1">
                           [{selectedTag.bbox.join(', ')}]
                         </span>
                       </div>
                     </div>
 
                     <Link to={`/review/${jobId}`} className="block">
-                      <Button variant="secondary" size="xs" className="w-full justify-between">
+                      <button className="w-full h-10 rounded-full border border-white/20 text-white font-bold hover:bg-white/10 flex items-center justify-between px-4 transition-all text-xs">
                         <span>Edit Tag</span>
-                        <ChevronRight size={13} />
-                      </Button>
+                        <ChevronRight size={14} />
+                      </button>
                     </Link>
                   </div>
                 )}
 
               </div>
             ) : (
-              <div className="py-12 text-center text-slate-500 text-xs font-mono">
+              <div className="py-12 text-center text-neutral-500 text-xs font-bold">
                 Click any node on the canvas to view details.
               </div>
             )}
-          </Card>
+          </div>
         </div>
 
       </div>
@@ -843,3 +834,4 @@ export const WorkspacePage: React.FC = () => {
     </div>
   );
 };
+

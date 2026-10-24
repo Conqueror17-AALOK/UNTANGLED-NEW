@@ -108,16 +108,16 @@ export const JobPage: React.FC = () => {
   }, [jobId]);
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-10 space-y-6 animate-fade-in">
+    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-12 space-y-6 animate-fade-in">
       
-      {/* Minimal Frosted Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-white/[0.08]">
+      {/* Editorial Header */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-white/[0.1]">
         <div>
-          <div className="text-xs font-mono text-cyan-400 mb-1 flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
-            <span>JOB {jobId.slice(0, 8)}</span>
+          <div className="text-xs font-bold text-slate-400 mb-1 flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#eb1000]" />
+            <span className="font-mono uppercase">JOB {jobId.slice(0, 8)}</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-heading font-extrabold text-white">
+          <h1 className="text-2xl sm:text-4xl font-heading font-black tracking-[-0.035em] text-white">
             Pipeline Execution
           </h1>
         </div>
@@ -130,71 +130,71 @@ export const JobPage: React.FC = () => {
               target="_blank"
               rel="noopener noreferrer"
             >
-              <Button variant="secondary" size="sm" className="font-mono text-xs flex items-center gap-1.5">
-                <Download size={13} className="text-emerald-400" />
+              <Button variant="secondary" size="md" className="font-bold">
+                <Download size={14} className="text-[#10b981]" />
                 <span>PDF Diagram</span>
               </Button>
             </a>
             <Button
-              variant="engineering"
-              size="sm"
+              variant="primary"
+              size="md"
               onClick={() => navigate(`/workspace/${jobId}`)}
-              className="font-mono text-xs flex items-center gap-1.5 shadow-md"
+              className="font-bold"
             >
               <span>View Canvas</span>
               <ArrowRight size={14} />
             </Button>
           </div>
         ) : errorMsg ? (
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-red-500/15 border border-red-500/40 text-xs font-mono text-red-200 backdrop-blur-md">
-            <AlertTriangle size={14} className="text-red-400 shrink-0" />
+          <div className="flex items-center gap-2.5 px-4 py-2 rounded-xl bg-[#eb1000]/15 border border-[#eb1000]/30 text-xs font-bold text-white">
+            <AlertTriangle size={15} className="text-[#eb1000] shrink-0" />
             <span>Error: {errorMsg}</span>
           </div>
         ) : (
-          <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-500/15 border border-cyan-400/35 text-xs font-mono text-cyan-200 backdrop-blur-md shadow-[0_0_15px_rgba(6,182,212,0.2)]">
-            <Loader2 size={13} className="animate-spin text-cyan-400" />
-            <span className="uppercase font-semibold">{currentStage}</span>
+          <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-white text-black text-xs font-bold shadow-sm">
+            <Loader2 size={13} className="animate-spin text-black" />
+            <span className="uppercase font-black">{currentStage}</span>
           </div>
         )}
       </div>
 
-      {/* Frosted Progress Card */}
-      <Card variant="glass" className="p-6 space-y-5">
-        <div className="flex items-center justify-between text-xs font-mono">
-          <span className="text-slate-300 font-semibold tracking-wide">TOTAL PIPELINE PROGRESS</span>
-          <span className="text-cyan-300 font-extrabold tabular-nums text-sm drop-shadow-[0_0_8px_rgba(6,182,212,0.5)]">
+      {/* Editorial Progress Card */}
+      <Card variant="card" className="p-6 space-y-5">
+        <div className="flex items-center justify-between text-xs font-bold">
+          <span className="text-slate-400 tracking-wider uppercase">TOTAL PIPELINE PROGRESS</span>
+          <span className="text-white font-black text-base tabular-nums">
             {Math.round(progress * 100)}%
           </span>
         </div>
 
-        {/* Minimal Frosted Capsule Progress Bar */}
-        <div className="w-full h-3 rounded-full bg-white/[0.04] p-0.5 border border-white/[0.1] backdrop-blur-md shadow-[inset_0_1px_3px_rgba(0,0,0,0.5)]">
+        {/* Minimal Progress Bar Capsule */}
+        <div className="w-full h-3 rounded-full bg-white/10 p-0.5 overflow-hidden">
           <div
-            className="h-full rounded-full bg-gradient-to-r from-cyan-400 via-blue-500 to-cyan-300 shadow-[0_0_15px_rgba(6,182,212,0.6)] transition-all duration-300"
+            className="h-full rounded-full bg-white transition-all duration-300"
             style={{ width: `${Math.min(100, Math.max(5, progress * 100))}%` }}
           />
         </div>
 
-        {/* Compact Glowing Glass Stat Pills */}
-        <div className="grid grid-cols-3 gap-3.5 pt-1 text-center font-mono text-xs">
-          <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-400/30 shadow-[0_0_20px_rgba(16,185,129,0.15),inset_0_1px_1px_rgba(255,255,255,0.25)] backdrop-blur-md">
-            <span className="text-[10px] text-emerald-300/80 block font-semibold tracking-wider">RESOLVED</span>
-            <span className="text-emerald-300 font-extrabold text-xl tabular-nums mt-0.5 block">{summary.resolved}</span>
+        {/* 3 Compact Editorial Stat Tiles */}
+        <div className="grid grid-cols-3 gap-3.5 pt-1 text-center font-mono">
+          <div className="p-4 rounded-xl bg-[#1a1a1a] border border-white/[0.08]">
+            <span className="text-[10px] text-slate-400 block font-bold tracking-wider">RESOLVED</span>
+            <span className="text-white font-black text-2xl tabular-nums mt-1 block">{summary.resolved}</span>
           </div>
-          <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-400/30 shadow-[0_0_20px_rgba(245,158,11,0.15),inset_0_1px_1px_rgba(255,255,255,0.25)] backdrop-blur-md">
-            <span className="text-[10px] text-amber-300/80 block font-semibold tracking-wider">REVIEW</span>
-            <span className="text-amber-300 font-extrabold text-xl tabular-nums mt-0.5 block">{summary.needs_review}</span>
+          <div className="p-4 rounded-xl bg-[#1a1a1a] border border-white/[0.08]">
+            <span className="text-[10px] text-slate-400 block font-bold tracking-wider">REVIEW</span>
+            <span className="text-[#eb1000] font-black text-2xl tabular-nums mt-1 block">{summary.needs_review}</span>
           </div>
-          <div className="p-3.5 rounded-2xl bg-blue-500/10 border border-blue-400/30 shadow-[0_0_20px_rgba(59,130,246,0.15),inset_0_1px_1px_rgba(255,255,255,0.25)] backdrop-blur-md">
-            <span className="text-[10px] text-blue-300/80 block font-semibold tracking-wider">STAGES</span>
-            <span className="text-white font-extrabold text-xl tabular-nums mt-0.5 block">
+          <div className="p-4 rounded-xl bg-[#1a1a1a] border border-white/[0.08]">
+            <span className="text-[10px] text-slate-400 block font-bold tracking-wider">STAGES</span>
+            <span className="text-white font-black text-2xl tabular-nums mt-1 block">
               {completedStages.size} / 9
             </span>
           </div>
         </div>
       </Card>
 
-      {/* Clean 9-Stage Sequence with Frosted Glass Panels */}
+      {/* 9-Stage Sequence with Adobe Editorial List Rows */}
       <div className="space-y-2">
         {PIPELINE_STAGES.map((s, index) => {
           const isCompleted = completedStages.has(s.id) || isDone;
@@ -203,40 +203,40 @@ export const JobPage: React.FC = () => {
           return (
             <div
               key={s.id}
-              className={`flex items-center justify-between px-4 py-3 rounded-2xl border text-xs transition-all duration-200 ${
+              className={`flex items-center justify-between px-5 py-3.5 rounded-xl border text-xs transition-all duration-150 ${
                 isCurrent
-                  ? 'bg-gradient-to-r from-cyan-500/20 via-blue-600/15 to-indigo-600/20 border-cyan-400/50 shadow-[0_0_25px_rgba(6,182,212,0.25),inset_0_1px_1px_rgba(255,255,255,0.3)] text-white backdrop-blur-xl scale-[1.01]'
+                  ? 'bg-[#1a1a1a] border-white/40 text-white font-black'
                   : isCompleted
-                  ? 'bg-white/[0.03] hover:bg-white/[0.06] border-white/[0.09] text-slate-200 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.1)] backdrop-blur-md'
-                  : 'bg-white/[0.01] border-white/[0.04] text-slate-500'
+                  ? 'bg-[#141414] hover:bg-[#181818] border-white/[0.08] text-slate-200 font-bold'
+                  : 'bg-[#0d0d0d] border-white/[0.04] text-slate-500 font-bold'
               }`}
             >
-              <div className="flex items-center gap-3.5">
+              <div className="flex items-center gap-4">
                 <span className="w-5 text-center font-mono text-slate-400">
                   {isCompleted ? (
-                    <CheckCircle2 size={16} className="text-emerald-400 inline drop-shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                    <CheckCircle2 size={16} className="text-[#10b981] inline" />
                   ) : isCurrent ? (
-                    <Loader2 size={15} className="animate-spin text-cyan-400 inline" />
+                    <Loader2 size={15} className="animate-spin text-white inline" />
                   ) : (
                     index + 1
                   )}
                 </span>
-                <span className={`font-medium ${isCurrent ? 'text-white font-semibold' : ''}`}>
+                <span className={`text-sm ${isCurrent ? 'text-white font-black' : 'font-bold'}`}>
                   {s.label}
                 </span>
               </div>
 
               <div>
                 {isCompleted ? (
-                  <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-400/30 text-emerald-300">
+                  <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-[#10b981]/20 text-[#10b981]">
                     DONE
                   </span>
                 ) : isCurrent ? (
-                  <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full bg-cyan-500/20 border border-cyan-400/40 text-cyan-200 animate-pulse">
+                  <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-white text-black animate-pulse">
                     RUNNING
                   </span>
                 ) : (
-                  <span className="text-[10px] font-mono text-slate-500">WAITING</span>
+                  <span className="text-[11px] font-mono text-slate-600">WAITING</span>
                 )}
               </div>
             </div>
