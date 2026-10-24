@@ -69,7 +69,8 @@ def test_extract_json_object():
 async def test_resolve_with_mocked_nvidia_llm():
     io_tags = ["PT-101", "FT-102"]
 
-    with patch("services.api.app.engine.llm_resolver.call_nvidia_llm") as mock_llm:
+    with patch("services.api.app.config.Settings.effective_nvidia_api_key", "nvapi-mock-key"), \
+         patch("services.api.app.engine.llm_resolver.call_nvidia_llm") as mock_llm:
         mock_llm.return_value = {
             "resolved_tag": "PT-101",
             "confidence": 0.95,
@@ -95,7 +96,8 @@ async def test_resolve_fallback_when_nvidia_times_out():
     io_tags = ["PT-101", "FT-102"]
 
     # When NVIDIA call raises exception or times out, it gracefully falls back
-    with patch("services.api.app.engine.llm_resolver.call_nvidia_llm", side_effect=Exception("Read timed out")):
+    with patch("services.api.app.config.Settings.effective_nvidia_api_key", "nvapi-mock-key"), \
+         patch("services.api.app.engine.llm_resolver.call_nvidia_llm", side_effect=Exception("Read timed out")):
         res = await resolve_tag_with_llm_or_heuristics(
             raw_text="PT-10l",
             normalized_candidate="PT-101",
@@ -124,7 +126,8 @@ async def test_resolve_rescue_tier_when_primary_models_fail():
         }
     ]
 
-    with patch("services.api.app.engine.llm_resolver.call_nvidia_llm", side_effect=side_effects):
+    with patch("services.api.app.config.Settings.effective_nvidia_api_key", "nvapi-mock-key"), \
+         patch("services.api.app.engine.llm_resolver.call_nvidia_llm", side_effect=side_effects):
         res = await resolve_tag_with_llm_or_heuristics(
             raw_text="PT-10l",
             normalized_candidate="PT-101",
