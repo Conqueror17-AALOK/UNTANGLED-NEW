@@ -107,10 +107,10 @@ export const JobPage: React.FC = () => {
   }, [jobId]);
 
   return (
-    <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-4 animate-fade-in font-sans">
+    <div className="w-full max-w-[1700px] mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4 animate-fade-in font-sans min-h-[calc(100vh-8rem)] flex-1 flex flex-col justify-between">
       
       {/* Clean Technical Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-[#434856]">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-3 border-b border-[#434856]">
         <div>
           <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-white">
             Pipeline Execution
@@ -150,96 +150,115 @@ export const JobPage: React.FC = () => {
           </div>
         ) : (
           <div className="flex items-center gap-2 px-3 py-1 rounded-md bg-[#24272f] border border-[#434856] text-xs text-neutral-200">
-            <Loader2 size={13} className="animate-spin text-blue-400" />
+            <Loader2 size={13} className="animate-spin text-cyan-400" />
             <span className="font-medium uppercase text-[11px]">{currentStage}</span>
           </div>
         )}
       </div>
 
-      {/* Progress Card with Integrated Stat Strip (No Boxception) */}
-      <div className="adobe-card p-5 space-y-4">
-        <div className="flex items-center justify-between text-xs text-neutral-400 font-medium">
-          <span>PIPELINE PROGRESS</span>
-          <span className="text-white font-semibold text-sm tabular-nums">
-            {Math.round(progress * 100)}%
-          </span>
-        </div>
+      {/* Screen-Filling 2-Column Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 flex-1">
+        
+        {/* Progress & Stat Telemetry (Col span 5) */}
+        <div className="lg:col-span-5 space-y-4 flex flex-col justify-between">
+          <div className="adobe-card p-6 space-y-5 flex-1 flex flex-col justify-center">
+            <div className="flex items-center justify-between text-xs text-neutral-400 font-medium">
+              <span className="tracking-wider uppercase">Pipeline Overall Progress</span>
+              <span className="text-white font-semibold text-base tabular-nums">
+                {Math.round(progress * 100)}%
+              </span>
+            </div>
 
-        {/* Minimal Progress Bar */}
-        <div className="w-full h-2 rounded-full bg-[#24272f] border border-[#434856] overflow-hidden">
-          <div
-            className="h-full rounded-full bg-blue-500 transition-all duration-300"
-            style={{ width: `${Math.min(100, Math.max(5, progress * 100))}%` }}
-          />
-        </div>
+            {/* Progress Bar */}
+            <div className="w-full h-3 rounded-full bg-[#24272f] border border-white/[0.1] overflow-hidden">
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-cyan-500 to-blue-500 transition-all duration-300"
+                style={{ width: `${Math.min(100, Math.max(5, progress * 100))}%` }}
+              />
+            </div>
 
-        {/* 3 Stats in a Clean Divided Row (No Nested Boxes) */}
-        <div className="grid grid-cols-3 divide-x divide-[#434856] pt-2 border-t border-[#434856] text-center text-xs">
-          <div className="py-1">
-            <span className="text-[11px] text-neutral-400 block font-normal">Resolved</span>
-            <span className="text-white font-semibold text-xl tabular-nums mt-0.5 block">{summary.resolved}</span>
-          </div>
-          <div className="py-1">
-            <span className="text-[11px] text-neutral-400 block font-normal">Review Queue</span>
-            <span className="text-amber-400 font-semibold text-xl tabular-nums mt-0.5 block">{summary.needs_review}</span>
-          </div>
-          <div className="py-1">
-            <span className="text-[11px] text-neutral-400 block font-normal">Completed</span>
-            <span className="text-white font-semibold text-xl tabular-nums mt-0.5 block">
-              {completedStages.size} / 9
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* 9-Stage Sequence in a Single Clean Divided List (No Separate Box for Each Stage) */}
-      <div className="adobe-card divide-y divide-[#434856] overflow-hidden">
-        {PIPELINE_STAGES.map((s, index) => {
-          const isCompleted = completedStages.has(s.id) || isDone;
-          const isCurrent = currentStage === s.id && !isDone;
-
-          return (
-            <div
-              key={s.id}
-              className={`flex items-center justify-between px-4 py-3 text-xs transition-colors ${
-                isCurrent
-                  ? 'bg-blue-500/10 text-white'
-                  : isCompleted
-                  ? 'text-neutral-200 hover:bg-white/[0.04]'
-                  : 'text-neutral-500'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <span className="w-5 text-center text-neutral-400 font-mono text-[11px]">
-                  {isCompleted ? (
-                    <CheckCircle2 size={15} className="text-emerald-400 inline" />
-                  ) : isCurrent ? (
-                    <Loader2 size={14} className="animate-spin text-blue-400 inline" />
-                  ) : (
-                    index + 1
-                  )}
-                </span>
-                <span className={`text-xs ${isCurrent ? 'font-semibold text-white' : 'font-normal'}`}>
-                  {s.label}
-                </span>
+            {/* 3 Telemetry Stats in Clean Divided Strip */}
+            <div className="grid grid-cols-3 divide-x divide-white/[0.1] pt-4 border-t border-white/[0.1] text-center text-xs">
+              <div className="py-2">
+                <span className="text-[11px] text-neutral-400 block font-normal">Resolved</span>
+                <span className="text-white font-semibold text-2xl tabular-nums mt-1 block">{summary.resolved}</span>
               </div>
-
-              <div>
-                {isCompleted ? (
-                  <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400">
-                    Done
-                  </span>
-                ) : isCurrent ? (
-                  <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 animate-pulse">
-                    Running
-                  </span>
-                ) : (
-                  <span className="text-[10px] text-neutral-400">Pending</span>
-                )}
+              <div className="py-2">
+                <span className="text-[11px] text-neutral-400 block font-normal">Review Queue</span>
+                <span className="text-amber-400 font-semibold text-2xl tabular-nums mt-1 block">{summary.needs_review}</span>
+              </div>
+              <div className="py-2">
+                <span className="text-[11px] text-neutral-400 block font-normal">Stages Completed</span>
+                <span className="text-emerald-400 font-semibold text-2xl tabular-nums mt-1 block">
+                  {completedStages.size} / 9
+                </span>
               </div>
             </div>
-          );
-        })}
+          </div>
+
+          {/* Quick Context Card */}
+          <div className="adobe-card p-5 space-y-2 text-xs">
+            <span className="text-[11px] font-semibold text-cyan-400 uppercase tracking-wider block">
+              Automated Intelligence Architecture
+            </span>
+            <p className="text-slate-300 font-normal leading-relaxed">
+              Every drawing sheet passes through OCR text alignment, heuristic symbol segmentation, graph connection tracing, and deterministic DCS tag verification.
+            </p>
+          </div>
+        </div>
+
+        {/* 9-Stage Execution Sequence (Col span 7) */}
+        <div className="lg:col-span-7 flex flex-col">
+          <div className="adobe-card divide-y divide-white/[0.08] overflow-hidden flex-1 flex flex-col justify-between">
+            {PIPELINE_STAGES.map((s, index) => {
+              const isCompleted = completedStages.has(s.id) || isDone;
+              const isCurrent = currentStage === s.id && !isDone;
+
+              return (
+                <div
+                  key={s.id}
+                  className={`flex items-center justify-between px-5 py-3.5 text-xs transition-colors ${
+                    isCurrent
+                      ? 'bg-cyan-500/10 text-white'
+                      : isCompleted
+                      ? 'text-neutral-200 hover:bg-white/[0.04]'
+                      : 'text-neutral-500'
+                  }`}
+                >
+                  <div className="flex items-center gap-3.5">
+                    <span className="w-6 text-center text-neutral-400 font-mono text-xs">
+                      {isCompleted ? (
+                        <CheckCircle2 size={16} className="text-emerald-400 inline" />
+                      ) : isCurrent ? (
+                        <Loader2 size={15} className="animate-spin text-cyan-400 inline" />
+                      ) : (
+                        index + 1
+                      )}
+                    </span>
+                    <span className={`text-xs sm:text-sm ${isCurrent ? 'font-semibold text-white' : 'font-normal'}`}>
+                      {s.label}
+                    </span>
+                  </div>
+
+                  <div>
+                    {isCompleted ? (
+                      <span className="text-[11px] font-medium px-2.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                        Complete
+                      </span>
+                    ) : isCurrent ? (
+                      <span className="text-[11px] font-medium px-2.5 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/25 animate-pulse">
+                        Executing
+                      </span>
+                    ) : (
+                      <span className="text-[11px] text-neutral-500">Pending</span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
       </div>
 
     </div>

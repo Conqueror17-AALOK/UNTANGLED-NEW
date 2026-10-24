@@ -89,8 +89,8 @@ export const Navbar: React.FC<NavbarProps> = ({ currentJobId = 'demo-job-1' }) =
         <div className="w-full max-w-[1700px] mx-auto px-4 sm:px-6 lg:px-8 h-full">
           <div className="flex items-center justify-between h-full">
             
-            {/* Brand Logo - UNTANGLED Glassmorphic Vector */}
-            <Link to="/" className="group shrink-0" title="UNTANGLED Platform">
+            {/* Brand Logo - METAWIZ UNTANGLED Glassmorphic Vector */}
+            <Link to="/" className="group shrink-0" title="METAWIZ UNTANGLED Platform">
               <UntangledLogo size="md" showText={true} />
             </Link>
 
@@ -266,7 +266,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentJobId = 'demo-job-1' }) =
               <span>Multi-Signal Verification Protocol</span>
             </div>
             <p className="text-xs leading-relaxed text-slate-300 font-normal">
-              UNTANGLED automatically cross-references physical P&ID blueprints against engineering DCS IO lists using visual OCR voting, OpenCV symbol correlation, RapidFuzz candidate indexing, and ISA-5.1 grammar parsing.
+              METAWIZ UNTANGLED automatically cross-references physical P&ID blueprints against engineering DCS IO lists using visual OCR voting, OpenCV symbol correlation, RapidFuzz candidate indexing, and ISA-5.1 grammar parsing.
             </p>
           </div>
 
