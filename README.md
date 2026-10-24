@@ -166,7 +166,13 @@ UNTANGLED-NEW/
    ```
 
 3. **Start the FastAPI Backend Service**:
+   Run from the repository root:
    ```bash
+   # Direct execution via virtual environment (recommended on macOS):
+   .venv/bin/python -m uvicorn services.api.app.main:app --host 127.0.0.1 --port 8000 --reload
+
+   # Or activate virtual environment first:
+   source .venv/bin/activate
    python -m uvicorn services.api.app.main:app --host 127.0.0.1 --port 8000 --reload
    ```
    - API Gateway: `http://127.0.0.1:8000`
@@ -200,9 +206,9 @@ docker compose -f infra/docker-compose.yml up --build
 
 ## Testing & Verification
 
-The test suite covers backend models, perception algorithms, neural detectors, schema contracts, and frontend components.
+The test suite covers backend models, perception algorithms, neural detectors, schema contracts, multi-sheet merger, and revision diff engine.
 
-### Run All Backend Tests (35 Tests Passing)
+### Run All Backend Tests (42 Tests Passing)
 ```bash
 PYTHONPATH=. .venv/bin/pytest services/
 ```
