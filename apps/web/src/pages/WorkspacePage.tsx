@@ -52,6 +52,8 @@ export const WorkspacePage: React.FC = () => {
     }
   }, [selectedNode, tags]);
 
+  const rafPanRef = React.useRef<number | null>(null);
+
   // Pan & Zoom Handlers
   const handleMouseDown = (e: React.MouseEvent) => {
     setIsDragging(true);
@@ -60,10 +62,22 @@ export const WorkspacePage: React.FC = () => {
 
   const handleMouseMove = (e: React.MouseEvent) => {
     if (!isDragging) return;
-    setPan({ x: e.clientX - dragStart.x, y: e.clientY - dragStart.y });
+    const newX = e.clientX - dragStart.x;
+    const newY = e.clientY - dragStart.y;
+    if (rafPanRef.current) cancelAnimationFrame(rafPanRef.current);
+    rafPanRef.current = requestAnimationFrame(() => {
+      setPan({ x: newX, y: newY });
+      rafPanRef.current = null;
+    });
   };
 
-  const handleMouseUp = () => setIsDragging(false);
+  const handleMouseUp = () => {
+    setIsDragging(false);
+    if (rafPanRef.current) {
+      cancelAnimationFrame(rafPanRef.current);
+      rafPanRef.current = null;
+    }
+  };
 
   // Touch Handlers for Mobile & Tablet Viewports
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -75,10 +89,22 @@ export const WorkspacePage: React.FC = () => {
 
   const handleTouchMove = (e: React.TouchEvent) => {
     if (!isDragging || e.touches.length !== 1) return;
-    setPan({ x: e.touches[0].clientX - dragStart.x, y: e.touches[0].clientY - dragStart.y });
+    const newX = e.touches[0].clientX - dragStart.x;
+    const newY = e.touches[0].clientY - dragStart.y;
+    if (rafPanRef.current) cancelAnimationFrame(rafPanRef.current);
+    rafPanRef.current = requestAnimationFrame(() => {
+      setPan({ x: newX, y: newY });
+      rafPanRef.current = null;
+    });
   };
 
-  const handleTouchEnd = () => setIsDragging(false);
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+    if (rafPanRef.current) {
+      cancelAnimationFrame(rafPanRef.current);
+      rafPanRef.current = null;
+    }
+  };
 
   const resetViewport = () => {
     setZoom(1);
@@ -107,17 +133,31 @@ export const WorkspacePage: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // Filter nodes based on layer
-  const visibleNodes = (graph?.nodes || []).filter((node) => {
-    if (activeLayer === 'all') return true;
-    return node.category === activeLayer;
-  });
+  // Memoize node lookup map for O(1) edge target rendering
+  const nodeMap = React.useMemo(() => {
+    const map = new Map<string, GraphNode>();
+    if (graph?.nodes) {
+      for (const node of graph.nodes) {
+        map.set(node.id, node);
+      }
+    }
+    return map;
+  }, [graph?.nodes]);
 
-  const visibleNodeIds = new Set(visibleNodes.map((n) => n.id));
+  // Filter nodes based on layer with useMemo
+  const visibleNodes = React.useMemo(() => {
+    if (!graph?.nodes) return [];
+    if (activeLayer === 'all') return graph.nodes;
+    return graph.nodes.filter((node) => node.category === activeLayer);
+  }, [graph?.nodes, activeLayer]);
 
-  const visibleEdges = (graph?.edges || []).filter(
-    (e) => visibleNodeIds.has(e.source) && visibleNodeIds.has(e.target)
-  );
+  const visibleEdges = React.useMemo(() => {
+    if (!graph?.edges) return [];
+    const idSet = new Set(visibleNodes.map((n) => n.id));
+    return graph.edges.filter(
+      (e) => idSet.has(e.source) && idSet.has(e.target)
+    );
+  }, [graph?.edges, visibleNodes]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-4 animate-fade-in">
@@ -278,8 +318,8 @@ export const WorkspacePage: React.FC = () => {
                   
                   {/* Process & Signal Edges */}
                   {visibleEdges.map((edge) => {
-                    const src = graph?.nodes.find((n) => n.id === edge.source);
-                    const tgt = graph?.nodes.find((n) => n.id === edge.target);
+                    const src = nodeMap.get(edge.source);
+                    const tgt = nodeMap.get(edge.target);
                     if (!src || !tgt) return null;
 
                     const isProcess = edge.line_type === 'process';

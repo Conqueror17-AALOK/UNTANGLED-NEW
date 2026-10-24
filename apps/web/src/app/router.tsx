@@ -11,21 +11,21 @@ export const AppRouter: React.FC = () => {
   return (
     <div className="relative min-h-screen flex flex-col bg-[#030712] text-[#f8fafc] antialiased overflow-x-hidden selection:bg-cyan-500/30 selection:text-cyan-200">
       {/* Radiant Ambient Aurora Canvas for True Optical Glassmorphism */}
-      <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden select-none">
+      <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden select-none transform-gpu">
         {/* Deep space radial mesh */}
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_90%_70%_at_50%_-15%,rgba(20,38,80,0.65),rgba(3,7,18,1))]" />
         
         {/* Electric Cyan & Teal Core Aurora */}
-        <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[1000px] h-[550px] bg-gradient-to-b from-cyan-400/[0.24] via-teal-500/[0.16] to-transparent rounded-full blur-[130px]" />
+        <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[1000px] h-[550px] bg-gradient-to-b from-cyan-400/[0.24] via-teal-500/[0.16] to-transparent rounded-full blur-[100px] transform-gpu" />
         
         {/* Deep Royal Indigo / Sapphire Atmospheric Glow */}
-        <div className="absolute top-[22%] -left-36 w-[700px] h-[500px] bg-gradient-to-tr from-indigo-600/[0.22] via-blue-600/[0.18] to-transparent rounded-full blur-[150px]" />
+        <div className="absolute top-[22%] -left-36 w-[700px] h-[500px] bg-gradient-to-tr from-indigo-600/[0.22] via-blue-600/[0.18] to-transparent rounded-full blur-[110px] transform-gpu" />
         
         {/* Celestial Violet / Purple Aurora */}
-        <div className="absolute top-[38%] -right-36 w-[700px] h-[520px] bg-gradient-to-bl from-purple-600/[0.20] via-violet-500/[0.14] to-transparent rounded-full blur-[150px]" />
+        <div className="absolute top-[38%] -right-36 w-[700px] h-[520px] bg-gradient-to-bl from-purple-600/[0.20] via-violet-500/[0.14] to-transparent rounded-full blur-[110px] transform-gpu" />
         
         {/* Process Emerald / Seafoam Floor Aurora */}
-        <div className="absolute -bottom-36 left-1/3 w-[900px] h-[500px] bg-gradient-to-t from-emerald-500/[0.16] via-teal-500/[0.12] to-transparent rounded-full blur-[140px]" />
+        <div className="absolute -bottom-36 left-1/3 w-[900px] h-[500px] bg-gradient-to-t from-emerald-500/[0.16] via-teal-500/[0.12] to-transparent rounded-full blur-[100px] transform-gpu" />
         
         {/* Micro CAD Technical Grid */}
         <div className="absolute inset-0 bg-cad-grid opacity-25" />
