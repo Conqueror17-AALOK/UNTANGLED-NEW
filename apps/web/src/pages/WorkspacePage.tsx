@@ -157,15 +157,15 @@ export const WorkspacePage: React.FC = () => {
   }, [graph?.edges, visibleNodes]);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-6 animate-fade-in font-sans">
+    <div className="w-full max-w-[1700px] mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4 h-full flex flex-col min-h-0 space-y-3 animate-fade-in font-sans">
       
       {/* Refined Engineering Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#2d313a]">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#434856] shrink-0">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-semibold text-white tracking-tight mb-1">
+          <h1 className="text-xl sm:text-2xl font-semibold text-slate-100 tracking-tight mb-0.5">
             Process Topology
           </h1>
-          <p className="text-xs text-neutral-400 font-normal">
+          <p className="text-xs text-slate-400 font-normal">
             Interactive ISA-5.1 verified process diagram with live telemetry & cross-validation.
           </p>
         </div>
@@ -177,7 +177,7 @@ export const WorkspacePage: React.FC = () => {
             target="_blank"
             rel="noopener noreferrer"
           >
-            <button className="bg-neutral-100 text-neutral-900 font-medium h-9 px-4 rounded-lg flex items-center gap-2 hover:bg-white transition-all text-xs">
+            <button className="bg-slate-100 text-slate-900 font-medium h-8 px-3 rounded-lg flex items-center gap-2 hover:bg-white transition-all text-xs">
               <Download size={13} />
               <span>Download PDF</span>
             </button>
@@ -185,10 +185,10 @@ export const WorkspacePage: React.FC = () => {
 
           <button
             onClick={() => setShowBeforeAfter(!showBeforeAfter)}
-            className={`h-9 px-3.5 rounded-lg border text-xs font-medium flex items-center gap-1.5 transition-all ${
+            className={`h-8 px-3 rounded-lg border text-xs font-medium flex items-center gap-1.5 transition-all ${
               showBeforeAfter
-                ? 'bg-[#2d313a] text-white border-[#3a3f4c]'
-                : 'bg-[#20232a] text-neutral-300 border-[#2d313a] hover:bg-[#252831]'
+                ? 'bg-[#3f4554] text-white border-[#525869]'
+                : 'bg-[#323642] text-slate-300 border-[#434856] hover:bg-[#3b404d]'
             }`}
           >
             <Columns size={13} />
@@ -196,14 +196,14 @@ export const WorkspacePage: React.FC = () => {
           </button>
 
           <Link to={`/review/${jobId}`}>
-            <button className="h-9 px-3.5 rounded-lg border border-[#2d313a] bg-[#20232a] text-neutral-300 hover:text-white hover:bg-[#252831] flex items-center gap-1.5 transition-all text-xs font-medium">
+            <button className="h-8 px-3 rounded-lg border border-[#434856] bg-[#323642] text-slate-300 hover:text-white hover:bg-[#3b404d] flex items-center gap-1.5 transition-all text-xs font-medium">
               <CheckCircle2 size={13} className="text-amber-400" />
               <span>Review Queue</span>
             </button>
           </Link>
 
           <Link to={`/report/${jobId}`}>
-            <button className="h-9 px-3.5 rounded-lg border border-[#2d313a] bg-[#20232a] text-neutral-300 hover:text-white hover:bg-[#252831] flex items-center gap-1.5 transition-all text-xs font-medium">
+            <button className="h-8 px-3 rounded-lg border border-[#434856] bg-[#323642] text-slate-300 hover:text-white hover:bg-[#3b404d] flex items-center gap-1.5 transition-all text-xs font-medium">
               <FileSpreadsheet size={13} className="text-blue-400" />
               <span>Audit Report</span>
             </button>
@@ -212,17 +212,17 @@ export const WorkspacePage: React.FC = () => {
       </div>
 
       {/* Main Workspace Layout (Canvas + Inspector) */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 flex-1 min-h-0 h-full">
         
         {/* Canvas Area (Col span 2) */}
-        <div className="lg:col-span-2 space-y-4">
+        <div className="lg:col-span-2 flex flex-col h-full min-h-0 space-y-2.5">
           
           {/* Controls Bar */}
-          <div className="flex flex-wrap items-center justify-between gap-3 p-2 rounded-lg bg-[#20232a] border border-[#2d313a] text-xs">
+          <div className="flex flex-wrap items-center justify-between gap-3 p-2 rounded-lg bg-[#323642] border border-[#434856] text-xs shrink-0">
             
             {/* Layer Toggles */}
-            <div className="flex items-center gap-1 bg-[#1a1c22] p-1 rounded-md border border-[#2d313a]">
-              <span className="text-neutral-400 text-xs px-2 font-medium">
+            <div className="flex items-center gap-1 bg-[#24272f] p-1 rounded-md border border-[#434856]">
+              <span className="text-slate-400 text-xs px-2 font-medium">
                 Layers:
               </span>
               {(['all', 'equipment', 'instrument', 'valve'] as const).map((layer) => (
@@ -231,8 +231,8 @@ export const WorkspacePage: React.FC = () => {
                   onClick={() => setActiveLayer(layer)}
                   className={`px-2.5 py-1 rounded text-xs font-medium capitalize transition-all ${
                     activeLayer === layer
-                      ? 'bg-[#2d313a] text-white font-semibold'
-                      : 'text-neutral-400 hover:text-white'
+                      ? 'bg-[#3f4554] text-white font-medium shadow-sm'
+                      : 'text-slate-400 hover:text-slate-200'
                   }`}
                 >
                   {layer}
@@ -244,34 +244,34 @@ export const WorkspacePage: React.FC = () => {
             <div className="flex items-center gap-1 pr-1">
               <button
                 onClick={() => setZoom((z) => Math.min(z + 0.15, 2.5))}
-                className="w-7 h-7 rounded-md bg-[#252831] hover:bg-[#2b2e38] text-neutral-300 hover:text-white border border-[#2d313a] transition-all flex items-center justify-center"
+                className="w-7 h-7 rounded-md bg-[#24272f] hover:bg-[#383d4a] text-slate-300 hover:text-white border border-[#434856] transition-all flex items-center justify-center"
                 title="Zoom In (+)"
               >
                 <ZoomIn size={13} />
               </button>
               <button
                 onClick={() => setZoom((z) => Math.max(z - 0.15, 0.5))}
-                className="w-7 h-7 rounded-md bg-[#252831] hover:bg-[#2b2e38] text-neutral-300 hover:text-white border border-[#2d313a] transition-all flex items-center justify-center"
+                className="w-7 h-7 rounded-md bg-[#24272f] hover:bg-[#383d4a] text-slate-300 hover:text-white border border-[#434856] transition-all flex items-center justify-center"
                 title="Zoom Out (-)"
               >
                 <ZoomOut size={13} />
               </button>
               <button
                 onClick={resetViewport}
-                className="w-8 h-8 rounded-full bg-white/[0.06] hover:bg-white/[0.14] text-white border border-white/[0.1] transition-all flex items-center justify-center"
+                className="w-7 h-7 rounded-md bg-[#24272f] hover:bg-[#383d4a] text-slate-300 hover:text-white border border-[#434856] transition-all flex items-center justify-center"
                 title="Reset View (0)"
               >
-                <RotateCcw size={14} />
+                <RotateCcw size={13} />
               </button>
-              <span className="text-xs font-mono text-white px-2.5 font-bold tabular-nums">
+              <span className="text-xs font-mono text-slate-200 px-2 font-medium tabular-nums">
                 {Math.round(zoom * 100)}%
               </span>
             </div>
 
           </div>
 
-          {/* SVG CAD Canvas Box */}
-          <div className="h-[420px] sm:h-[500px] lg:h-[580px] relative overflow-hidden bg-[#0d0d0d] border border-white/[0.12] rounded-3xl select-none">
+          {/* SVG CAD Canvas Box - Fits remaining height and grey background */}
+          <div className="flex-1 min-h-[400px] h-full relative overflow-hidden bg-[#2b2e37] border border-[#434856] rounded-xl select-none shadow-inner">
             {/* Coordinate Grid & Interactive Canvas */}
             <div
               className="absolute inset-0 cursor-grab active:cursor-grabbing bg-cad-grid touch-none z-0"
@@ -650,21 +650,21 @@ export const WorkspacePage: React.FC = () => {
         </div>
 
         {/* Right Sidebar: Tag Details / Inspector */}
-        <div className="space-y-4">
-          <div className="adobe-card p-5 space-y-4">
+        <div className="h-full min-h-0 flex flex-col">
+          <div className="adobe-card p-4 h-full flex flex-col min-h-0">
             
             {/* Header */}
-            <div className="flex items-center justify-between pb-3 border-b border-white/[0.1]">
-              <h2 className="text-xs font-black uppercase tracking-wider text-white">
+            <div className="flex items-center justify-between pb-2.5 mb-3 border-b border-[#434856] shrink-0">
+              <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-200">
                 Tag Inspector
               </h2>
               {selectedTag && (
-                <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full ${
+                <span className={`text-[11px] font-medium px-2 py-0.5 rounded-md ${
                   selectedTag.confidence >= 0.85
                     ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-400/30'
                     : selectedTag.confidence >= 0.60
                     ? 'bg-amber-500/15 text-amber-300 border border-amber-400/30'
-                    : 'bg-[#eb1000]/15 text-[#eb1000] border border-[#eb1000]/30'
+                    : 'bg-rose-500/15 text-rose-300 border border-rose-400/30'
                 }`}>
                   {Math.round(selectedTag.confidence * 100)}%
                 </span>
@@ -672,15 +672,15 @@ export const WorkspacePage: React.FC = () => {
             </div>
 
             {selectedNode && selectedTag ? (
-              <div className="space-y-4 text-xs">
+              <div className="flex-1 min-h-0 overflow-y-auto space-y-3 pr-1 text-xs">
                 
                 {/* Tag Identity Block */}
-                <div className="p-4 rounded-xl bg-[#1a1a1a] border border-white/[0.08] flex items-center justify-between">
+                <div className="p-3 rounded-lg bg-[#24272f] border border-[#434856] flex items-center justify-between">
                   <div>
-                    <span className="text-xl font-display font-black text-white block tracking-tight">
+                    <span className="text-lg font-semibold text-slate-100 block tracking-tight font-mono">
                       {selectedTag.normalized_tag}
                     </span>
-                    <span className="text-xs text-neutral-400 font-bold">{selectedTag.type}</span>
+                    <span className="text-xs text-slate-400 font-normal">{selectedTag.type}</span>
                   </div>
                   <span className="adobe-chip text-xs">
                     {selectedTag.category.toUpperCase()}
@@ -688,33 +688,33 @@ export const WorkspacePage: React.FC = () => {
                 </div>
 
                 {/* Tab Selector - Docked Pill Strip */}
-                <div className="flex rounded-full bg-[#0a0a0a] p-1 border border-white/[0.08] text-xs">
+                <div className="flex rounded-lg bg-[#24272f] p-1 border border-[#434856] text-xs">
                   <button
                     onClick={() => setInspectorTab('telemetry')}
-                    className={`flex-1 py-1.5 rounded-full transition-all text-xs ${
+                    className={`flex-1 py-1 rounded-md transition-all text-xs ${
                       inspectorTab === 'telemetry'
-                        ? 'bg-white text-black font-black'
-                        : 'text-neutral-400 hover:text-white font-bold'
+                        ? 'bg-[#3f4554] text-white font-medium shadow-sm'
+                        : 'text-slate-400 hover:text-white font-medium'
                     }`}
                   >
                     Details
                   </button>
                   <button
                     onClick={() => setInspectorTab('confidence')}
-                    className={`flex-1 py-1.5 rounded-full transition-all text-xs ${
+                    className={`flex-1 py-1 rounded-md transition-all text-xs ${
                       inspectorTab === 'confidence'
-                        ? 'bg-white text-black font-black'
-                        : 'text-neutral-400 hover:text-white font-bold'
+                        ? 'bg-[#3f4554] text-white font-medium shadow-sm'
+                        : 'text-slate-400 hover:text-white font-medium'
                     }`}
                   >
                     Confidence
                   </button>
                   <button
                     onClick={() => setInspectorTab('traceability')}
-                    className={`flex-1 py-1.5 rounded-full transition-all text-xs ${
+                    className={`flex-1 py-1 rounded-md transition-all text-xs ${
                       inspectorTab === 'traceability'
-                        ? 'bg-white text-black font-black'
-                        : 'text-neutral-400 hover:text-white font-bold'
+                        ? 'bg-[#3f4554] text-white font-medium shadow-sm'
+                        : 'text-slate-400 hover:text-white font-medium'
                     }`}
                   >
                     Crop
@@ -723,28 +723,28 @@ export const WorkspacePage: React.FC = () => {
 
                 {/* Tab 1: Telemetry */}
                 {inspectorTab === 'telemetry' && (
-                  <div className="space-y-2.5 text-xs font-mono">
-                    <div className="p-3.5 rounded-xl bg-[#1a1a1a] border border-white/[0.08] space-y-2">
+                  <div className="space-y-2 text-xs font-mono">
+                    <div className="p-3 rounded-lg bg-[#24272f] border border-[#434856] space-y-2">
                       <div className="flex justify-between">
-                        <span className="text-neutral-400 font-sans font-bold">Raw Read:</span>
-                        <span className="text-amber-300 font-bold">{selectedTag.raw_text}</span>
+                        <span className="text-slate-400 font-sans font-medium">Raw Read:</span>
+                        <span className="text-amber-300 font-medium">{selectedTag.raw_text}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-neutral-400 font-sans font-bold">DCS Match:</span>
-                        <span className="text-emerald-400 font-bold">{selectedTag.io_match?.io_tag || 'None'}</span>
+                        <span className="text-slate-400 font-sans font-medium">DCS Match:</span>
+                        <span className="text-emerald-400 font-medium">{selectedTag.io_match?.io_tag || 'None'}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-neutral-400 font-sans font-bold">Signal:</span>
-                        <span className="text-white font-bold">{selectedTag.io_match?.signal_type || '4-20mA'}</span>
+                        <span className="text-slate-400 font-sans font-medium">Signal:</span>
+                        <span className="text-slate-200 font-medium">{selectedTag.io_match?.signal_type || '4-20mA'}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-neutral-400 font-sans font-bold">Status:</span>
-                        <span className="text-emerald-400 uppercase font-black">{selectedTag.status}</span>
+                        <span className="text-slate-400 font-sans font-medium">Status:</span>
+                        <span className="text-emerald-400 uppercase font-medium">{selectedTag.status}</span>
                       </div>
                     </div>
 
                     {selectedTag.reasoning && (
-                      <div className="p-3.5 rounded-xl bg-[#1a1a1a] border border-white/[0.08] text-neutral-300 text-xs leading-relaxed font-sans font-bold">
+                      <div className="p-3 rounded-lg bg-[#24272f] border border-[#434856] text-slate-300 text-xs leading-relaxed font-sans font-normal">
                         {selectedTag.reasoning}
                       </div>
                     )}
@@ -755,13 +755,13 @@ export const WorkspacePage: React.FC = () => {
                 {inspectorTab === 'confidence' && (
                   <div className="space-y-3 text-xs">
                     {selectedTag.conf_breakdown ? (
-                      <div className="space-y-3 p-3.5 rounded-lg bg-[#181a1f] border border-[#2d313a]">
+                      <div className="space-y-3 p-3 rounded-lg bg-[#24272f] border border-[#434856]">
                         <div>
                           <div className="flex justify-between text-slate-300 text-xs mb-1 font-medium">
                             <span>OCR Consensus</span>
                             <span className="font-medium text-slate-100">{Math.round((selectedTag.conf_breakdown.ocr || 0) * 100)}%</span>
                           </div>
-                          <div className="w-full h-1.5 bg-[#2d313a] rounded-full overflow-hidden">
+                          <div className="w-full h-1.5 bg-[#1e2026] rounded-full overflow-hidden">
                             <div className="h-full bg-slate-200 rounded-full" style={{ width: `${(selectedTag.conf_breakdown.ocr || 0) * 100}%` }} />
                           </div>
                         </div>
@@ -771,7 +771,7 @@ export const WorkspacePage: React.FC = () => {
                             <span>Symbol Match</span>
                             <span className="font-medium text-emerald-400">{Math.round((selectedTag.conf_breakdown.symbol || 0) * 100)}%</span>
                           </div>
-                          <div className="w-full h-1.5 bg-[#2d313a] rounded-full overflow-hidden">
+                          <div className="w-full h-1.5 bg-[#1e2026] rounded-full overflow-hidden">
                             <div className="h-full bg-emerald-400 rounded-full" style={{ width: `${(selectedTag.conf_breakdown.symbol || 0) * 100}%` }} />
                           </div>
                         </div>
@@ -781,7 +781,7 @@ export const WorkspacePage: React.FC = () => {
                             <span>DCS Verification</span>
                             <span className="font-medium text-blue-400">{Math.round((selectedTag.conf_breakdown.io_match || 0) * 100)}%</span>
                           </div>
-                          <div className="w-full h-1.5 bg-[#2d313a] rounded-full overflow-hidden">
+                          <div className="w-full h-1.5 bg-[#1e2026] rounded-full overflow-hidden">
                             <div className="h-full bg-blue-400 rounded-full" style={{ width: `${(selectedTag.conf_breakdown.io_match || 0) * 100}%` }} />
                           </div>
                         </div>
@@ -795,7 +795,7 @@ export const WorkspacePage: React.FC = () => {
                 {/* Tab 3: Traceability Crop */}
                 {inspectorTab === 'traceability' && (
                   <div className="space-y-3">
-                    <div className="h-28 rounded-lg bg-[#181a1f] border border-[#2d313a] flex items-center justify-center p-3 text-center">
+                    <div className="h-28 rounded-lg bg-[#24272f] border border-[#434856] flex items-center justify-center p-3 text-center">
                       <div>
                         <span className="font-mono font-medium text-amber-300 text-sm block">
                           {selectedTag.raw_text}
@@ -807,7 +807,7 @@ export const WorkspacePage: React.FC = () => {
                     </div>
 
                     <Link to={`/review/${jobId}`} className="block">
-                      <button className="w-full h-9 rounded-lg border border-[#2d313a] bg-[#181a1f] text-slate-200 font-medium hover:bg-[#252831] flex items-center justify-between px-3.5 transition-all text-xs">
+                      <button className="w-full h-8 rounded-lg border border-[#434856] bg-[#24272f] text-slate-200 font-medium hover:bg-[#323642] flex items-center justify-between px-3 transition-all text-xs">
                         <span>Edit Tag</span>
                         <ChevronRight size={14} />
                       </button>

@@ -20,8 +20,8 @@ export const Badge: React.FC<BadgeProps> = ({
   };
 
   const variantClasses = {
-    chip: "bg-white/[0.05] text-neutral-300 border border-[#2d313a] font-medium",
-    neutral: "bg-white/[0.05] text-neutral-300 border border-[#2d313a] font-medium",
+    chip: "bg-white/[0.05] text-neutral-300 border border-[#434856] font-medium",
+    neutral: "bg-white/[0.05] text-neutral-300 border border-[#434856] font-medium",
     red: "bg-red-500/10 text-red-400 border border-red-500/20 font-medium",
     low: "bg-red-500/10 text-red-400 border border-red-500/20 font-medium",
     medium: "bg-amber-500/10 text-amber-400 border border-amber-500/20 font-medium",

@@ -84,7 +84,7 @@ export const UploadPage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-12 pb-24 space-y-6 animate-fade-in font-sans">
+    <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-6 animate-fade-in font-sans">
       
       {/* Clean Technical Hero */}
       <div className="text-center space-y-1.5 pb-2">
@@ -108,17 +108,17 @@ export const UploadPage: React.FC = () => {
                   <FileCode2 size={15} className="text-blue-400" />
                   <span>1. P&ID Blueprint (PDF)</span>
                 </span>
-                <span className="text-[10px] text-neutral-500 font-normal">
+                <span className="text-[10px] text-neutral-400 font-normal">
                   Max 50MB
                 </span>
               </label>
 
               <label
                 htmlFor="pdf-upload"
-                className={`group relative flex flex-col items-center justify-center p-8 rounded-2xl border transition-all duration-200 cursor-pointer ${
+                className={`group relative flex flex-col items-center justify-center p-8 rounded-xl border transition-all duration-200 cursor-pointer ${
                   pdfFile
-                    ? 'border-[#10b981] bg-[#10b981]/10'
-                    : 'adobe-well'
+                    ? 'border-emerald-500/60 bg-emerald-500/10'
+                    : 'adobe-well hover:border-slate-400'
                 }`}
               >
                 <input
@@ -131,31 +131,31 @@ export const UploadPage: React.FC = () => {
 
                 {pdfFile ? (
                   <div className="text-center space-y-2">
-                    <div className="w-12 h-12 mx-auto rounded-full bg-[#10b981]/20 text-[#10b981] flex items-center justify-center border border-[#10b981]/30">
+                    <div className="w-12 h-12 mx-auto rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-500/30">
                       <CheckCircle2 size={24} />
                     </div>
                     <div>
-                      <p className="text-xs font-bold text-white truncate max-w-[240px]">
+                      <p className="text-xs font-semibold text-white truncate max-w-[240px]">
                         {pdfFile.name}
                       </p>
-                      <p className="text-[11px] text-[#10b981] font-bold mt-0.5">
+                      <p className="text-[11px] text-emerald-400 font-medium mt-0.5">
                         {(pdfFile.size / 1024).toFixed(1)} KB · READY
                       </p>
                     </div>
-                    <span className="text-xs text-white hover:underline font-bold block pt-1">
+                    <span className="text-xs text-blue-400 hover:underline font-medium block pt-1">
                       Change blueprint file
                     </span>
                   </div>
                 ) : (
                   <div className="text-center space-y-2.5 py-2">
-                    <div className="w-12 h-12 mx-auto rounded-full bg-white/[0.08] text-white flex items-center justify-center group-hover:bg-white group-hover:text-black transition-colors">
+                    <div className="w-12 h-12 mx-auto rounded-full bg-white/[0.08] text-white flex items-center justify-center group-hover:bg-[#3f4554] transition-colors">
                       <UploadCloud size={22} />
                     </div>
                     <div>
-                      <p className="text-sm font-extrabold text-white">
+                      <p className="text-sm font-semibold text-white">
                         Choose P&ID PDF Blueprint
                       </p>
-                      <p className="text-xs text-slate-400 font-bold mt-0.5">
+                      <p className="text-xs text-neutral-400 font-normal mt-0.5">
                         Vector or scanned engineering drawing
                       </p>
                     </div>
@@ -165,23 +165,23 @@ export const UploadPage: React.FC = () => {
             </div>
 
             {/* Target 2: DCS IO List Register */}
-            <div className="space-y-2.5">
-              <label className="text-xs font-bold text-slate-200 flex items-center justify-between">
-                <span className="flex items-center gap-2">
-                  <FileSpreadsheet size={16} className="text-[#10b981]" />
+            <div className="space-y-2">
+              <label className="text-xs font-medium text-neutral-200 flex items-center justify-between">
+                <span className="flex items-center gap-1.5">
+                  <FileSpreadsheet size={15} className="text-emerald-400" />
                   <span>2. DCS IO Point Schedule (Excel)</span>
                 </span>
-                <span className="text-[11px] font-bold text-slate-400 px-2.5 py-0.5 rounded-md bg-white/[0.06] border border-white/[0.08]">
+                <span className="text-[10px] text-neutral-400 font-normal">
                   Max 10MB
                 </span>
               </label>
 
               <label
                 htmlFor="xlsx-upload"
-                className={`group relative flex flex-col items-center justify-center p-8 rounded-2xl border transition-all duration-200 cursor-pointer ${
+                className={`group relative flex flex-col items-center justify-center p-8 rounded-xl border transition-all duration-200 cursor-pointer ${
                   xlsxFile
-                    ? 'border-[#10b981] bg-[#10b981]/10'
-                    : 'adobe-well'
+                    ? 'border-emerald-500/60 bg-emerald-500/10'
+                    : 'adobe-well hover:border-slate-400'
                 }`}
               >
                 <input
@@ -194,31 +194,31 @@ export const UploadPage: React.FC = () => {
 
                 {xlsxFile ? (
                   <div className="text-center space-y-2">
-                    <div className="w-12 h-12 mx-auto rounded-full bg-[#10b981]/20 text-[#10b981] flex items-center justify-center border border-[#10b981]/30">
+                    <div className="w-12 h-12 mx-auto rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-500/30">
                       <CheckCircle2 size={24} />
                     </div>
                     <div>
-                      <p className="text-xs font-bold text-white truncate max-w-[240px]">
+                      <p className="text-xs font-semibold text-white truncate max-w-[240px]">
                         {xlsxFile.name}
                       </p>
-                      <p className="text-[11px] text-[#10b981] font-bold mt-0.5">
+                      <p className="text-[11px] text-emerald-400 font-medium mt-0.5">
                         {(xlsxFile.size / 1024).toFixed(1)} KB · READY
                       </p>
                     </div>
-                    <span className="text-xs text-white hover:underline font-bold block pt-1">
+                    <span className="text-xs text-blue-400 hover:underline font-medium block pt-1">
                       Change Excel file
                     </span>
                   </div>
                 ) : (
                   <div className="text-center space-y-2.5 py-2">
-                    <div className="w-12 h-12 mx-auto rounded-full bg-white/[0.08] text-white flex items-center justify-center group-hover:bg-white group-hover:text-black transition-colors">
+                    <div className="w-12 h-12 mx-auto rounded-full bg-white/[0.08] text-white flex items-center justify-center group-hover:bg-[#3f4554] transition-colors">
                       <UploadCloud size={22} />
                     </div>
                     <div>
-                      <p className="text-sm font-extrabold text-white">
+                      <p className="text-sm font-semibold text-white">
                         Choose DCS IO List (.xlsx)
                       </p>
-                      <p className="text-xs text-slate-400 font-bold mt-0.5">
+                      <p className="text-xs text-neutral-400 font-normal mt-0.5">
                         Channel addresses & point tag register
                       </p>
                     </div>
@@ -231,14 +231,14 @@ export const UploadPage: React.FC = () => {
 
           {/* Validation Error Alert */}
           {errorMsg && (
-            <div className="flex items-center gap-3 p-4 rounded-xl bg-[#eb1000]/15 border border-[#eb1000]/30 text-white text-xs font-bold">
-              <AlertTriangle size={18} className="shrink-0 text-[#eb1000]" />
+            <div className="flex items-center gap-3 p-4 rounded-xl bg-red-500/15 border border-red-500/30 text-white text-xs font-medium">
+              <AlertTriangle size={18} className="shrink-0 text-red-400" />
               <span>{errorMsg}</span>
             </div>
           )}
 
-          {/* Clean Action Buttons (Adobe Pill Buttons) */}
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-5 border-t border-white/[0.1]">
+          {/* Clean Action Buttons */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-5 border-t border-[#434856]">
             <Button
               type="button"
               onClick={loadSampleFiles}
@@ -247,7 +247,7 @@ export const UploadPage: React.FC = () => {
               size="md"
               className="w-full sm:w-auto"
             >
-              <Sparkles size={14} className="text-[#eb1000]" />
+              <Sparkles size={14} className="text-amber-400" />
               <span>Load Sample Files</span>
             </Button>
 

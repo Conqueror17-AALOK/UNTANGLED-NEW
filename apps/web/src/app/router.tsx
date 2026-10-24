@@ -8,17 +8,20 @@ import { ReportPage } from '../pages/ReportPage';
 import { Navbar } from '../components/layout/Navbar';
 
 export const AppRouter: React.FC = () => {
+  const location = useLocation();
+  const isWorkspace = location.pathname.startsWith('/workspace');
+
   return (
-    <div className="relative min-h-screen flex flex-col bg-[#181a1f] text-[#e5e7eb] antialiased overflow-x-hidden selection:bg-blue-500/25 selection:text-white font-normal">
+    <div className={`relative ${isWorkspace ? 'h-screen overflow-hidden' : 'min-h-screen'} flex flex-col bg-[#282b33] text-[#e2e8f0] antialiased selection:bg-blue-500/30 selection:text-white font-normal`}>
       {/* Matte Architectural Background Canvas */}
       <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden select-none">
-        <div className="absolute inset-0 bg-gradient-to-b from-[#1c1e24] via-[#181a1f] to-[#15161a]" />
-        <div className="absolute inset-0 bg-adobe-grid opacity-15" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#30343e] via-[#282b33] to-[#24272f]" />
+        <div className="absolute inset-0 bg-adobe-grid opacity-20" />
       </div>
 
-      <div className="relative z-10 flex flex-col min-h-screen">
+      <div className={`relative z-10 flex flex-col ${isWorkspace ? 'h-full overflow-hidden' : 'min-h-screen'}`}>
         <NavbarWithJobId />
-        <main className="flex-1">
+        <main className={`flex-1 ${isWorkspace ? 'h-[calc(100vh-3.5rem)] sm:h-[calc(100vh-4rem)] overflow-hidden' : ''}`}>
           <Routes>
             <Route path="/" element={<UploadPage />} />
             <Route path="/jobs/:jobId" element={<JobPage />} />
@@ -28,22 +31,24 @@ export const AppRouter: React.FC = () => {
           </Routes>
         </main>
 
-        <footer className="border-t border-[#2d313a] py-5 bg-[#16171c] text-xs text-neutral-400 font-normal">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <img src="/logo-mark.png" alt="UNTANGLED" className="w-4 h-4 object-contain opacity-80" />
-              <span className="text-neutral-200 font-medium">UNTANGLED</span>
-              <span className="text-neutral-600">•</span>
-              <span className="text-neutral-400">ISA-5.1 Deterministic Verification</span>
-              <span className="text-neutral-600">•</span>
-              <span className="text-neutral-400">DCS Cross-Validation</span>
+        {!isWorkspace && (
+          <footer className="border-t border-[#434856] py-3.5 bg-[#24272f] text-xs text-slate-400 font-normal">
+            <div className="w-full max-w-[1700px] mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <img src="/logo-mark.png" alt="UNTANGLED" className="w-4 h-4 object-contain opacity-80" />
+                <span className="text-slate-200 font-medium">UNTANGLED</span>
+                <span className="text-slate-600">•</span>
+                <span className="text-slate-400">ISA-5.1 Deterministic Verification</span>
+                <span className="text-slate-600">•</span>
+                <span className="text-slate-400">DCS Cross-Validation</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                <span className="text-slate-300 font-mono text-[11px]">System Ready</span>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-              <span className="text-neutral-300 font-mono text-[11px]">System Ready</span>
-            </div>
-          </div>
-        </footer>
+          </footer>
+        )}
       </div>
     </div>
   );

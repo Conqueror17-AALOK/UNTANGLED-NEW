@@ -112,14 +112,14 @@ export const ReportPage: React.FC = () => {
   };
 
   return (
-    <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6 animate-fade-in print:p-0 print:space-y-4 font-sans">
+    <div className="relative w-full max-w-[1700px] mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4 animate-fade-in print:p-0 print:space-y-4 font-sans">
       {/* Refined Engineering Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-[#2d313a]">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#434856]">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-semibold text-white tracking-tight mb-1">
+          <h1 className="text-xl sm:text-2xl font-semibold text-slate-100 tracking-tight mb-0.5">
             {labels.report_title || 'Audit Report'}
           </h1>
-          <p className="text-xs text-neutral-400 font-normal">
+          <p className="text-xs text-slate-400 font-normal">
             Deterministic verification: P&ID Drawing vs DCS IO Register.
           </p>
         </div>
@@ -127,8 +127,8 @@ export const ReportPage: React.FC = () => {
         {/* Action Controls & Multi-lingual Switcher */}
         <div className="flex flex-wrap items-center gap-2 print:hidden">
           {/* Language Selector */}
-          <div className="flex items-center bg-[#20232a] p-1 rounded-lg border border-[#2d313a] text-xs">
-            <Globe size={13} className="text-neutral-400 ml-1.5 mr-1" />
+          <div className="flex items-center bg-[#24272f] p-1 rounded-lg border border-[#434856] text-xs">
+            <Globe size={13} className="text-slate-400 ml-1.5 mr-1" />
             {(['en', 'hi', 'mr'] as const).map((l) => (
               <button
                 key={l}
@@ -136,8 +136,8 @@ export const ReportPage: React.FC = () => {
                 onClick={() => setLang(l)}
                 className={`px-2.5 py-1 rounded text-xs font-medium transition-all ${
                   lang === l
-                    ? 'bg-[#2d313a] text-white font-semibold'
-                    : 'text-neutral-400 hover:text-white'
+                    ? 'bg-[#3f4554] text-white font-medium shadow-sm'
+                    : 'text-slate-400 hover:text-white'
                 }`}
               >
                 {l === 'en' ? 'EN' : l === 'hi' ? 'HI' : 'MR'}
@@ -151,7 +151,7 @@ export const ReportPage: React.FC = () => {
             target="_blank"
             rel="noopener noreferrer"
           >
-            <button className="bg-neutral-100 text-neutral-900 font-medium h-9 px-4 rounded-lg flex items-center gap-2 hover:bg-white transition-all text-xs">
+            <button className="bg-slate-100 text-slate-900 font-medium h-8 px-3 rounded-lg flex items-center gap-2 hover:bg-white transition-all text-xs">
               <Download size={13} />
               <span>Smart Vector PDF</span>
             </button>
@@ -159,15 +159,15 @@ export const ReportPage: React.FC = () => {
 
           <button
             onClick={handleDownloadPDF}
-            className="h-9 px-3.5 rounded-lg border border-[#2d313a] bg-[#20232a] text-neutral-200 hover:text-white hover:bg-[#252831] flex items-center gap-2 transition-all text-xs font-medium"
+            className="h-8 px-3 rounded-lg border border-[#434856] bg-[#24272f] text-slate-200 hover:text-white hover:bg-[#323642] flex items-center gap-2 transition-all text-xs font-medium"
           >
-            <FileCheck2 size={13} className="text-neutral-400" />
+            <FileCheck2 size={13} className="text-slate-400" />
             <span>Audit PDF</span>
           </button>
 
           <button
             onClick={handlePrint}
-            className="h-9 px-3 rounded-lg border border-[#2d313a] bg-[#20232a] text-neutral-300 hover:text-white hover:bg-[#252831] flex items-center gap-1.5 transition-all text-xs"
+            className="h-8 px-3 rounded-lg border border-[#434856] bg-[#24272f] text-slate-300 hover:text-white hover:bg-[#323642] flex items-center gap-1.5 transition-all text-xs"
           >
             <Printer size={13} />
             <span className="hidden sm:inline">Print</span>
@@ -175,7 +175,7 @@ export const ReportPage: React.FC = () => {
 
           <button
             onClick={handleExportJSON}
-            className="h-9 px-3 rounded-lg border border-[#2d313a] bg-[#20232a] text-neutral-300 hover:text-white hover:bg-[#252831] flex items-center gap-1.5 transition-all text-xs"
+            className="h-8 px-3 rounded-lg border border-[#434856] bg-[#24272f] text-slate-300 hover:text-white hover:bg-[#323642] flex items-center gap-1.5 transition-all text-xs"
           >
             <Download size={13} />
             <span>JSON</span>
@@ -185,51 +185,51 @@ export const ReportPage: React.FC = () => {
 
       {/* KPI Stats Strip - Single Unified Card with Dividers (No Nested Boxes) */}
       <div className="adobe-card p-4 sm:p-5">
-        <div className="grid grid-cols-2 sm:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-[#2d313a]">
+        <div className="grid grid-cols-2 sm:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-[#434856]">
           <div className="px-4 py-2 sm:py-0 space-y-0.5">
-            <span className="text-xs text-neutral-400 block font-medium">
+            <span className="text-xs text-slate-400 block font-medium">
               {labels.total_tags_title || 'Total Tags'}
             </span>
-            <p className="text-2xl sm:text-3xl font-semibold text-white tabular-nums">{summary.tags_total}</p>
-            <span className="text-[11px] text-neutral-500 font-normal">Extracted elements</span>
+            <p className="text-2xl sm:text-3xl font-semibold text-slate-100 tabular-nums">{summary.tags_total}</p>
+            <span className="text-[11px] text-slate-400 font-normal">Extracted elements</span>
           </div>
 
           <div className="px-4 py-2 sm:py-0 space-y-0.5">
-            <span className="text-xs text-neutral-400 block font-medium">
+            <span className="text-xs text-slate-400 block font-medium">
               {labels.resolved_title || 'Verified'}
             </span>
             <p className="text-2xl sm:text-3xl font-semibold text-emerald-400 tabular-nums">{summary.resolved}</p>
-            <span className="text-[11px] text-neutral-400 font-normal">
+            <span className="text-[11px] text-slate-400 font-normal">
               {summary.tags_total > 0 ? Math.round((summary.resolved / summary.tags_total) * 100) : 0}% matched
             </span>
           </div>
 
           <div className="px-4 py-2 sm:py-0 space-y-0.5">
-            <span className="text-xs text-neutral-400 block font-medium">
+            <span className="text-xs text-slate-400 block font-medium">
               {labels.review_req_title || 'Needs Review'}
             </span>
             <p className="text-2xl sm:text-3xl font-semibold text-amber-400 tabular-nums">{summary.needs_review}</p>
-            <span className="text-[11px] text-neutral-400 font-normal">
+            <span className="text-[11px] text-slate-400 font-normal">
               {summary.needs_review === 0 ? 'All cleared' : 'Action items'}
             </span>
           </div>
 
           <div className="px-4 py-2 sm:py-0 space-y-0.5">
-            <span className="text-xs text-neutral-400 block font-medium">
+            <span className="text-xs text-slate-400 block font-medium">
               Decision Split
             </span>
-            <p className="text-2xl sm:text-3xl font-semibold text-white tabular-nums">
+            <p className="text-2xl sm:text-3xl font-semibold text-slate-100 tabular-nums">
               {summary.auto_pct}%
             </p>
-            <span className="text-[11px] text-neutral-400 font-normal">
+            <span className="text-[11px] text-slate-400 font-normal">
               {summary.llm_pct}% LLM • {summary.human_pct}% Manual
             </span>
           </div>
         </div>
 
         {/* Minimal Decision Progress Track */}
-        <div className="pt-4 mt-3 border-t border-[#2d313a] space-y-2">
-          <div className="flex items-center justify-between text-xs text-neutral-400">
+        <div className="pt-3.5 mt-3 border-t border-[#434856] space-y-2">
+          <div className="flex items-center justify-between text-xs text-slate-400">
             <span>Decision Distribution</span>
             <div className="flex items-center gap-3">
               <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-emerald-500" /> Auto ({summary.auto_pct}%)</span>
@@ -237,7 +237,7 @@ export const ReportPage: React.FC = () => {
               <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-amber-500" /> Review ({summary.human_pct}%)</span>
             </div>
           </div>
-          <div className="w-full h-1.5 rounded-full bg-[#1c1e24] flex overflow-hidden">
+          <div className="w-full h-1.5 rounded-full bg-[#24272f] flex overflow-hidden">
             <div style={{ width: `${summary.auto_pct}%` }} className="bg-emerald-500" />
             <div style={{ width: `${summary.llm_pct}%` }} className="bg-blue-500" />
             <div style={{ width: `${summary.human_pct}%` }} className="bg-amber-500" />
@@ -246,17 +246,17 @@ export const ReportPage: React.FC = () => {
       </div>
 
       {/* Multi-Signal Confidence & Reliability Report */}
-      <div className="adobe-card p-6 space-y-5">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#2d313a]">
+      <div className="adobe-card p-5 space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#434856]">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-lg bg-[#272a33] text-neutral-300">
+            <div className="p-2 rounded-lg bg-[#3b404d] text-slate-200">
               <ShieldCheck size={18} />
             </div>
             <div>
-              <h2 className="text-sm font-semibold text-white tracking-tight">
+              <h2 className="text-sm font-semibold text-slate-100 tracking-tight">
                 Multi-Signal Confidence & Model Reliability
               </h2>
-              <p className="text-xs text-neutral-400 font-normal">
+              <p className="text-xs text-slate-400 font-normal">
                 Calibrated multi-signal validation: OCR, Fine-Tuned YOLO11 symbols, DCS I/O lists, and ISA-5.1 grammar.
               </p>
             </div>
@@ -264,7 +264,7 @@ export const ReportPage: React.FC = () => {
 
           <div className="flex items-center gap-3">
             <div className="text-right">
-              <span className="text-[10px] text-neutral-400 font-medium uppercase tracking-wider block">Mean Confidence</span>
+              <span className="text-[10px] text-slate-400 font-medium uppercase tracking-wider block">Mean Confidence</span>
               <span className="text-lg font-semibold text-emerald-400 tabular-nums">
                 {summary.average_confidence ? `${summary.average_confidence}%` : '93.5%'}
               </span>
@@ -276,13 +276,13 @@ export const ReportPage: React.FC = () => {
         </div>
 
         {/* Confidence Tier Distribution - Clean 3-column divided strip */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-[#2d313a] py-1 border-b border-[#2d313a]">
+        <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-[#434856] py-1 border-b border-[#434856]">
           <div className="py-2 sm:py-0 sm:px-4 flex items-center justify-between">
             <div>
-              <span className="text-xs text-neutral-400 block font-normal">
+              <span className="text-xs text-slate-400 block font-normal">
                 High Certainty (&ge; 85%)
               </span>
-              <span className="text-xl font-semibold text-white tabular-nums">
+              <span className="text-xl font-semibold text-slate-100 tabular-nums">
                 {summary.high_confidence_count ?? summary.resolved}
               </span>
             </div>
@@ -293,10 +293,10 @@ export const ReportPage: React.FC = () => {
 
           <div className="py-2 sm:py-0 sm:px-4 flex items-center justify-between">
             <div>
-              <span className="text-xs text-neutral-400 block font-normal">
+              <span className="text-xs text-slate-400 block font-normal">
                 Medium (70–84%)
               </span>
-              <span className="text-xl font-semibold text-white tabular-nums">
+              <span className="text-xl font-semibold text-slate-100 tabular-nums">
                 {summary.medium_confidence_count ?? summary.needs_review}
               </span>
             </div>
@@ -307,10 +307,10 @@ export const ReportPage: React.FC = () => {
 
           <div className="py-2 sm:py-0 sm:px-4 flex items-center justify-between">
             <div>
-              <span className="text-xs text-neutral-400 block font-normal">
+              <span className="text-xs text-slate-400 block font-normal">
                 Low (&lt; 70%)
               </span>
-              <span className="text-xl font-semibold text-white tabular-nums">
+              <span className="text-xl font-semibold text-slate-100 tabular-nums">
                 {summary.low_confidence_count ?? summary.rejected}
               </span>
             </div>
@@ -322,58 +322,58 @@ export const ReportPage: React.FC = () => {
 
         {/* Signal Component Breakdown Meters - Clean progress bars */}
         <div className="space-y-3 pt-1">
-          <span className="text-xs font-medium text-neutral-400 block">
+          <span className="text-xs font-medium text-slate-400 block">
             Signal Reliability Breakdown
           </span>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
             {/* OCR */}
             <div className="space-y-1">
-              <div className="flex justify-between text-neutral-300 font-normal">
+              <div className="flex justify-between text-slate-300 font-normal">
                 <span>OCR Text Clarity (Vector + Dual-OCR)</span>
-                <span className="text-neutral-200 font-medium tabular-nums">
+                <span className="text-slate-200 font-medium tabular-nums">
                   {summary.confidence_breakdown_avg?.ocr ?? 95.0}%
                 </span>
               </div>
-              <div className="w-full h-1.5 rounded-full bg-[#1c1e24] overflow-hidden">
-                <div style={{ width: `${summary.confidence_breakdown_avg?.ocr ?? 95.0}%` }} className="h-full bg-neutral-300 rounded-full" />
+              <div className="w-full h-1.5 rounded-full bg-[#24272f] overflow-hidden">
+                <div style={{ width: `${summary.confidence_breakdown_avg?.ocr ?? 95.0}%` }} className="h-full bg-slate-200 rounded-full" />
               </div>
             </div>
 
             {/* YOLO11 Symbol Detection */}
             <div className="space-y-1">
-              <div className="flex justify-between text-neutral-300 font-normal">
+              <div className="flex justify-between text-slate-300 font-normal">
                 <span>Neural Symbol Detection (Fine-Tuned YOLO11)</span>
                 <span className="text-emerald-400 font-medium tabular-nums">
                   {summary.confidence_breakdown_avg?.symbol ?? 94.2}%
                 </span>
               </div>
-              <div className="w-full h-1.5 rounded-full bg-[#1c1e24] overflow-hidden">
+              <div className="w-full h-1.5 rounded-full bg-[#24272f] overflow-hidden">
                 <div style={{ width: `${summary.confidence_breakdown_avg?.symbol ?? 94.2}%` }} className="h-full bg-emerald-500 rounded-full" />
               </div>
             </div>
 
             {/* DCS I/O Match */}
             <div className="space-y-1">
-              <div className="flex justify-between text-neutral-300 font-normal">
+              <div className="flex justify-between text-slate-300 font-normal">
                 <span>DCS I/O Register Cross-Verification</span>
                 <span className="text-blue-400 font-medium tabular-nums">
                   {summary.confidence_breakdown_avg?.io_match ?? 92.5}%
                 </span>
               </div>
-              <div className="w-full h-1.5 rounded-full bg-[#1c1e24] overflow-hidden">
+              <div className="w-full h-1.5 rounded-full bg-[#24272f] overflow-hidden">
                 <div style={{ width: `${summary.confidence_breakdown_avg?.io_match ?? 92.5}%` }} className="h-full bg-blue-500 rounded-full" />
               </div>
             </div>
 
             {/* ISA-5.1 Syntax & Grammar */}
             <div className="space-y-1">
-              <div className="flex justify-between text-neutral-300 font-normal">
+              <div className="flex justify-between text-slate-300 font-normal">
                 <span>ISA-5.1 Deterministic Tag Grammar</span>
                 <span className="text-purple-400 font-medium tabular-nums">
                   {summary.confidence_breakdown_avg?.grammar ?? 96.0}%
                 </span>
               </div>
-              <div className="w-full h-1.5 rounded-full bg-[#1c1e24] overflow-hidden">
+              <div className="w-full h-1.5 rounded-full bg-[#24272f] overflow-hidden">
                 <div style={{ width: `${summary.confidence_breakdown_avg?.grammar ?? 96.0}%` }} className="h-full bg-purple-500 rounded-full" />
               </div>
             </div>
@@ -382,22 +382,22 @@ export const ReportPage: React.FC = () => {
       </div>
 
       {/* SECTION: AI Detection Preview & Spatial Verification */}
-      <div className="adobe-card p-5 sm:p-6 space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#2d313a]">
+      <div className="adobe-card p-4 sm:p-5 space-y-3.5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#434856]">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-lg bg-[#272a33] text-neutral-300">
+            <div className="p-2 rounded-lg bg-[#3b404d] text-slate-200">
               <Eye size={18} />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-sm font-semibold text-white tracking-tight">
+                <h2 className="text-sm font-semibold text-slate-100 tracking-tight">
                   AI Detection Preview & Spatial Verification
                 </h2>
                 <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                   Traceable
                 </span>
               </div>
-              <p className="text-xs text-neutral-400 font-normal">
+              <p className="text-xs text-slate-400 font-normal">
                 Visual overlay of neural symbol detections, OCR tag bounding boxes, valves, and piping connections on the physical drawing
               </p>
             </div>
@@ -406,17 +406,17 @@ export const ReportPage: React.FC = () => {
           {/* Inspection Controls */}
           <div className="flex flex-wrap items-center gap-2 text-xs">
             {/* View Mode Toggle */}
-            <div className="flex items-center bg-[#1c1e24] p-1 rounded-lg border border-[#2d313a]">
+            <div className="flex items-center bg-[#24272f] p-1 rounded-lg border border-[#434856]">
               <button
                 type="button"
                 onClick={() => setPreviewMode('overlay')}
                 className={`px-2.5 py-1 rounded text-xs font-medium flex items-center gap-1.5 transition-all ${
                   previewMode === 'overlay'
-                    ? 'bg-[#2d313a] text-white font-semibold'
-                    : 'text-neutral-400 hover:text-white'
+                    ? 'bg-[#3f4554] text-white font-medium shadow-sm'
+                    : 'text-slate-400 hover:text-white'
                 }`}
               >
-                <Sparkles size={12} className={previewMode === 'overlay' ? 'text-blue-400' : 'text-neutral-500'} />
+                <Sparkles size={12} className={previewMode === 'overlay' ? 'text-blue-400' : 'text-slate-400'} />
                 <span>Detection Overlay</span>
               </button>
               <button
@@ -424,33 +424,33 @@ export const ReportPage: React.FC = () => {
                 onClick={() => setPreviewMode('original')}
                 className={`px-2.5 py-1 rounded text-xs font-medium flex items-center gap-1.5 transition-all ${
                   previewMode === 'original'
-                    ? 'bg-[#2d313a] text-white font-semibold'
-                    : 'text-neutral-400 hover:text-white'
+                    ? 'bg-[#3f4554] text-white font-medium shadow-sm'
+                    : 'text-slate-400 hover:text-white'
                 }`}
               >
-                <Layers size={12} className={previewMode === 'original' ? 'text-white' : 'text-neutral-500'} />
+                <Layers size={12} className={previewMode === 'original' ? 'text-slate-100' : 'text-slate-400'} />
                 <span>Original Drawing</span>
               </button>
             </div>
 
             {/* Zoom Controls */}
-            <div className="flex items-center bg-[#1c1e24] px-1.5 py-1 rounded-lg border border-[#2d313a] gap-1">
+            <div className="flex items-center bg-[#24272f] px-1.5 py-1 rounded-lg border border-[#434856] gap-1">
               <button
                 type="button"
                 title="Zoom Out"
                 onClick={() => setPreviewZoom((z) => Math.max(0.6, z - 0.2))}
-                className="p-1 rounded text-neutral-400 hover:text-white hover:bg-white/[0.04] transition-colors"
+                className="p-1 rounded text-slate-400 hover:text-white hover:bg-white/[0.05] transition-colors"
               >
                 <ZoomOut size={13} />
               </button>
-              <span className="text-[11px] text-neutral-300 w-9 text-center font-mono">
+              <span className="text-[11px] text-slate-200 w-9 text-center font-mono">
                 {Math.round(previewZoom * 100)}%
               </span>
               <button
                 type="button"
                 title="Zoom In"
                 onClick={() => setPreviewZoom((z) => Math.min(2.5, z + 0.2))}
-                className="p-1 rounded text-neutral-400 hover:text-white hover:bg-white/[0.04] transition-colors"
+                className="p-1 rounded text-slate-400 hover:text-white hover:bg-white/[0.05] transition-colors"
               >
                 <ZoomIn size={13} />
               </button>
@@ -458,7 +458,7 @@ export const ReportPage: React.FC = () => {
                 type="button"
                 title="Reset Zoom"
                 onClick={() => setPreviewZoom(1.0)}
-                className="p-1 rounded text-neutral-400 hover:text-white hover:bg-white/[0.04] transition-colors"
+                className="p-1 rounded text-slate-400 hover:text-white hover:bg-white/[0.05] transition-colors"
               >
                 <RotateCcw size={12} />
               </button>
@@ -466,7 +466,7 @@ export const ReportPage: React.FC = () => {
 
             {/* Multi-page Selector if > 1 page */}
             {previewsInfo && previewsInfo.total_pages > 1 && (
-              <div className="flex items-center gap-1 bg-[#1c1e24] p-1 rounded-lg border border-[#2d313a]">
+              <div className="flex items-center gap-1 bg-[#24272f] p-1 rounded-lg border border-[#434856]">
                 {previewsInfo.pages.map((p) => (
                   <button
                     key={p.page}
@@ -474,8 +474,8 @@ export const ReportPage: React.FC = () => {
                     onClick={() => setPreviewPage(p.page)}
                     className={`px-2 py-0.5 rounded text-[11px] font-medium ${
                       previewPage === p.page
-                        ? 'bg-[#2d313a] text-white'
-                        : 'text-neutral-400 hover:text-white'
+                        ? 'bg-[#3f4554] text-white shadow-sm'
+                        : 'text-slate-400 hover:text-white'
                     }`}
                   >
                     Sheet {p.page}
@@ -490,7 +490,7 @@ export const ReportPage: React.FC = () => {
               download={`detection_preview_${jobId.slice(0, 8)}_p${previewPage}.png`}
             >
               <button
-                className="h-8 px-3 rounded-lg border border-[#2d313a] bg-[#20232a] text-neutral-300 hover:text-white hover:bg-[#252831] flex items-center gap-1.5 transition-all text-xs font-medium"
+                className="h-8 px-3 rounded-lg border border-[#434856] bg-[#24272f] text-slate-300 hover:text-white hover:bg-[#323642] flex items-center gap-1.5 transition-all text-xs font-medium"
               >
                 <Download size={12} />
                 <span>Download PNG</span>
@@ -500,42 +500,42 @@ export const ReportPage: React.FC = () => {
         </div>
 
         {/* Clean Detection Legend (No Boxception) */}
-        <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-neutral-400 py-1">
+        <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-slate-400 py-1">
           <div className="flex flex-wrap items-center gap-3.5 text-[11px]">
-            <span className="text-neutral-500 font-medium">Legend:</span>
-            <span className="flex items-center gap-1.5 text-neutral-300">
+            <span className="text-slate-400 font-medium">Legend:</span>
+            <span className="flex items-center gap-1.5 text-slate-300">
               <span className="w-2 h-2 rounded-sm bg-blue-400" />
               <span>OCR Tags</span>
             </span>
-            <span className="flex items-center gap-1.5 text-neutral-300">
+            <span className="flex items-center gap-1.5 text-slate-300">
               <span className="w-2 h-2 rounded-sm bg-amber-400" />
               <span>Instruments</span>
             </span>
-            <span className="flex items-center gap-1.5 text-neutral-300">
+            <span className="flex items-center gap-1.5 text-slate-300">
               <span className="w-2 h-2 rounded-sm bg-orange-400" />
               <span>Valves</span>
             </span>
-            <span className="flex items-center gap-1.5 text-neutral-300">
+            <span className="flex items-center gap-1.5 text-slate-300">
               <span className="w-2 h-2 rounded-sm bg-emerald-400" />
               <span>Equipment</span>
             </span>
-            <span className="flex items-center gap-1.5 text-neutral-300">
+            <span className="flex items-center gap-1.5 text-slate-300">
               <span className="w-2 h-2 rounded-sm bg-purple-400" />
               <span>Connectors</span>
             </span>
-            <span className="flex items-center gap-1.5 text-neutral-300">
+            <span className="flex items-center gap-1.5 text-slate-300">
               <span className="w-2 h-2 rounded-sm bg-red-400" />
               <span>Pipe Junctions</span>
             </span>
           </div>
 
-          <div className="text-[11px] text-neutral-500">
-            Model: <span className="text-neutral-300">YOLO11-PID</span>
+          <div className="text-[11px] text-slate-400">
+            Model: <span className="text-slate-200">YOLO11-PID</span>
           </div>
         </div>
 
         {/* High-Resolution Canvas Viewport */}
-        <div className="relative w-full rounded-xl overflow-hidden border border-[#2d313a] bg-[#14161a]">
+        <div className="relative w-full rounded-xl overflow-hidden border border-[#434856] bg-[#24272f]">
           <div className="max-h-[620px] overflow-auto p-2 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
             <div
               style={{
@@ -671,7 +671,7 @@ export const ReportPage: React.FC = () => {
 
       {/* SECTION: P&ID Connection Verification */}
       <div className="adobe-card p-5 space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#2d313a]">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#434856]">
           <div className="flex items-center gap-2.5">
             <GitBranch size={16} className="text-blue-400" />
             <div>
@@ -702,7 +702,7 @@ export const ReportPage: React.FC = () => {
         {report.connection_validation ? (
           <div className="space-y-4">
             {/* 4 Priority Summary Metric Strip - Clean Divided Row (No Nested Boxes) */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-[#2d313a] py-2 border-b border-[#2d313a] text-xs">
+            <div className="grid grid-cols-2 sm:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-[#434856] py-2 border-b border-[#434856] text-xs">
               <div className="px-3 py-1 sm:py-0">
                 <span className="text-neutral-400 block text-[11px]">P1 Critical Safety</span>
                 <span className="text-red-400 font-semibold text-lg">{report.connection_validation.p1_critical_count ?? report.connection_validation.error_count}</span>
@@ -741,7 +741,7 @@ export const ReportPage: React.FC = () => {
                     onClick={() => setPriorityFilter(pri)}
                     className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
                       priorityFilter === pri
-                        ? 'bg-[#2d313a] text-white font-semibold'
+                        ? 'bg-[#3f4554] text-white font-semibold'
                         : 'text-neutral-400 hover:text-white'
                     }`}
                   >
@@ -752,7 +752,7 @@ export const ReportPage: React.FC = () => {
             </div>
 
             {/* Diagnostics List - Clean Flat Row Items (No Boxception) */}
-            <div className="divide-y divide-[#2d313a] max-h-96 overflow-y-auto pr-1 text-xs">
+            <div className="divide-y divide-[#434856] max-h-96 overflow-y-auto pr-1 text-xs">
               {report.connection_validation.diagnostics
                 .filter((diag) => {
                   if (priorityFilter === 'ALL') return true;
@@ -767,7 +767,7 @@ export const ReportPage: React.FC = () => {
                   return (
                     <div
                       key={i}
-                      className="py-3 flex flex-col sm:flex-row sm:items-start justify-between gap-3 hover:bg-white/[0.02] px-2 rounded-lg transition-colors"
+                      className="py-3 flex flex-col sm:flex-row sm:items-start justify-between gap-3 hover:bg-white/[0.04] px-2 rounded-lg transition-colors"
                     >
                       <div className="flex items-start gap-2.5 min-w-0">
                         {isCritical ? (
@@ -784,7 +784,7 @@ export const ReportPage: React.FC = () => {
                             <span className="font-mono text-neutral-100 font-semibold text-xs">
                               {diag.element_id}
                             </span>
-                            <span className="text-[11px] text-neutral-500">
+                            <span className="text-[11px] text-neutral-400">
                               {diag.rule}
                             </span>
                             <span
@@ -824,7 +824,7 @@ export const ReportPage: React.FC = () => {
                               rule: diag.rule,
                             })
                           }
-                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded border border-[#2d313a] bg-[#20232a] hover:bg-[#252831] text-neutral-300 hover:text-white text-[11px] font-medium shrink-0 self-start sm:self-center transition-all"
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded border border-[#434856] bg-[#24272f] hover:bg-[#2d323f] text-neutral-300 hover:text-white text-[11px] font-medium shrink-0 self-start sm:self-center transition-all"
                         >
                           <Eye size={12} className="text-neutral-400" />
                           <span>View Crop</span>
@@ -836,7 +836,7 @@ export const ReportPage: React.FC = () => {
             </div>
           </div>
         ) : (
-          <p className="text-xs text-neutral-500 text-center py-2 font-normal">
+          <p className="text-xs text-neutral-400 text-center py-2 font-normal">
             Topology connection analysis completed. All pipelines verified.
           </p>
         )}
@@ -845,18 +845,18 @@ export const ReportPage: React.FC = () => {
       {/* SECTION: DCS I/O List Full Verification Audit */}
       {report.io_verification && (
         <div className="adobe-card p-5 space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-white/[0.1]">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#434856]">
             <div className="flex items-center gap-2.5">
               <ShieldCheck size={16} className="text-emerald-400" />
-              <h3 className="text-sm font-display font-black text-white tracking-tight">
+              <h3 className="text-sm font-semibold text-white tracking-tight">
                 DCS I/O Register Full Verification Audit (Correct vs. Wrong)
               </h3>
             </div>
             <div className="flex items-center gap-2.5">
-              <span className="text-xs text-neutral-400 font-bold">
+              <span className="text-xs text-neutral-400 font-medium">
                 Accuracy: <strong className="text-emerald-400">{report.io_verification.accuracy_score_pct}%</strong>
               </span>
-              <span className={`text-[10px] font-bold px-3 py-1 rounded-full ${
+              <span className={`text-[10px] font-medium px-3 py-1 rounded-full ${
                 report.io_verification.status === 'PASSED'
                   ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-400/30'
                   : 'bg-[#eb1000]/15 text-[#eb1000] border border-[#eb1000]/30'
@@ -866,29 +866,29 @@ export const ReportPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="overflow-x-auto rounded-xl border border-white/[0.1]">
+          <div className="overflow-x-auto rounded-xl border border-[#434856]">
             <table className="w-full text-left text-xs">
-              <thead className="bg-[#1a1a1a] text-neutral-400 text-xs font-black uppercase tracking-wider border-b border-white/[0.1]">
+              <thead className="bg-[#24272f] text-slate-300 text-xs font-semibold tracking-wider border-b border-[#434856]">
                 <tr>
-                  <th className="py-3 px-4 font-black">Tag</th>
-                  <th className="py-3 px-4 font-black">Type</th>
-                  <th className="py-3 px-4 font-black">DCS Signal</th>
-                  <th className="py-3 px-4 font-black">Span / Units</th>
-                  <th className="py-3 px-4 font-black">Audit Details</th>
-                  <th className="py-3 px-4 text-right font-black">Verdict</th>
+                  <th className="py-3 px-4 font-semibold">Tag</th>
+                  <th className="py-3 px-4 font-semibold">Type</th>
+                  <th className="py-3 px-4 font-semibold">DCS Signal</th>
+                  <th className="py-3 px-4 font-semibold">Span / Units</th>
+                  <th className="py-3 px-4 font-semibold">Audit Details</th>
+                  <th className="py-3 px-4 text-right font-semibold">Verdict</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/[0.06] bg-transparent">
+              <tbody className="divide-y divide-[#434856] bg-transparent">
                 {report.io_verification.items_audit.map((item) => (
-                  <tr key={item.tag} className="hover:bg-white/[0.03] transition-colors">
-                    <td className="py-3 px-4 font-mono font-bold text-white">{item.tag}</td>
-                    <td className="py-3 px-4 text-neutral-300 font-bold">{item.drawing_type || '—'}</td>
+                  <tr key={item.tag} className="hover:bg-white/[0.04] transition-colors">
+                    <td className="py-3 px-4 font-mono font-medium text-white">{item.tag}</td>
+                    <td className="py-3 px-4 text-neutral-300 font-medium">{item.drawing_type || '—'}</td>
                     <td className="py-3 px-4 text-neutral-400 font-mono">{item.io_signal_type || '—'}</td>
                     <td className="py-3 px-4 text-neutral-400 font-mono">{item.range_span || item.units || '—'}</td>
-                    <td className="py-3 px-4 text-xs text-neutral-300 max-w-xs font-bold">{item.message}</td>
+                    <td className="py-3 px-4 text-xs text-neutral-300 max-w-xs font-normal">{item.message}</td>
                     <td className="py-3 px-4 text-right">
                       <span
-                        className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${
+                        className={`text-[10px] font-medium px-2.5 py-0.5 rounded-full ${
                           item.status === 'CORRECT'
                             ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-400/30'
                             : 'bg-[#eb1000]/15 text-[#eb1000] border border-[#eb1000]/30'
@@ -907,9 +907,9 @@ export const ReportPage: React.FC = () => {
 
       {/* Interactive Blueprint CAD Snippet Modal */}
       {inspectSnippet && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in print:hidden">
-          <div className="relative w-full max-w-2xl bg-[#20232a] border border-[#2d313a] rounded-xl p-5 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-[#2d313a]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in print:hidden">
+          <div className="relative w-full max-w-2xl bg-[#323642] border border-[#434856] rounded-xl p-5 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-[#434856]">
               <div className="flex items-center gap-2">
                 <span className={`text-[10px] font-medium px-2 py-0.5 rounded uppercase ${
                   inspectSnippet.priority === 'P1'
@@ -933,7 +933,7 @@ export const ReportPage: React.FC = () => {
             </div>
 
             {/* High-Resolution CAD Crop Image */}
-            <div className="rounded-lg overflow-hidden border border-[#2d313a] bg-[#181a1f] flex items-center justify-center min-h-[200px]">
+            <div className="rounded-lg overflow-hidden border border-[#434856] bg-[#282b33] flex items-center justify-center min-h-[200px]">
               <img
                 src={`/api/v1/jobs/${jobId}/source/${inspectSnippet.page}/crop?bbox=${inspectSnippet.bbox.join(',')}`}
                 alt={`CAD snippet for ${inspectSnippet.tag}`}
@@ -942,14 +942,14 @@ export const ReportPage: React.FC = () => {
             </div>
 
             {/* Action Callout */}
-            <div className="p-3 rounded-lg bg-[#252831] border border-[#2d313a] space-y-1 text-xs">
+            <div className="p-3 rounded-lg bg-[#24272f] border border-[#434856] space-y-1 text-xs">
               <span className="text-[10px] font-medium text-blue-400 uppercase tracking-wider block">
                 Recommended Action:
               </span>
               <p className="text-neutral-200 font-normal leading-relaxed">
                 {inspectSnippet.action}
               </p>
-              <p className="text-[10px] font-mono text-neutral-500 pt-0.5">
+              <p className="text-[10px] font-mono text-neutral-400 pt-0.5">
                 Location: Sheet {inspectSnippet.page} | Bounding Box: [{inspectSnippet.bbox.map((v) => Math.round(v)).join(', ')}]
               </p>
             </div>
@@ -957,7 +957,7 @@ export const ReportPage: React.FC = () => {
             <div className="flex justify-end pt-1">
               <button
                 onClick={() => setInspectSnippet(null)}
-                className="px-3.5 py-1.5 rounded-lg border border-[#2d313a] bg-[#252831] hover:bg-[#2b2e38] text-neutral-200 hover:text-white text-xs font-medium transition-all"
+                className="px-3.5 py-1.5 rounded-lg border border-[#434856] bg-[#24272f] hover:bg-[#2d323f] text-neutral-200 hover:text-white text-xs font-medium transition-all"
               >
                 Close
               </button>

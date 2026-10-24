@@ -108,19 +108,19 @@ export const ReviewPage: React.FC = () => {
   });
 
   return (
-    <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6 animate-fade-in">
+    <div className="relative w-full max-w-[1700px] mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4 animate-fade-in">
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-2.5 rounded-lg bg-[#20232a] border border-[#2d313a] text-slate-100 text-xs font-medium shadow-xl animate-fade-in">
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-2.5 rounded-lg bg-[#24272f] border border-[#434856] text-slate-100 text-xs font-medium shadow-xl animate-fade-in">
           <Check size={15} className="text-emerald-400 stroke-[2.5]" />
           <span>{toastMessage}</span>
         </div>
       )}
 
       {/* Refined Engineering Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#2d313a]">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#434856]">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-semibold text-slate-100 tracking-tight mb-1">
+          <h1 className="text-xl sm:text-2xl font-semibold text-slate-100 tracking-tight mb-0.5">
             Review Queue
           </h1>
           <p className="text-xs text-slate-400 font-normal">
@@ -132,7 +132,7 @@ export const ReviewPage: React.FC = () => {
           <button
             onClick={handleRebuild}
             disabled={isRebuilding}
-            className="bg-slate-100 text-slate-900 font-medium h-9 px-4 rounded-lg flex items-center gap-2 hover:bg-white transition-all text-xs disabled:opacity-50"
+            className="bg-slate-100 text-slate-900 font-medium h-8 px-3 rounded-lg flex items-center gap-2 hover:bg-white transition-all text-xs disabled:opacity-50"
             title="Rebuild Topology (Hotkey: 'r')"
           >
             <RotateCcw size={13} className={`stroke-[2] ${isRebuilding ? 'animate-spin' : ''}`} />
@@ -141,7 +141,7 @@ export const ReviewPage: React.FC = () => {
           </button>
 
           <Link to={`/workspace/${jobId}`}>
-            <button className="h-9 px-3.5 rounded-lg border border-[#2d313a] bg-[#20232a] text-slate-300 hover:text-white hover:bg-[#252831] flex items-center gap-2 transition-all text-xs font-medium">
+            <button className="h-8 px-3 rounded-lg border border-[#434856] bg-[#24272f] text-slate-300 hover:text-white hover:bg-[#323642] flex items-center gap-2 transition-all text-xs font-medium">
               <Workflow size={13} className="text-slate-400" />
               <span>Canvas</span>
             </button>
@@ -150,7 +150,7 @@ export const ReviewPage: React.FC = () => {
       </div>
 
       {/* Filter Tabs */}
-      <div className="flex rounded-lg bg-[#20232a] p-1 border border-[#2d313a] text-xs max-w-fit">
+      <div className="flex rounded-lg bg-[#24272f] p-1 border border-[#434856] text-xs max-w-fit">
         {(['needs_review', 'resolved', 'all'] as const).map((tab) => {
           const count =
             tab === 'needs_review'
@@ -167,7 +167,7 @@ export const ReviewPage: React.FC = () => {
               onClick={() => setFilter(tab)}
               className={`px-3 py-1 rounded-md transition-all duration-150 flex items-center gap-2 font-medium text-xs ${
                 isActive
-                  ? 'bg-[#2d313a] text-white font-medium'
+                  ? 'bg-[#3f4554] text-white font-medium shadow-sm'
                   : 'text-slate-400 hover:text-slate-200'
               }`}
             >
@@ -175,7 +175,7 @@ export const ReviewPage: React.FC = () => {
               <span className={`text-[10px] px-1.5 py-0.2 rounded font-medium ${
                 isActive
                   ? 'bg-slate-700 text-slate-100'
-                  : 'bg-white/[0.04] text-slate-400'
+                  : 'bg-white/[0.06] text-slate-400'
               }`}>
                 {count}
               </span>
@@ -185,24 +185,24 @@ export const ReviewPage: React.FC = () => {
       </div>
 
       {/* Main Grid: Data Table + Live Crop Inspector */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         
         {/* Tags Table (Col span 2) */}
         <div className="lg:col-span-2">
           <div className="adobe-card p-0 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
-                <thead className="bg-[#252831] text-slate-400 text-xs font-medium uppercase tracking-wider border-b border-[#2d313a]">
+                <thead className="bg-[#24272f] text-slate-400 text-xs font-medium uppercase tracking-wider border-b border-[#434856]">
                   <tr>
-                    <th className="py-3 px-4 font-medium">Raw Read</th>
-                    <th className="py-3 px-4 font-medium">Target Tag</th>
-                    <th className="py-3 px-4 font-medium">Type</th>
-                    <th className="py-3 px-4 font-medium">Conf</th>
-                    <th className="py-3 px-4 font-medium">Status</th>
-                    <th className="py-3 px-4 text-right font-medium">Edit</th>
+                    <th className="py-2.5 px-4 font-medium">Raw Read</th>
+                    <th className="py-2.5 px-4 font-medium">Target Tag</th>
+                    <th className="py-2.5 px-4 font-medium">Type</th>
+                    <th className="py-2.5 px-4 font-medium">Conf</th>
+                    <th className="py-2.5 px-4 font-medium">Status</th>
+                    <th className="py-2.5 px-4 text-right font-medium">Edit</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#2d313a] bg-transparent">
+                <tbody className="divide-y divide-[#434856] bg-transparent">
                   {displayedTags.length > 0 ? (
                     displayedTags.map((tag) => {
                       const isEditing = editingTagId === tag.id;
@@ -214,8 +214,8 @@ export const ReviewPage: React.FC = () => {
                           onClick={() => setSelectedTag(tag)}
                           className={`cursor-pointer transition-colors ${
                             isSelected
-                              ? 'bg-white/[0.05] border-l-2 border-l-blue-500'
-                              : 'hover:bg-white/[0.02]'
+                              ? 'bg-white/[0.06] border-l-2 border-l-blue-400'
+                              : 'hover:bg-white/[0.03]'
                           }`}
                         >
                           {/* Raw OCR Read */}
@@ -335,11 +335,11 @@ export const ReviewPage: React.FC = () => {
 
         {/* Live Crop & Inspector (Col span 1) */}
         <div>
-          <div className="adobe-card p-5 space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-[#2d313a]">
+          <div className="adobe-card p-4 space-y-3.5">
+            <div className="flex items-center justify-between pb-2.5 border-b border-[#434856]">
               <div className="flex items-center gap-2">
                 <Crosshair size={14} className="text-slate-400" />
-                <h3 className="text-xs font-medium uppercase tracking-wider text-slate-300">
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-200">
                   Tag Inspection
                 </h3>
               </div>
@@ -351,10 +351,10 @@ export const ReviewPage: React.FC = () => {
             </div>
 
             {selectedTag ? (
-              <div className="space-y-3.5 text-xs">
+              <div className="space-y-3 text-xs">
                 {/* Crop Visualizer */}
-                <div className="h-28 rounded-lg bg-[#181a1f] border border-[#2d313a] flex items-center justify-center p-3">
-                  <div className="border border-[#3b404d] bg-[#20232a] px-4 py-2 rounded-md text-center">
+                <div className="h-28 rounded-lg bg-[#24272f] border border-[#434856] flex items-center justify-center p-3">
+                  <div className="border border-[#434856] bg-[#282b33] px-4 py-2 rounded-md text-center">
                     <span className="font-mono font-medium text-amber-300 text-sm block">
                       {selectedTag.raw_text}
                     </span>
@@ -366,7 +366,7 @@ export const ReviewPage: React.FC = () => {
 
                 {/* Reasoning */}
                 {selectedTag.reasoning && (
-                  <div className="p-3 rounded-lg bg-[#181a1f] border border-[#2d313a] text-xs">
+                  <div className="p-3 rounded-lg bg-[#24272f] border border-[#434856] text-xs">
                     <p className="text-slate-300 text-xs leading-relaxed font-normal">
                       {selectedTag.reasoning}
                     </p>
@@ -374,7 +374,7 @@ export const ReviewPage: React.FC = () => {
                 )}
 
                 {/* Match Record */}
-                <div className="p-3 rounded-lg bg-[#181a1f] border border-[#2d313a] space-y-2 text-xs font-mono">
+                <div className="p-3 rounded-lg bg-[#24272f] border border-[#434856] space-y-2 text-xs font-mono">
                   <div className="flex justify-between text-slate-400 font-sans font-medium">
                     <span>DCS POINT</span>
                     <span className="text-emerald-400 font-mono font-medium">{selectedTag.io_match?.io_tag || 'None'}</span>
@@ -391,7 +391,7 @@ export const ReviewPage: React.FC = () => {
 
                 <button
                   onClick={() => startEdit(selectedTag)}
-                  className="w-full h-9 rounded-lg border border-[#2d313a] bg-[#181a1f] text-slate-200 font-medium hover:bg-[#252831] flex items-center justify-center gap-2 transition-all text-xs"
+                  className="w-full h-8 rounded-lg border border-[#434856] bg-[#24272f] text-slate-200 font-medium hover:bg-[#323642] flex items-center justify-center gap-2 transition-all text-xs"
                 >
                   <Edit3 size={13} />
                   <span>Edit Tag</span>

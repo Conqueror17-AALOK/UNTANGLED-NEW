@@ -14,16 +14,16 @@ export const Card: React.FC<CardProps> = ({
   hoverEffect = false,
 }) => {
   const variantStyles = {
-    card: 'bg-[#20232a] text-neutral-200 border border-[#2e323b] rounded-xl p-5',
-    default: 'bg-[#20232a] text-neutral-200 border border-[#2e323b] rounded-xl p-5',
-    well: 'bg-[#1c1e24] text-neutral-200 border border-dashed border-[#353945] rounded-xl p-5',
-    selected: 'bg-[#252831] text-white border-2 border-blue-500 rounded-xl p-5',
-    telemetry: 'bg-[#1e2026] text-neutral-200 border border-[#2e323b] rounded-xl p-5',
-    glass: 'bg-[#20232a] text-neutral-200 border border-[#2e323b] rounded-xl p-5',
-    interactive: 'bg-[#20232a] text-neutral-200 border border-[#2e323b] hover:border-[#3d424f] hover:bg-[#252831] rounded-xl p-5 cursor-pointer',
+    card: 'bg-[#323642] text-neutral-200 border border-[#434856] rounded-xl p-5',
+    default: 'bg-[#323642] text-neutral-200 border border-[#434856] rounded-xl p-5',
+    well: 'bg-[#24272f] text-neutral-200 border border-dashed border-[#484e5e] rounded-xl p-5',
+    selected: 'bg-[#3f4554] text-white border-2 border-blue-500 rounded-xl p-5',
+    telemetry: 'bg-[#24272f] text-neutral-200 border border-[#434856] rounded-xl p-5',
+    glass: 'bg-[#323642] text-neutral-200 border border-[#434856] rounded-xl p-5',
+    interactive: 'bg-[#323642] text-neutral-200 border border-[#434856] hover:border-slate-400 hover:bg-[#383d4a] rounded-xl p-5 cursor-pointer',
   };
 
-  const hoverClass = hoverEffect ? 'hover:bg-[#252831] hover:border-[#3d424f] transition-colors duration-150' : '';
+  const hoverClass = hoverEffect ? 'hover:bg-[#383d4a] hover:border-slate-400 transition-colors duration-150' : '';
 
   return (
     <div className={`${variantStyles[variant]} ${hoverClass} ${className}`}>

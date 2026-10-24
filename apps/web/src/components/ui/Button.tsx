@@ -27,7 +27,7 @@ export const Button: React.FC<ButtonProps> = ({
   const variantClasses = {
     primary: "bg-neutral-100 text-neutral-900 hover:bg-white active:scale-[0.98] border border-transparent font-medium shadow-sm",
     engineering: "bg-blue-600 text-white hover:bg-blue-500 active:scale-[0.98] border border-transparent font-medium shadow-sm",
-    secondary: "bg-[#20232a] text-neutral-200 border border-[#2e323b] hover:bg-[#252831] hover:text-white active:scale-[0.98] font-medium",
+    secondary: "bg-[#24272f] text-neutral-200 border border-[#434856] hover:bg-[#323642] hover:text-white active:scale-[0.98] font-medium",
     tertiary: "bg-transparent text-neutral-400 hover:text-white p-0 font-medium hover:underline",
     danger: "bg-red-600 text-white hover:bg-red-500 active:scale-[0.98] font-medium rounded-lg",
     ghost: "bg-transparent text-neutral-400 hover:text-white hover:bg-white/[0.04] rounded-lg font-medium",

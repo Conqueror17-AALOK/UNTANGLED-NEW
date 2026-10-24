@@ -107,10 +107,10 @@ export const JobPage: React.FC = () => {
   }, [jobId]);
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-10 space-y-5 animate-fade-in font-sans">
+    <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-4 animate-fade-in font-sans">
       
       {/* Clean Technical Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-[#2d313a]">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-[#434856]">
         <div>
           <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-white">
             Pipeline Execution
@@ -149,7 +149,7 @@ export const JobPage: React.FC = () => {
             <span>Error: {errorMsg}</span>
           </div>
         ) : (
-          <div className="flex items-center gap-2 px-3 py-1 rounded-md bg-[#252831] border border-[#2d313a] text-xs text-neutral-200">
+          <div className="flex items-center gap-2 px-3 py-1 rounded-md bg-[#24272f] border border-[#434856] text-xs text-neutral-200">
             <Loader2 size={13} className="animate-spin text-blue-400" />
             <span className="font-medium uppercase text-[11px]">{currentStage}</span>
           </div>
@@ -166,7 +166,7 @@ export const JobPage: React.FC = () => {
         </div>
 
         {/* Minimal Progress Bar */}
-        <div className="w-full h-2 rounded-full bg-[#1c1e24] overflow-hidden">
+        <div className="w-full h-2 rounded-full bg-[#24272f] border border-[#434856] overflow-hidden">
           <div
             className="h-full rounded-full bg-blue-500 transition-all duration-300"
             style={{ width: `${Math.min(100, Math.max(5, progress * 100))}%` }}
@@ -174,7 +174,7 @@ export const JobPage: React.FC = () => {
         </div>
 
         {/* 3 Stats in a Clean Divided Row (No Nested Boxes) */}
-        <div className="grid grid-cols-3 divide-x divide-[#2d313a] pt-2 border-t border-[#2d313a] text-center text-xs">
+        <div className="grid grid-cols-3 divide-x divide-[#434856] pt-2 border-t border-[#434856] text-center text-xs">
           <div className="py-1">
             <span className="text-[11px] text-neutral-400 block font-normal">Resolved</span>
             <span className="text-white font-semibold text-xl tabular-nums mt-0.5 block">{summary.resolved}</span>
@@ -193,7 +193,7 @@ export const JobPage: React.FC = () => {
       </div>
 
       {/* 9-Stage Sequence in a Single Clean Divided List (No Separate Box for Each Stage) */}
-      <div className="adobe-card divide-y divide-[#2d313a] overflow-hidden">
+      <div className="adobe-card divide-y divide-[#434856] overflow-hidden">
         {PIPELINE_STAGES.map((s, index) => {
           const isCompleted = completedStages.has(s.id) || isDone;
           const isCurrent = currentStage === s.id && !isDone;
@@ -205,7 +205,7 @@ export const JobPage: React.FC = () => {
                 isCurrent
                   ? 'bg-blue-500/10 text-white'
                   : isCompleted
-                  ? 'text-neutral-200 hover:bg-white/[0.02]'
+                  ? 'text-neutral-200 hover:bg-white/[0.04]'
                   : 'text-neutral-500'
               }`}
             >
@@ -234,7 +234,7 @@ export const JobPage: React.FC = () => {
                     Running
                   </span>
                 ) : (
-                  <span className="text-[10px] text-neutral-600">Pending</span>
+                  <span className="text-[10px] text-neutral-400">Pending</span>
                 )}
               </div>
             </div>

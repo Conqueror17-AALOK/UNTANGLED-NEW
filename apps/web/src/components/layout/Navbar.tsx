@@ -84,8 +84,8 @@ export const Navbar: React.FC<NavbarProps> = ({ currentJobId = 'demo-job-1' }) =
 
   return (
     <>
-      <header className="sticky top-0 z-40 bg-[#181a1f]/95 backdrop-blur-md border-b border-[#2d313a] h-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full">
+      <header className="sticky top-0 z-40 bg-[#282b33]/95 backdrop-blur-md border-b border-[#434856] h-14 sm:h-16">
+        <div className="w-full max-w-[1700px] mx-auto px-4 sm:px-6 lg:px-8 h-full">
           <div className="flex items-center justify-between h-full">
             
             {/* Brand Logo - UNTANGLED */}
@@ -97,13 +97,13 @@ export const Navbar: React.FC<NavbarProps> = ({ currentJobId = 'demo-job-1' }) =
                   className="w-7 h-7 object-contain transition-transform group-hover:scale-105 opacity-90"
                 />
               </div>
-              <span className="text-base font-semibold tracking-tight text-white">
+              <span className="text-base font-semibold tracking-tight text-slate-100">
                 UNTANGLED
               </span>
             </Link>
 
             {/* Desktop Navigation - Docked Selector Strip */}
-            <nav className="hidden md:flex items-center gap-1 bg-[#20232a] p-1 rounded-lg border border-[#2d313a] mx-2">
+            <nav className="hidden md:flex items-center gap-1 bg-[#24272f] p-1 rounded-lg border border-[#434856] mx-2">
               {navItems.map((item) => {
                 const Icon = item.icon;
                 const active = isActive(item.path);
@@ -113,11 +113,11 @@ export const Navbar: React.FC<NavbarProps> = ({ currentJobId = 'demo-job-1' }) =
                     to={item.path}
                     className={`flex items-center gap-2 px-3.5 py-1.5 rounded-md text-xs font-medium transition-all duration-150 ${
                       active
-                        ? 'bg-[#2d313a] text-white font-semibold shadow-sm'
-                        : 'text-neutral-400 hover:text-white hover:bg-white/[0.04]'
+                        ? 'bg-[#3f4554] text-white font-medium shadow-sm'
+                        : 'text-slate-300 hover:text-white hover:bg-white/[0.05]'
                     }`}
                   >
-                    <Icon size={14} className={active ? 'text-blue-400' : 'text-neutral-400'} />
+                    <Icon size={14} className={active ? 'text-blue-400' : 'text-slate-400'} />
                     <span className="lg:hidden">{item.label}</span>
                     <span className="hidden lg:inline">{item.fullLabel}</span>
                   </Link>
@@ -131,7 +131,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentJobId = 'demo-job-1' }) =
               {/* Hotkeys (?) Button */}
               <button
                 onClick={() => setShortcutsOpen(true)}
-                className="hidden sm:flex items-center gap-1.5 text-xs text-neutral-300 hover:text-white px-3 py-1.5 rounded-lg border border-[#2d313a] bg-[#20232a] hover:bg-[#252831] transition-all"
+                className="hidden sm:flex items-center gap-1.5 text-xs text-slate-300 hover:text-white px-3 py-1.5 rounded-lg border border-[#434856] bg-[#24272f] hover:bg-[#323642] transition-all"
                 title="Keyboard Shortcuts & Reference (?)"
               >
                 <Keyboard size={13} />
@@ -142,7 +142,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentJobId = 'demo-job-1' }) =
               {/* Mobile Hamburger Toggle */}
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="md:hidden text-neutral-200 p-2 rounded-lg bg-[#20232a] border border-[#2d313a]"
+                className="md:hidden text-slate-200 p-2 rounded-lg bg-[#24272f] border border-[#434856]"
                 aria-label="Toggle navigation menu"
               >
                 {mobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
@@ -154,7 +154,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentJobId = 'demo-job-1' }) =
 
         {/* Mobile Dropdown Drawer */}
         {mobileMenuOpen && (
-          <div className="md:hidden border-b border-[#2d313a] bg-[#1c1e24] px-4 py-3 space-y-1 animate-fade-in">
+          <div className="md:hidden border-b border-[#434856] bg-[#24272f] px-4 py-3 space-y-1 animate-fade-in">
             {navItems.map((item) => {
               const Icon = item.icon;
               const active = isActive(item.path);
@@ -165,25 +165,25 @@ export const Navbar: React.FC<NavbarProps> = ({ currentJobId = 'demo-job-1' }) =
                   onClick={() => setMobileMenuOpen(false)}
                   className={`flex items-center gap-3 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                     active
-                      ? 'bg-[#2d313a] text-white font-semibold'
+                      ? 'bg-[#3f4554] text-white font-medium'
                       : 'text-slate-300 hover:text-white hover:bg-white/[0.06]'
                   }`}
                 >
-                  <Icon size={16} className={active ? 'text-black' : 'text-slate-400'} />
+                  <Icon size={16} className={active ? 'text-blue-400' : 'text-slate-400'} />
                   <span>{item.fullLabel}</span>
                 </Link>
               );
             })}
 
-            <div className="pt-3 border-t border-white/[0.1] flex items-center justify-between">
+            <div className="pt-3 border-t border-[#434856] flex items-center justify-between">
               <button
                 onClick={() => {
                   setMobileMenuOpen(false);
                   setStatusModalOpen(true);
                 }}
-                className="flex items-center gap-2 text-xs font-bold text-slate-300 hover:text-white py-1"
+                className="flex items-center gap-2 text-xs font-medium text-slate-300 hover:text-white py-1"
               >
-                <Activity size={14} className="text-[#eb1000]" />
+                <Activity size={14} className="text-blue-400" />
                 <span>View Engine Status</span>
               </button>
 
@@ -192,7 +192,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentJobId = 'demo-job-1' }) =
                   setMobileMenuOpen(false);
                   setShortcutsOpen(true);
                 }}
-                className="flex items-center gap-1.5 text-xs font-bold text-slate-300 hover:text-white py-1"
+                className="flex items-center gap-1.5 text-xs font-medium text-slate-300 hover:text-white py-1"
               >
                 <Keyboard size={14} />
                 <span>Shortcuts (?)</span>
@@ -205,52 +205,52 @@ export const Navbar: React.FC<NavbarProps> = ({ currentJobId = 'demo-job-1' }) =
       {/* Interactive System Status Modal */}
       <Modal isOpen={statusModalOpen} onClose={() => setStatusModalOpen(false)} title="System Engine Telemetry & Status">
         <div className="space-y-4 text-xs text-slate-300">
-          <div className="p-4 rounded-xl bg-[#1a1a1a] border border-white/[0.1] flex items-center justify-between">
+          <div className="p-4 rounded-lg bg-[#24272f] border border-[#434856] flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <span className={`w-3 h-3 rounded-full ${isOnline ? 'bg-[#10b981]' : 'bg-[#eb1000]'}`} />
+              <span className={`w-3 h-3 rounded-full ${isOnline ? 'bg-emerald-500' : 'bg-rose-500'}`} />
               <div>
-                <p className="font-extrabold text-white text-sm">
+                <p className="font-semibold text-white text-sm">
                   {isOnline ? 'FastAPI Gateway Connected' : 'Standalone Demo Mode'}
                 </p>
-                <p className="text-xs text-slate-400 font-medium">
+                <p className="text-xs text-slate-400 font-normal">
                   {isOnline ? 'Live cross-validation pipeline active' : 'Offline fixtures running in browser'}
                 </p>
               </div>
             </div>
-            <span className="px-2.5 py-1 rounded-full text-[11px] font-mono font-bold bg-white/10 text-white border border-white/10">
+            <span className="px-2.5 py-1 rounded-md text-[11px] font-mono font-medium bg-white/10 text-white border border-white/10">
               v{health.version || '1.0.0'}
             </span>
           </div>
 
           <div className="space-y-2">
-            <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-              <Server size={14} className="text-[#eb1000]" />
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+              <Server size={14} className="text-blue-400" />
               Subsystem Health Diagnostics
             </h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-              <div className="p-3 rounded-xl bg-[#141414] border border-white/[0.08] flex items-center justify-between">
-                <span className="flex items-center gap-2 text-slate-400 font-bold">
+              <div className="p-3 rounded-lg bg-[#24272f] border border-[#434856] flex items-center justify-between">
+                <span className="flex items-center gap-2 text-slate-400 font-medium">
                   <Database size={14} /> Database:
                 </span>
-                <span className="text-[#10b981] font-bold">{health.checks?.database || 'Healthy (SQLite)'}</span>
+                <span className="text-emerald-400 font-medium">{health.checks?.database || 'Healthy (SQLite)'}</span>
               </div>
-              <div className="p-3 rounded-xl bg-[#141414] border border-white/[0.08] flex items-center justify-between">
-                <span className="flex items-center gap-2 text-slate-400 font-bold">
+              <div className="p-3 rounded-lg bg-[#24272f] border border-[#434856] flex items-center justify-between">
+                <span className="flex items-center gap-2 text-slate-400 font-medium">
                   <HardDrive size={14} /> Storage:
                 </span>
-                <span className="text-[#10b981] font-bold">{health.checks?.storage || 'Healthy'}</span>
+                <span className="text-emerald-400 font-medium">{health.checks?.storage || 'Healthy'}</span>
               </div>
-              <div className="p-3 rounded-xl bg-[#141414] border border-white/[0.08] flex items-center justify-between">
-                <span className="flex items-center gap-2 text-slate-400 font-bold">
+              <div className="p-3 rounded-lg bg-[#24272f] border border-[#434856] flex items-center justify-between">
+                <span className="flex items-center gap-2 text-slate-400 font-medium">
                   <Cpu size={14} /> OCR Engine:
                 </span>
-                <span className="text-[#10b981] font-bold">Tesseract + PyMuPDF</span>
+                <span className="text-emerald-400 font-medium">Tesseract + PyMuPDF</span>
               </div>
-              <div className="p-3 rounded-xl bg-[#141414] border border-white/[0.08] flex items-center justify-between">
-                <span className="flex items-center gap-2 text-slate-400 font-bold">
+              <div className="p-3 rounded-lg bg-[#24272f] border border-[#434856] flex items-center justify-between">
+                <span className="flex items-center gap-2 text-slate-400 font-medium">
                   <Activity size={14} /> LLM Resolver:
                 </span>
-                <span className="text-white font-bold truncate max-w-[130px]" title={health.checks?.llm || 'NeMoTron & Heuristic'}>
+                <span className="text-slate-100 font-medium truncate max-w-[130px]" title={health.checks?.llm || 'NeMoTron & Heuristic'}>
                   NeMoTron / Rule
                 </span>
               </div>
@@ -268,45 +268,45 @@ export const Navbar: React.FC<NavbarProps> = ({ currentJobId = 'demo-job-1' }) =
       {/* Keyboard Shortcuts Modal */}
       <Modal isOpen={shortcutsOpen} onClose={() => setShortcutsOpen(false)} title="System Hotkeys & Operations Guide">
         <div className="space-y-4 text-xs text-slate-300">
-          <div className="p-4 rounded-xl bg-[#1a1a1a] border border-white/[0.1] space-y-1.5">
-            <div className="flex items-center gap-2 text-sm font-extrabold text-white">
-              <CheckCheck size={16} className="text-[#eb1000]" />
+          <div className="p-4 rounded-lg bg-[#24272f] border border-[#434856] space-y-1.5">
+            <div className="flex items-center gap-2 text-sm font-semibold text-white">
+              <CheckCheck size={16} className="text-blue-400" />
               <span>Multi-Signal Verification Protocol</span>
             </div>
-            <p className="text-xs leading-relaxed text-slate-300 font-medium">
+            <p className="text-xs leading-relaxed text-slate-300 font-normal">
               UNTANGLED automatically cross-references physical P&ID blueprints against engineering DCS IO lists using visual OCR voting, OpenCV symbol correlation, RapidFuzz candidate indexing, and ISA-5.1 grammar parsing.
             </p>
           </div>
 
           <div className="space-y-2">
-            <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
               <Keyboard size={14} />
               Canvas & Review Hotkeys
             </h4>
             <div className="grid grid-cols-2 gap-2 text-xs">
-              <div className="p-3 rounded-xl bg-[#141414] border border-white/[0.08] flex justify-between items-center">
-                <span className="text-slate-300 font-bold">Toggle Shortcuts</span>
-                <kbd className="px-2 py-0.5 rounded-md bg-white/[0.15] text-white font-bold">?</kbd>
+              <div className="p-3 rounded-lg bg-[#24272f] border border-[#434856] flex justify-between items-center">
+                <span className="text-slate-300 font-medium">Toggle Shortcuts</span>
+                <kbd className="px-2 py-0.5 rounded-md bg-white/[0.12] text-white font-medium">?</kbd>
               </div>
-              <div className="p-3 rounded-xl bg-[#141414] border border-white/[0.08] flex justify-between items-center">
-                <span className="text-slate-300 font-bold">Zoom In / Out</span>
-                <kbd className="px-2 py-0.5 rounded-md bg-white/[0.15] text-white font-bold">+ / -</kbd>
+              <div className="p-3 rounded-lg bg-[#24272f] border border-[#434856] flex justify-between items-center">
+                <span className="text-slate-300 font-medium">Zoom In / Out</span>
+                <kbd className="px-2 py-0.5 rounded-md bg-white/[0.12] text-white font-medium">+ / -</kbd>
               </div>
-              <div className="p-3 rounded-xl bg-[#141414] border border-white/[0.08] flex justify-between items-center">
-                <span className="text-slate-300 font-bold">Reset Viewport</span>
-                <kbd className="px-2 py-0.5 rounded-md bg-white/[0.15] text-white font-bold">0</kbd>
+              <div className="p-3 rounded-lg bg-[#24272f] border border-[#434856] flex justify-between items-center">
+                <span className="text-slate-300 font-medium">Reset Viewport</span>
+                <kbd className="px-2 py-0.5 rounded-md bg-white/[0.12] text-white font-medium">0</kbd>
               </div>
-              <div className="p-3 rounded-xl bg-[#141414] border border-white/[0.08] flex justify-between items-center">
-                <span className="text-slate-300 font-bold">Compare Split</span>
-                <kbd className="px-2 py-0.5 rounded-md bg-white/[0.15] text-white font-bold">b</kbd>
+              <div className="p-3 rounded-lg bg-[#24272f] border border-[#434856] flex justify-between items-center">
+                <span className="text-slate-300 font-medium">Compare Split</span>
+                <kbd className="px-2 py-0.5 rounded-md bg-white/[0.12] text-white font-medium">b</kbd>
               </div>
-              <div className="p-3 rounded-xl bg-[#141414] border border-white/[0.08] flex justify-between items-center">
-                <span className="text-slate-300 font-bold">Rebuild Graph</span>
-                <kbd className="px-2 py-0.5 rounded-md bg-white/[0.15] text-white font-bold">r</kbd>
+              <div className="p-3 rounded-lg bg-[#24272f] border border-[#434856] flex justify-between items-center">
+                <span className="text-slate-300 font-medium">Rebuild Graph</span>
+                <kbd className="px-2 py-0.5 rounded-md bg-white/[0.12] text-white font-medium">r</kbd>
               </div>
-              <div className="p-3 rounded-xl bg-[#141414] border border-white/[0.08] flex justify-between items-center">
-                <span className="text-slate-300 font-bold">Close Active View</span>
-                <kbd className="px-2 py-0.5 rounded-md bg-white/[0.15] text-white font-bold">Esc</kbd>
+              <div className="p-3 rounded-lg bg-[#24272f] border border-[#434856] flex justify-between items-center">
+                <span className="text-slate-300 font-medium">Close Active View</span>
+                <kbd className="px-2 py-0.5 rounded-md bg-white/[0.12] text-white font-medium">Esc</kbd>
               </div>
             </div>
           </div>
