@@ -159,8 +159,8 @@ async def execute_untangle_pipeline(job_id: str, db: Session):
 
         await update_job_stage(db, job, "llm_resolve", 0.48)
 
-        # Resolve candidates concurrently with bounded concurrency
-        sem = asyncio.Semaphore(10)
+        # Resolve candidates concurrently with bounded concurrency (optimal throughput without API queuing)
+        sem = asyncio.Semaphore(4)
 
         async def _resolve_tag_entry(item):
             page_num, txt_dict = item

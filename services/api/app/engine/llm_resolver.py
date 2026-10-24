@@ -63,17 +63,39 @@ def _extract_json_object(text: str) -> Optional[Dict[str, Any]]:
     """Helper to safely extract and parse a JSON dictionary from LLM response text."""
     if not text:
         return None
+
+    cleaned = text.strip()
+    # Strip markdown code blocks if present
+    if cleaned.startswith("```"):
+        cleaned = re.sub(r"^```(?:json)?\s*", "", cleaned, flags=re.IGNORECASE)
+        cleaned = re.sub(r"\s*```$", "", cleaned)
+        cleaned = cleaned.strip()
+
+    # 1. Direct JSON parse
     try:
-        return json.loads(text.strip())
+        return json.loads(cleaned)
     except Exception:
         pass
 
-    match = re.search(r"\{.*\}", text, re.DOTALL)
+    # 2. Match standard outer JSON braces
+    match = re.search(r"\{.*\}", cleaned, re.DOTALL)
     if match:
         try:
             return json.loads(match.group(0))
         except Exception:
             pass
+
+    # 3. Resilient regex fallback for unclosed or truncated JSON output
+    tag_match = re.search(r'"resolved_tag"\s*:\s*"([^"]+)"', text)
+    if tag_match:
+        conf_match = re.search(r'"confidence"\s*:\s*([0-9.]+)', text)
+        reason_match = re.search(r'"reasoning"\s*:\s*"([^"\n\r]*)', text)
+        return {
+            "resolved_tag": tag_match.group(1).strip(),
+            "confidence": float(conf_match.group(1)) if conf_match else 0.95,
+            "reasoning": reason_match.group(1).strip() if reason_match else "Resolved from LLM output"
+        }
+
     return None
 
 
@@ -110,11 +132,18 @@ async def call_nvidia_llm(
         "messages": [
             {
                 "role": "user",
-                "content": f"You are an industrial P&ID instrumentation expert. Always output your final answer as JSON.\n\n{prompt}"
+                "content": (
+                    "You are an industrial P&ID instrumentation expert. "
+                    "Resolve ambiguous OCR text against ISA-5.1 engineering standards and DCS IO list. "
+                    "Respond ONLY with a single JSON object in this exact schema: "
+                    '{"resolved_tag": "TAG-123", "confidence": 0.95, "reasoning": "brief reason"}. '
+                    "Do NOT include markdown fences, preambles, or long explanations.\n\n"
+                    f"{prompt}"
+                )
             }
         ],
         "temperature": 0.1,
-        "max_tokens": 512
+        "max_tokens": 1024
     }
 
     async with httpx.AsyncClient(timeout=timeout) as client:
@@ -224,7 +253,7 @@ async def resolve_tag_with_llm_or_heuristics(
                 model=settings.LLM_MODEL_FAST,
                 api_key=api_key,
                 base_url=settings.NVIDIA_BASE_URL,
-                timeout=4.0
+                timeout=15.0
             )
             if parsed and "resolved_tag" in parsed:
                 resolved_tag = str(parsed["resolved_tag"]).strip()
