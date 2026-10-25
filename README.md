@@ -1,4 +1,15 @@
-# ⚡ UNTANGLED: Industrial P&ID Digitization, Topological Graph & Audit Engine
+<div align="center">
+
+```
+██╗   ██╗███╗   ██╗████████╗ █████╗ ███╗   ██╗ ██████╗ ██╗     ███████╗██████╗ 
+██║   ██║████╗  ██║╚══██╔══╝██╔══██╗████╗  ██║██╔════╝ ██║     ██╔════╝██╔══██╗
+██║   ██║██╔██╗ ██║   ██║   ███████║██╔██╗ ██║██║  ███╗██║     █████╗  ██║  ██║
+██║   ██║██║╚██╗██║   ██║   ██╔══██║██║╚██╗██║██║   ██║██║     ██╔══╝  ██║  ██║
+╚██████╔╝██║ ╚████║   ██║   ██║  ██║██║ ╚████║╚██████╔╝███████╗███████╗██████╔╝
+ ╚═════╝ ╚═╝  ╚═══╝   ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═══╝ ╚═════╝ ╚══════╝╚══════╝╚═════╝ 
+```
+
+### ⚡ Industrial P&ID Digitization, Topological Graph & Discrepancy Audit Engine
 
 <p align="center">
   <img src="https://img.shields.io/badge/Python-3.11%20%7C%203.14-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python" />
@@ -9,6 +20,8 @@
   <img src="https://img.shields.io/badge/Standard-ANSI%2FISA--5.1-FF6F00?style=for-the-badge" alt="ISA-5.1" />
   <img src="https://img.shields.io/badge/Privacy-100%25%20Air--Gapped-green?style=for-the-badge" alt="Air Gapped" />
 </p>
+
+</div>
 
 An offline, privacy-preserving engineering intelligence platform that digitizes complex industrial **Piping & Instrumentation Diagrams (P&IDs)**, cross-validates them against **Distributed Control System (DCS) I/O spreadsheets**, highlights discrepancies directly on the blueprint with **Visual Error Overlays**, and synthesizes verified **topological process connectivity graphs**.
 
