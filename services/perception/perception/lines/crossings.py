@@ -75,17 +75,20 @@ class CrossingDetector:
 
                 # If binary image is available, check for physical connection dot
                 has_dot = False
-                if binary_image is not None:
+                if binary_image is not None and getattr(binary_image, "size", 0) > 0:
                     cx, cy = int(pt[0]), int(pt[1])
                     r_max = self.config.junction_dot_max_radius
                     y1 = max(0, cy - r_max)
                     y2 = min(binary_image.shape[0], cy + r_max)
                     x1 = max(0, cx - r_max)
                     x2 = min(binary_image.shape[1], cx + r_max)
-                    patch = cv2.bitwise_not(binary_image[y1:y2, x1:x2])
-                    # High pixel concentration near center implies a solid connection dot
-                    if patch.size > 0 and np.mean(patch) > 180:
-                        has_dot = True
+                    if y2 > y1 and x2 > x1:
+                        crop = binary_image[y1:y2, x1:x2]
+                        if crop is not None and getattr(crop, "size", 0) > 0:
+                            patch = cv2.bitwise_not(crop)
+                            # High pixel concentration near center implies a solid connection dot
+                            if patch is not None and getattr(patch, "size", 0) > 0 and np.mean(patch) > 180:
+                                has_dot = True
 
                 is_junction = is_endpoint or has_dot
 
