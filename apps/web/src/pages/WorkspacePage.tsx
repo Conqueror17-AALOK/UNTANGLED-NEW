@@ -21,6 +21,8 @@ export const WorkspacePage: React.FC = () => {
   const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null);
   const [selectedTag, setSelectedTag] = useState<Tag | null>(null);
   const [inspectorTab, setInspectorTab] = useState<'telemetry' | 'confidence' | 'traceability'>('telemetry');
+  const [sketchSvg, setSketchSvg] = useState<string>('');
+  const [displayMode, setDisplayMode] = useState<'hmi' | 'cad'>('hmi');
 
   // Canvas Viewport State (Zoom & Pan)
   const [zoom, setZoom] = useState(1);
@@ -36,10 +38,15 @@ export const WorkspacePage: React.FC = () => {
     apiClient.getGraph(jobId).then((g) => {
       setGraph(g);
       if (g.nodes.length > 0) {
-        setSelectedNode(g.nodes.find((n) => n.id === 'PT-101') || g.nodes[0]);
+        setSelectedNode(
+          g.nodes.find((n) => n.id.includes('171') || n.id.includes('15701') || n.id === 'PT-101') || g.nodes[0]
+        );
       }
     });
     apiClient.getTags(jobId).then(setTags);
+    apiClient.getSketch(jobId).then((svg) => {
+      if (svg) setSketchSvg(svg);
+    });
   }, [jobId]);
 
   useEffect(() => {
@@ -48,6 +55,38 @@ export const WorkspacePage: React.FC = () => {
       setSelectedTag(match || null);
     }
   }, [selectedNode, tags]);
+
+  const handleSvgClick = (e: React.MouseEvent) => {
+    const target = (e.target as HTMLElement).closest('[data-id]') as HTMLElement | null;
+    if (target) {
+      const tagId = target.getAttribute('data-id');
+      if (tagId) {
+        const cleanTag = tagId.trim();
+        const normTag = cleanTag.replace(/[\s_-]+/g, '').toUpperCase();
+        const matchedNode = graph?.nodes.find(
+          (n) => n.id === cleanTag || n.id.replace(/[\s_-]+/g, '').toUpperCase() === normTag
+        );
+        if (matchedNode) {
+          setSelectedNode(matchedNode);
+        } else {
+          const matchedTag = tags.find(
+            (t) => t.normalized_tag === cleanTag || t.normalized_tag.replace(/[\s_-]+/g, '').toUpperCase() === normTag || t.id === cleanTag
+          );
+          if (matchedTag) {
+            setSelectedTag(matchedTag);
+            setSelectedNode({
+              id: matchedTag.normalized_tag,
+              type: matchedTag.type || 'Process Component',
+              category: matchedTag.category || 'instrument',
+              x: 0,
+              y: 0,
+              confidence: matchedTag.confidence || 0.95
+            });
+          }
+        }
+      }
+    }
+  };
 
   const rafPanRef = React.useRef<number | null>(null);
 
@@ -177,9 +216,21 @@ export const WorkspacePage: React.FC = () => {
             target="_blank"
             rel="noopener noreferrer"
           >
-            <button className="bg-slate-100 text-slate-900 font-medium h-8 px-3 rounded-lg flex items-center gap-2 hover:bg-white transition-all text-xs">
+            <button className="bg-slate-100 text-slate-900 font-medium h-8 px-3 rounded-lg flex items-center gap-2 hover:bg-white transition-all text-xs shadow-sm">
               <Download size={13} />
               <span>Download PDF</span>
+            </button>
+          </a>
+
+          <a
+            href={`/api/v1/jobs/${jobId}/sketch`}
+            download={`sketch_${jobId.slice(0, 8)}.svg`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <button className="bg-[#323642] text-slate-300 border border-[#434856] hover:text-white hover:bg-[#3b404d] font-medium h-8 px-3 rounded-lg flex items-center gap-2 transition-all text-xs">
+              <Download size={13} />
+              <span>Export SVG</span>
             </button>
           </a>
 
@@ -220,25 +271,51 @@ export const WorkspacePage: React.FC = () => {
           {/* Controls Bar with Frosted Glassmorphism */}
           <div className="flex flex-wrap items-center justify-between gap-3 p-2 rounded-xl bg-[#323642]/70 backdrop-blur-xl border border-white/[0.12] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.12),0_8px_20px_rgba(0,0,0,0.2)] text-xs shrink-0">
             
-            {/* Layer Toggles */}
+            {/* View Mode Toggle: DCS HMI vs CAD Grid */}
             <div className="flex items-center gap-1 bg-[#24272f]/70 backdrop-blur-md p-1 rounded-lg border border-white/[0.1]">
-              <span className="text-slate-400 text-xs px-2 font-medium">
-                Layers:
-              </span>
-              {(['all', 'equipment', 'instrument', 'valve'] as const).map((layer) => (
-                <button
-                  key={layer}
-                  onClick={() => setActiveLayer(layer)}
-                  className={`px-2.5 py-1 rounded text-xs font-medium capitalize transition-all ${
-                    activeLayer === layer
-                      ? 'bg-white/[0.16] backdrop-blur-md text-white font-medium shadow-sm border border-white/[0.2]'
-                      : 'text-slate-400 hover:text-slate-200 border border-transparent'
-                  }`}
-                >
-                  {layer}
-                </button>
-              ))}
+              <button
+                onClick={() => setDisplayMode('hmi')}
+                className={`px-2.5 py-1 rounded text-xs font-medium transition-all ${
+                  displayMode === 'hmi'
+                    ? 'bg-blue-600/40 text-blue-200 border border-blue-500/40 shadow-sm'
+                    : 'text-slate-400 hover:text-slate-200 border border-transparent'
+                }`}
+              >
+                DCS HMI Sketch (#Example 1)
+              </button>
+              <button
+                onClick={() => setDisplayMode('cad')}
+                className={`px-2.5 py-1 rounded text-xs font-medium transition-all ${
+                  displayMode === 'cad'
+                    ? 'bg-white/[0.16] text-white border border-white/[0.2] shadow-sm'
+                    : 'text-slate-400 hover:text-slate-200 border border-transparent'
+                }`}
+              >
+                CAD Grid
+              </button>
             </div>
+
+            {/* Layer Toggles (CAD mode) */}
+            {displayMode === 'cad' && (
+              <div className="flex items-center gap-1 bg-[#24272f]/70 backdrop-blur-md p-1 rounded-lg border border-white/[0.1]">
+                <span className="text-slate-400 text-xs px-2 font-medium">
+                  Layers:
+                </span>
+                {(['all', 'equipment', 'instrument', 'valve'] as const).map((layer) => (
+                  <button
+                    key={layer}
+                    onClick={() => setActiveLayer(layer)}
+                    className={`px-2.5 py-1 rounded text-xs font-medium capitalize transition-all ${
+                      activeLayer === layer
+                        ? 'bg-white/[0.16] backdrop-blur-md text-white font-medium shadow-sm border border-white/[0.2]'
+                        : 'text-slate-400 hover:text-slate-200 border border-transparent'
+                    }`}
+                  >
+                    {layer}
+                  </button>
+                ))}
+              </div>
+            )}
 
             {/* Pan & Zoom Controls */}
             <div className="flex items-center gap-1 pr-1">
@@ -272,346 +349,379 @@ export const WorkspacePage: React.FC = () => {
 
           {/* SVG CAD Canvas Box - Fits remaining height with glass border */}
           <div className="flex-1 min-h-[400px] h-full relative overflow-hidden bg-[#2b2e37]/95 border border-white/[0.12] rounded-xl select-none shadow-inner">
-            {/* Coordinate Grid & Interactive Canvas */}
-            <div
-              className="absolute inset-0 cursor-grab active:cursor-grabbing bg-cad-grid touch-none z-0"
-              onMouseDown={handleMouseDown}
-              onMouseMove={handleMouseMove}
-              onMouseUp={handleMouseUp}
-              onMouseLeave={handleMouseUp}
-              onTouchStart={handleTouchStart}
-              onTouchMove={handleTouchMove}
-              onTouchEnd={handleTouchEnd}
-              onTouchCancel={handleTouchEnd}
-            >
-              <svg className="w-full h-full">
-                <defs>
-                  {/* Process Arrowhead */}
-                  <marker
-                    id="cad-arrow-process"
-                    viewBox="0 0 10 10"
-                    refX="9"
-                    refY="5"
-                    markerWidth="5"
-                    markerHeight="5"
-                    orient="auto-start-reverse"
-                  >
-                    <path d="M 0 1 L 10 5 L 0 9 z" fill="#38bdf8" />
-                  </marker>
+            
+            {/* DCS HMI Process Display View (#Example 1 Standard) */}
+            {displayMode === 'hmi' && sketchSvg ? (
+              <div
+                className="absolute inset-0 cursor-grab active:cursor-grabbing touch-none z-0 overflow-hidden flex items-center justify-center bg-[#cad6e2]"
+                onMouseDown={handleMouseDown}
+                onMouseMove={handleMouseMove}
+                onMouseUp={handleMouseUp}
+                onMouseLeave={handleMouseUp}
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
+                onTouchCancel={handleTouchEnd}
+                onClick={handleSvgClick}
+              >
+                <div
+                  className="w-full h-full flex items-center justify-center p-1 select-none"
+                  style={{
+                    transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
+                    transformOrigin: 'center center',
+                    transition: isDragging ? 'none' : 'transform 0.08s ease-out',
+                  }}
+                  dangerouslySetInnerHTML={{ __html: sketchSvg }}
+                />
+              </div>
+            ) : (
+              /* Coordinate Grid & Interactive CAD Canvas */
+              <div
+                className="absolute inset-0 cursor-grab active:cursor-grabbing bg-cad-grid touch-none z-0"
+                onMouseDown={handleMouseDown}
+                onMouseMove={handleMouseMove}
+                onMouseUp={handleMouseUp}
+                onMouseLeave={handleMouseUp}
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
+                onTouchCancel={handleTouchEnd}
+              >
+                <svg className="w-full h-full">
+                  <defs>
+                    {/* Process Arrowhead */}
+                    <marker
+                      id="cad-arrow-process"
+                      viewBox="0 0 10 10"
+                      refX="9"
+                      refY="5"
+                      markerWidth="5"
+                      markerHeight="5"
+                      orient="auto-start-reverse"
+                    >
+                      <path d="M 0 1 L 10 5 L 0 9 z" fill="#38bdf8" />
+                    </marker>
 
-                  {/* Signal Arrowhead */}
-                  <marker
-                    id="cad-arrow-signal"
-                    viewBox="0 0 10 10"
-                    refX="9"
-                    refY="5"
-                    markerWidth="5"
-                    markerHeight="5"
-                    orient="auto-start-reverse"
-                  >
-                    <path d="M 0 1 L 10 5 L 0 9 z" fill="#a855f7" />
-                  </marker>
-                </defs>
+                    {/* Signal Arrowhead */}
+                    <marker
+                      id="cad-arrow-signal"
+                      viewBox="0 0 10 10"
+                      refX="9"
+                      refY="5"
+                      markerWidth="5"
+                      markerHeight="5"
+                      orient="auto-start-reverse"
+                    >
+                      <path d="M 0 1 L 10 5 L 0 9 z" fill="#a855f7" />
+                    </marker>
+                  </defs>
 
-                <g transform={`translate(${pan.x}, ${pan.y}) scale(${zoom})`}>
-                  
-                  {/* Process & Signal Edges */}
-                  {visibleEdges.map((edge) => {
-                    const src = nodeMap.get(edge.source);
-                    const tgt = nodeMap.get(edge.target);
-                    if (!src || !tgt) return null;
+                  <g transform={`translate(${pan.x}, ${pan.y}) scale(${zoom})`}>
+                    
+                    {/* Process & Signal Edges */}
+                    {visibleEdges.map((edge) => {
+                      const src = nodeMap.get(edge.source);
+                      const tgt = nodeMap.get(edge.target);
+                      if (!src || !tgt) return null;
 
-                    const isProcess = edge.line_type === 'process';
-                    const strokeColor = isProcess ? '#38bdf8' : '#a855f7';
-                    const marker = isProcess ? 'url(#cad-arrow-process)' : 'url(#cad-arrow-signal)';
+                      const isProcess = edge.line_type === 'process';
+                      const strokeColor = isProcess ? '#38bdf8' : '#a855f7';
+                      const marker = isProcess ? 'url(#cad-arrow-process)' : 'url(#cad-arrow-signal)';
 
-                    return (
-                      <g key={edge.id}>
-                        <line
-                          x1={src.x}
-                          y1={src.y}
-                          x2={tgt.x}
-                          y2={tgt.y}
-                          stroke={strokeColor}
-                          strokeWidth={isProcess ? 2.2 : 1.5}
-                          strokeDasharray={isProcess ? undefined : '4,4'}
-                          markerEnd={edge.directed ? marker : undefined}
-                          opacity={0.85}
-                        />
-                      </g>
-                    );
-                  })}
+                      return (
+                        <g key={edge.id}>
+                          <line
+                            x1={src.x}
+                            y1={src.y}
+                            x2={tgt.x}
+                            y2={tgt.y}
+                            stroke={strokeColor}
+                            strokeWidth={isProcess ? 2.2 : 1.5}
+                            strokeDasharray={isProcess ? undefined : '4,4'}
+                            markerEnd={edge.directed ? marker : undefined}
+                            opacity={0.85}
+                          />
+                        </g>
+                      );
+                    })}
 
-                  {/* Nodes Rendered with Authentic ISA-5.1 Shapes */}
-                  {visibleNodes.map((node) => {
-                    const isSelected = selectedNode?.id === node.id;
-                    const isHighConf = node.confidence >= 0.85;
-                    const isMedConf = node.confidence >= 0.60 && node.confidence < 0.85;
-                    const haloColor = isHighConf ? '#10b981' : isMedConf ? '#f59e0b' : '#eb1000';
+                    {/* Nodes Rendered with Authentic ISA-5.1 Shapes */}
+                    {visibleNodes.map((node) => {
+                      const isSelected = selectedNode?.id === node.id;
+                      const isHighConf = node.confidence >= 0.85;
+                      const isMedConf = node.confidence >= 0.60 && node.confidence < 0.85;
+                      const haloColor = isHighConf ? '#10b981' : isMedConf ? '#f59e0b' : '#eb1000';
 
-                    // Parse ISA-5.1 tag prefix and loop number accurately
-                    let prefix = node.id;
-                    let loopNum = '';
-                    const parts = node.id.split('-');
-                    if (parts.length >= 3) {
-                      prefix = `${parts[0]}-${parts[1]}`;
-                      loopNum = parts.slice(2).join('-');
-                    } else if (parts.length === 2) {
-                      prefix = parts[0];
-                      loopNum = parts[1];
-                    } else {
-                      const m = node.id.match(/^(\d*[A-Za-z]+)(\d+.*)$/);
-                      if (m) {
-                        prefix = m[1];
-                        loopNum = m[2];
+                      // Parse ISA-5.1 tag prefix and loop number accurately
+                      let prefix = node.id;
+                      let loopNum = '';
+                      const parts = node.id.split('-');
+                      if (parts.length >= 3) {
+                        prefix = `${parts[0]}-${parts[1]}`;
+                        loopNum = parts.slice(2).join('-');
+                      } else if (parts.length === 2) {
+                        prefix = parts[0];
+                        loopNum = parts[1];
+                      } else {
+                        const m = node.id.match(/^(\d*[A-Za-z]+)(\d+.*)$/);
+                        if (m) {
+                          prefix = m[1];
+                          loopNum = m[2];
+                        }
                       }
-                    }
 
-                    const ntype = node.type.toLowerCase();
-                    const tagUpper = node.id.toUpperCase();
-                    const isVessel = tagUpper.startsWith('V-') || tagUpper.startsWith('C-') || tagUpper.startsWith('D-') || ntype.includes('vessel') || ntype.includes('column') || ntype.includes('separator');
-                    const isTank = tagUpper.startsWith('TK-') || ntype.includes('tank');
-                    const isExchanger = tagUpper.startsWith('E-') || ntype.includes('exchanger') || ntype.includes('cooler') || ntype.includes('reboiler');
+                      const ntype = node.type.toLowerCase();
+                      const tagUpper = node.id.toUpperCase();
+                      const isVessel = tagUpper.startsWith('V-') || tagUpper.startsWith('C-') || tagUpper.startsWith('D-') || ntype.includes('vessel') || ntype.includes('column') || ntype.includes('separator');
+                      const isTank = tagUpper.startsWith('TK-') || ntype.includes('tank');
+                      const isExchanger = tagUpper.startsWith('E-') || ntype.includes('exchanger') || ntype.includes('cooler') || ntype.includes('reboiler');
 
-                    return (
-                      <g
-                        key={node.id}
-                        transform={`translate(${node.x}, ${node.y})`}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedNode(node);
-                        }}
-                        className="cursor-pointer group"
-                      >
-                        {/* Selected Target Ring & Crosshairs */}
-                        {isSelected && (
-                          <g>
-                            <circle
-                              r="32"
-                              fill="none"
-                              stroke="#ffffff"
-                              strokeWidth="1.5"
-                              strokeDasharray="4,3"
-                              className="animate-spin"
-                              style={{ animationDuration: '10s' }}
-                            />
-                            {/* Corner Ticks */}
-                            <line x1="-36" y1="0" x2="-28" y2="0" stroke="#ffffff" strokeWidth="1.5" />
-                            <line x1="28" y1="0" x2="36" y2="0" stroke="#ffffff" strokeWidth="1.5" />
-                            <line x1="0" y1="-36" x2="0" y2="-28" stroke="#ffffff" strokeWidth="1.5" />
-                            <line x1="0" y1="28" x2="0" y2="36" stroke="#ffffff" strokeWidth="1.5" />
-                          </g>
-                        )}
+                      return (
+                        <g
+                          key={node.id}
+                          transform={`translate(${node.x}, ${node.y})`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedNode(node);
+                          }}
+                          className="cursor-pointer group"
+                        >
+                          {/* Selected Target Ring & Crosshairs */}
+                          {isSelected && (
+                            <g>
+                              <circle
+                                r="32"
+                                fill="none"
+                                stroke="#ffffff"
+                                strokeWidth="1.5"
+                                strokeDasharray="4,3"
+                                className="animate-spin"
+                                style={{ animationDuration: '10s' }}
+                              />
+                              <line x1="-36" y1="0" x2="-28" y2="0" stroke="#ffffff" strokeWidth="1.5" />
+                              <line x1="28" y1="0" x2="36" y2="0" stroke="#ffffff" strokeWidth="1.5" />
+                              <line x1="0" y1="-36" x2="0" y2="-28" stroke="#ffffff" strokeWidth="1.5" />
+                              <line x1="0" y1="28" x2="0" y2="36" stroke="#ffffff" strokeWidth="1.5" />
+                            </g>
+                          )}
 
-                        {/* EQUIPMENT SYMBOL: VESSEL / COLUMN / SEPARATOR */}
-                        {node.category === 'equipment' && isVessel && (
-                          <g>
-                            <path
-                              d="M -22 -20 C -22 -35, 22 -35, 22 -20 L 22 20 C 22 35, -22 35, -22 20 Z"
-                              fill="#12141c"
+                          {/* EQUIPMENT SYMBOL: VESSEL */}
+                          {node.category === 'equipment' && isVessel && (
+                            <g>
+                              <path
+                                d="M -22 -20 C -22 -35, 22 -35, 22 -20 L 22 20 C 22 35, -22 35, -22 20 Z"
+                                fill="#12141c"
+                                stroke={haloColor}
+                                strokeWidth={isSelected ? 2.5 : 1.8}
+                              />
+                              <line x1="-16" y1="-5" x2="16" y2="-5" stroke="#334155" strokeDasharray="3,3" />
+                              <line x1="-16" y1="5" x2="16" y2="5" stroke="#334155" strokeDasharray="3,3" />
+                              <text textAnchor="middle" dy="-8" fontSize="8.5" fontWeight="bold" fontFamily="JetBrains Mono, monospace" fill="#f1f5f9">
+                                {node.id}
+                              </text>
+                              <text textAnchor="middle" dy="14" fontSize="7" fontFamily="JetBrains Mono, monospace" fill="#94a3b8">
+                                VESSEL
+                              </text>
+                            </g>
+                          )}
+
+                          {/* EQUIPMENT SYMBOL: STORAGE TANK */}
+                          {node.category === 'equipment' && isTank && !isVessel && (
+                            <g>
+                              <path
+                                d="M -24 -15 C -12 -28, 12 -28, 24 -15 L 24 25 L -24 25 Z"
+                                fill="#12141c"
+                                stroke={haloColor}
+                                strokeWidth={isSelected ? 2.5 : 1.8}
+                              />
+                              <line x1="-18" y1="0" x2="18" y2="0" stroke="#38bdf8" strokeDasharray="3,3" strokeWidth="1" opacity="0.6" />
+                              <text textAnchor="middle" dy="5" fontSize="8.5" fontWeight="bold" fontFamily="JetBrains Mono, monospace" fill="#f1f5f9">
+                                {node.id}
+                              </text>
+                              <text textAnchor="middle" dy="16" fontSize="7" fontFamily="JetBrains Mono, monospace" fill="#94a3b8">
+                                TANK
+                              </text>
+                            </g>
+                          )}
+
+                          {/* EQUIPMENT SYMBOL: HEAT EXCHANGER */}
+                          {node.category === 'equipment' && isExchanger && !isVessel && !isTank && (
+                            <g>
+                              <rect x="-26" y="-16" width="52" height="32" rx="16" fill="#12141c" stroke={haloColor} strokeWidth={isSelected ? 2.5 : 1.8} />
+                              <line x1="-16" y1="-3" x2="16" y2="-3" stroke="#475569" strokeDasharray="2,2" />
+                              <line x1="-16" y1="3" x2="16" y2="3" stroke="#475569" strokeDasharray="2,2" />
+                              <text textAnchor="middle" dy="-4" fontSize="8" fontWeight="bold" fontFamily="JetBrains Mono, monospace" fill="#f1f5f9">
+                                {node.id}
+                              </text>
+                              <text textAnchor="middle" dy="8" fontSize="6.5" fontFamily="JetBrains Mono, monospace" fill="#94a3b8">
+                                HEX
+                              </text>
+                            </g>
+                          )}
+
+                          {/* EQUIPMENT SYMBOL: PUMP */}
+                          {node.category === 'equipment' && !isVessel && !isTank && !isExchanger && (
+                            <g>
+                              <circle
+                                r="24"
+                                fill="#141414"
+                                stroke={haloColor}
+                                strokeWidth={isSelected ? 2.5 : 1.8}
+                              />
+                              <path d="M 12 -20 L 22 -30 L 8 -26 Z" fill="#38bdf8" />
+                              <circle r="6" fill="#1e1e1e" stroke="#64748b" strokeWidth="1" />
+                              <text
+                                textAnchor="middle"
+                                dy="-8"
+                                fontSize="9"
+                                fontWeight="bold"
+                                fontFamily="JetBrains Mono, monospace"
+                                fill="#ffffff"
+                              >
+                                {node.id}
+                              </text>
+                              <text
+                                textAnchor="middle"
+                                dy="14"
+                                fontSize="7.5"
+                                fontFamily="JetBrains Mono, monospace"
+                                fill="#a3a3a3"
+                              >
+                                PUMP
+                              </text>
+                            </g>
+                          )}
+
+                          {/* VALVE SYMBOL */}
+                          {node.category === 'valve' && (
+                            <g>
+                              <polygon
+                                points="-16,-9 16,9 16,-9 -16,9"
+                                fill="#141414"
+                                stroke={haloColor}
+                                strokeWidth={isSelected ? 2.2 : 1.6}
+                              />
+                              <line x1="0" y1="0" x2="0" y2="-12" stroke="#a3a3a3" strokeWidth="1.5" />
+                              {node.id.startsWith('CV') || node.id.startsWith('FV') || node.id.startsWith('LV') || node.id.startsWith('PV') || node.id.startsWith('TV') ? (
+                                <path d="M -10 -12 Q 0 -22 10 -12 Z" fill="#1e1e1e" stroke="#38bdf8" strokeWidth="1.5" />
+                              ) : (
+                                <line x1="-8" y1="-12" x2="8" y2="-12" stroke="#a3a3a3" strokeWidth="2" />
+                              )}
+                              <text
+                                textAnchor="middle"
+                                dy="20"
+                                fontSize="8"
+                                fontWeight="bold"
+                                fontFamily="JetBrains Mono, monospace"
+                                fill="#ffffff"
+                              >
+                                {node.id}
+                              </text>
+                            </g>
+                          )}
+
+                          {/* INSTRUMENT SYMBOL: ISA-5.1 BUBBLE */}
+                          {node.category === 'instrument' && (
+                            <g>
+                              <circle
+                                r="23"
+                                fill="#141414"
+                                stroke={haloColor}
+                                strokeWidth={isSelected ? 2.2 : 1.6}
+                              />
+                              <line
+                                x1="-23"
+                                y1="0"
+                                x2="23"
+                                y2="0"
+                                stroke="#2b3145"
+                                strokeWidth="1"
+                              />
+                              <text
+                                textAnchor="middle"
+                                dy="-4"
+                                fontSize="9.5"
+                                fontWeight="bold"
+                                fontFamily="JetBrains Mono, monospace"
+                                fill="#ffffff"
+                              >
+                                {prefix}
+                              </text>
+                              <text
+                                textAnchor="middle"
+                                dy="12"
+                                fontSize="8.5"
+                                fontWeight="bold"
+                                fontFamily="JetBrains Mono, monospace"
+                                fill="#a3a3a3"
+                              >
+                                {loopNum || prefix}
+                              </text>
+                            </g>
+                          )}
+
+                          {/* Confidence Pill Badge Below Node */}
+                          <g transform="translate(0, 27)">
+                            <rect
+                              x="-14"
+                              y="0"
+                              width="28"
+                              height="11"
+                              rx="5.5"
+                              fill="#24272f"
                               stroke={haloColor}
-                              strokeWidth={isSelected ? 2.5 : 1.8}
+                              strokeWidth="0.8"
                             />
-                            <line x1="-16" y1="-5" x2="16" y2="-5" stroke="#334155" strokeDasharray="3,3" />
-                            <line x1="-16" y1="5" x2="16" y2="5" stroke="#334155" strokeDasharray="3,3" />
-                            <text textAnchor="middle" dy="-8" fontSize="8.5" fontWeight="bold" fontFamily="JetBrains Mono, monospace" fill="#f1f5f9">
-                              {node.id}
-                            </text>
-                            <text textAnchor="middle" dy="14" fontSize="7" fontFamily="JetBrains Mono, monospace" fill="#94a3b8">
-                              VESSEL
-                            </text>
-                          </g>
-                        )}
-
-                        {/* EQUIPMENT SYMBOL: STORAGE TANK */}
-                        {node.category === 'equipment' && isTank && !isVessel && (
-                          <g>
-                            <path
-                              d="M -24 -15 C -12 -28, 12 -28, 24 -15 L 24 25 L -24 25 Z"
-                              fill="#12141c"
-                              stroke={haloColor}
-                              strokeWidth={isSelected ? 2.5 : 1.8}
-                            />
-                            <line x1="-18" y1="0" x2="18" y2="0" stroke="#38bdf8" strokeDasharray="3,3" strokeWidth="1" opacity="0.6" />
-                            <text textAnchor="middle" dy="5" fontSize="8.5" fontWeight="bold" fontFamily="JetBrains Mono, monospace" fill="#f1f5f9">
-                              {node.id}
-                            </text>
-                            <text textAnchor="middle" dy="16" fontSize="7" fontFamily="JetBrains Mono, monospace" fill="#94a3b8">
-                              TANK
-                            </text>
-                          </g>
-                        )}
-
-                        {/* EQUIPMENT SYMBOL: HEAT EXCHANGER */}
-                        {node.category === 'equipment' && isExchanger && !isVessel && !isTank && (
-                          <g>
-                            <rect x="-26" y="-16" width="52" height="32" rx="16" fill="#12141c" stroke={haloColor} strokeWidth={isSelected ? 2.5 : 1.8} />
-                            <line x1="-16" y1="-3" x2="16" y2="-3" stroke="#475569" strokeDasharray="2,2" />
-                            <line x1="-16" y1="3" x2="16" y2="3" stroke="#475569" strokeDasharray="2,2" />
-                            <text textAnchor="middle" dy="-4" fontSize="8" fontWeight="bold" fontFamily="JetBrains Mono, monospace" fill="#f1f5f9">
-                              {node.id}
-                            </text>
-                            <text textAnchor="middle" dy="8" fontSize="6.5" fontFamily="JetBrains Mono, monospace" fill="#94a3b8">
-                              HEX
-                            </text>
-                          </g>
-                        )}
-
-                        {/* EQUIPMENT SYMBOL: PUMP */}
-                        {node.category === 'equipment' && !isVessel && !isTank && !isExchanger && (
-                          <g>
-                            <circle
-                              r="24"
-                              fill="#141414"
-                              stroke={haloColor}
-                              strokeWidth={isSelected ? 2.5 : 1.8}
-                            />
-                            <path d="M 12 -20 L 22 -30 L 8 -26 Z" fill="#38bdf8" />
-                            <circle r="6" fill="#1e1e1e" stroke="#64748b" strokeWidth="1" />
                             <text
+                              x="0"
+                              y="8.5"
                               textAnchor="middle"
-                              dy="-8"
-                              fontSize="9"
-                              fontWeight="bold"
-                              fontFamily="JetBrains Mono, monospace"
-                              fill="#ffffff"
-                            >
-                              {node.id}
-                            </text>
-                            <text
-                              textAnchor="middle"
-                              dy="14"
                               fontSize="7.5"
                               fontFamily="JetBrains Mono, monospace"
-                              fill="#a3a3a3"
+                              fontWeight="bold"
+                              fill={haloColor}
                             >
-                              PUMP
+                              {Math.round(node.confidence * 100)}%
                             </text>
                           </g>
-                        )}
 
-                        {/* VALVE SYMBOL */}
-                        {node.category === 'valve' && (
-                          <g>
-                            <polygon
-                              points="-16,-9 16,9 16,-9 -16,9"
-                              fill="#141414"
-                              stroke={haloColor}
-                              strokeWidth={isSelected ? 2.2 : 1.6}
-                            />
-                            <line x1="0" y1="0" x2="0" y2="-12" stroke="#a3a3a3" strokeWidth="1.5" />
-                            {/* Actuator Dome (Control Valve) vs Handwheel (Manual) */}
-                            {node.id.startsWith('CV') || node.id.startsWith('FV') || node.id.startsWith('LV') || node.id.startsWith('PV') || node.id.startsWith('TV') ? (
-                              <path d="M -10 -12 Q 0 -22 10 -12 Z" fill="#1e1e1e" stroke="#38bdf8" strokeWidth="1.5" />
-                            ) : (
-                              <line x1="-8" y1="-12" x2="8" y2="-12" stroke="#a3a3a3" strokeWidth="2" />
-                            )}
-
-                            <text
-                              textAnchor="middle"
-                              dy="20"
-                              fontSize="8"
-                              fontWeight="bold"
-                              fontFamily="JetBrains Mono, monospace"
-                              fill="#ffffff"
-                            >
-                              {node.id}
-                            </text>
-                          </g>
-                        )}
-
-                        {/* INSTRUMENT SYMBOL: ISA-5.1 BUBBLE */}
-                        {node.category === 'instrument' && (
-                          <g>
-                            <circle
-                              r="23"
-                              fill="#141414"
-                              stroke={haloColor}
-                              strokeWidth={isSelected ? 2.2 : 1.6}
-                            />
-                            <line
-                              x1="-23"
-                              y1="0"
-                              x2="23"
-                              y2="0"
-                              stroke="#2b3145"
-                              strokeWidth="1"
-                            />
-
-                            <text
-                              textAnchor="middle"
-                              dy="-4"
-                              fontSize="9.5"
-                              fontWeight="bold"
-                              fontFamily="JetBrains Mono, monospace"
-                              fill="#ffffff"
-                            >
-                              {prefix}
-                            </text>
-
-                            <text
-                              textAnchor="middle"
-                              dy="12"
-                              fontSize="8.5"
-                              fontWeight="bold"
-                              fontFamily="JetBrains Mono, monospace"
-                              fill="#a3a3a3"
-                            >
-                              {loopNum || prefix}
-                            </text>
-                          </g>
-                        )}
-
-                        {/* Confidence Pill Badge Below Node */}
-                        <g transform="translate(0, 27)">
-                          <rect
-                            x="-14"
-                            y="0"
-                            width="28"
-                            height="11"
-                            rx="5.5"
-                            fill="#24272f"
-                            stroke={haloColor}
-                            strokeWidth="0.8"
-                          />
-                          <text
-                            x="0"
-                            y="8.5"
-                            textAnchor="middle"
-                            fontSize="7.5"
-                            fontFamily="JetBrains Mono, monospace"
-                            fontWeight="bold"
-                            fill={haloColor}
-                          >
-                            {Math.round(node.confidence * 100)}%
-                          </text>
                         </g>
+                      );
+                    })}
 
-                      </g>
-                    );
-                  })}
+                  </g>
+                </svg>
+              </div>
+            )}
 
-                </g>
-              </svg>
-            </div>
-
-            {/* Canvas Footer Legend - Docked Frosted Glass Pill Strip */}
-            <div className="absolute bottom-3 left-3 bg-[#282b33]/80 backdrop-blur-xl px-4 py-1.5 rounded-full border border-white/[0.15] shadow-lg shadow-black/25 text-xs font-medium flex items-center gap-4 text-slate-200">
-              <span className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.8)]" /> ≥85% Validated
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-amber-400 shadow-[0_0_6px_rgba(251,191,36,0.8)]" /> 60–85% Needs Review
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="w-3 h-0.5 bg-[#38bdf8]" /> Process Piping
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="w-3 h-0.5 bg-[#a855f7] border-b border-dashed" /> Electrical Loop
-              </span>
-            </div>
+            {/* Canvas Footer Legend */}
+            {displayMode === 'hmi' ? (
+              <div className="absolute bottom-3 left-3 bg-[#1e293b]/90 backdrop-blur-xl px-4 py-1.5 rounded-full border border-white/[0.15] shadow-lg shadow-black/25 text-xs font-medium flex items-center gap-3 text-slate-200">
+                <span className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" /> DCS HMI Display (#Example 1 Standard)
+                </span>
+                <span className="text-slate-500">|</span>
+                <span className="text-slate-300">Click any DCS Faceplate or Equipment to inspect</span>
+              </div>
+            ) : (
+              <div className="absolute bottom-3 left-3 bg-[#282b33]/80 backdrop-blur-xl px-4 py-1.5 rounded-full border border-white/[0.15] shadow-lg shadow-black/25 text-xs font-medium flex items-center gap-4 text-slate-200">
+                <span className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.8)]" /> ≥85% Validated
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-amber-400 shadow-[0_0_6px_rgba(251,191,36,0.8)]" /> 60–85% Needs Review
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="w-3 h-0.5 bg-[#38bdf8]" /> Process Piping
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="w-3 h-0.5 bg-[#a855f7] border-b border-dashed" /> Electrical Loop
+                </span>
+              </div>
+            )}
 
           </div>
+
 
           {/* Before & After Comparison Split View with Glassmorphism */}
           {showBeforeAfter && (

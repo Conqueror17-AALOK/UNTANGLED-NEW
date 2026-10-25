@@ -189,6 +189,18 @@ export const apiClient = {
     return await res.json();
   },
 
+  async getSketch(jobId: string): Promise<string> {
+    try {
+      const res = await fetch(`${API_BASE}/jobs/${jobId}/sketch`);
+      if (res.ok) {
+        return await res.text();
+      }
+      return '';
+    } catch {
+      return '';
+    }
+  },
+
   async getReport(jobId: string, lang = 'en'): Promise<ReportData> {
     if (USE_MOCKS || jobId.startsWith('mock-') || jobId.startsWith('demo-')) {
       const selectedLang = ['en', 'hi', 'mr'].includes(lang) ? lang : 'en';
