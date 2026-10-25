@@ -103,8 +103,11 @@ def test_io_list_validator_comprehensive_audit():
         IoItem(tag="TT-999", signal_type="RTD (AI)", range_low="0", range_high="200", units="degC", description="Ambient Temp"),
         # Inverted range: LT-102
         IoItem(tag="LT-102", signal_type="4-20mA", range_low="150", range_high="10", units="m", description="Feed Tank Level"),
+        # Mixed string and int range types: PT-103 (string '-1' and int 22)
+        IoItem(tag="PT-103", signal_type="4-20mA (AI)", range_low="-1", range_high=22, units="bar", description="Mixed String-Int Range"),
     ]
     resolved_tags.append({"normalized_tag": "LT-102", "type": "Level Transmitter", "category": "instrument"})
+    resolved_tags.append({"normalized_tag": "PT-103", "type": "Pressure Transmitter", "category": "instrument"})
 
     result = IoListValidator.verify_io_and_drawing(resolved_tags, io_items)
 

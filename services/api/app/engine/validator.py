@@ -12,6 +12,20 @@ from services.api.app.db.schemas import GraphEdge, GraphNode, GraphSchema
 from services.api.app.engine.io_parser import IoItem
 
 
+def _safe_float(val: Any) -> Optional[float]:
+    if val is None:
+        return None
+    if isinstance(val, (int, float)):
+        return float(val)
+    val_str = str(val).strip().replace(",", "")
+    if not val_str or val_str.lower() in ("none", "null", "na", "n/a", "-", "--"):
+        return None
+    try:
+        return float(val_str)
+    except (ValueError, TypeError):
+        return None
+
+
 # =============================================================================
 # 1. P&ID Connection Verification Engine
 # =============================================================================
@@ -555,7 +569,9 @@ class IoListValidator:
                 continue
 
             # Calibration Range Validation: High must exceed Low
-            if item.range_low is not None and item.range_high is not None and item.range_high <= item.range_low:
+            low_val = _safe_float(item.range_low)
+            high_val = _safe_float(item.range_high)
+            if low_val is not None and high_val is not None and high_val <= low_val:
                 items_audit.append({
                     "tag": item.tag,
                     "status": "WRONG",
