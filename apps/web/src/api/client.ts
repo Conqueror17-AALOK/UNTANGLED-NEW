@@ -1,4 +1,4 @@
-import { Job, Tag, GraphData, ReportData, MergeJobsResponse, RevisionDiffData, VerificationReportData } from '../types';
+import { Job, Tag, GraphData, ReportData, MergeJobsResponse, RevisionDiffData, VerificationReportData, ErrorPreviewsInfo } from '../types';
 import { INITIAL_TAGS, MOCK_GRAPH, MOCK_REPORT } from '../mocks/fixtures';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api/v1';
@@ -263,8 +263,88 @@ export const apiClient = {
     return `${API_BASE}/jobs/${jobId}/detection-preview?page=${page}`;
   },
 
+  getErrorPreviewUrl(jobId: string, page = 1): string {
+    return `${API_BASE}/jobs/${jobId}/error-preview?page=${page}`;
+  },
+
   getOriginalPageUrl(jobId: string, page = 1): string {
     return `${API_BASE}/jobs/${jobId}/original-page?page=${page}`;
+  },
+
+  async getErrorPreviewsInfo(jobId: string): Promise<ErrorPreviewsInfo> {
+    if (USE_MOCKS || jobId.startsWith('mock-') || jobId.startsWith('demo-')) {
+      return {
+        job_id: jobId,
+        total_pages: 1,
+        total_hotspots: 3,
+        p1_critical_count: 1,
+        p2_high_count: 1,
+        missing_in_drawing_count: 1,
+        missing_in_io_count: 1,
+        type_mismatch_count: 1,
+        pages: [
+          {
+            page: 1,
+            error_preview_url: `${API_BASE}/jobs/${jobId}/error-preview?page=1`,
+            detection_preview_url: `${API_BASE}/jobs/${jobId}/detection-preview?page=1`,
+            original_url: `${API_BASE}/jobs/${jobId}/original-page?page=1`,
+            hotspots_count: 3,
+            hotspots: [
+              {
+                id: 'hotspot_1',
+                tag: 'PSV-101',
+                type: 'P1_CRITICAL',
+                priority: 'P1',
+                priority_label: 'P1 - Critical Safety Risk',
+                rule: 'ISOLATED_RELIEF_VALVE',
+                message: 'Safety relief valve discharge line terminates with no flare or containment routing.',
+                recommendation: 'Direct relief outlet to flare knock-out drum.',
+                bbox: [240, 180, 320, 260],
+                normalized_bbox: [0.24, 0.22, 0.32, 0.32],
+                page: 1
+              },
+              {
+                id: 'hotspot_2',
+                tag: 'HV-77',
+                type: 'MISSING_IN_IO',
+                priority: 'P2',
+                priority_label: 'P2 - Missing in DCS I/O Register',
+                rule: 'MISSING_IN_IO_LIST',
+                message: 'Physical manual/actuated valve identified on drawing, but lacks DCS I/O address.',
+                recommendation: 'Register valve position feedback limit switch in DCS database.',
+                bbox: [480, 300, 560, 380],
+                normalized_bbox: [0.48, 0.38, 0.56, 0.48],
+                page: 1
+              },
+              {
+                id: 'hotspot_3',
+                tag: 'PT-101',
+                type: 'SIGNAL_MISMATCH',
+                priority: 'P2',
+                priority_label: 'P2 - Signal Type Mismatch',
+                rule: 'SIGNAL_TYPE_MISMATCH',
+                message: 'Blueprint indicates 4-20mA Analog Transmitter, but DCS registers binary DI.',
+                recommendation: 'Change DCS channel configuration from DI to AI in marshalling cabinet.',
+                bbox: [680, 220, 760, 300],
+                normalized_bbox: [0.68, 0.28, 0.76, 0.38],
+                page: 1
+              }
+            ],
+            missing_in_drawing: [
+              {
+                io_tag: 'FT-310',
+                description: 'Secondary Recycle Flow Sensor defined in DCS IO List, absent on sheet 1.'
+              }
+            ],
+            width: 2000,
+            height: 1400
+          }
+        ]
+      };
+    }
+    const res = await fetch(`${API_BASE}/jobs/${jobId}/error-previews`);
+    if (!res.ok) throw new ApiError('Failed to fetch error previews', 'PREVIEWS_FAILED');
+    return await res.json();
   },
 
   async getDetectionPreviewsInfo(jobId: string): Promise<{

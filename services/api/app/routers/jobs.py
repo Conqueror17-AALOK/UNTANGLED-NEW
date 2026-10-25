@@ -6,6 +6,8 @@ import uuid
 from typing import Any, Dict, List, Literal, Optional
 
 import fitz  # PyMuPDF
+import cv2
+import numpy as np
 from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, Query, Response, UploadFile, status
 from pydantic import BaseModel
 from PIL import Image, ImageDraw
@@ -637,6 +639,98 @@ def get_detection_preview(
     return Response(content=content, media_type="image/png", headers=headers)
 
 
+@router.get("/{job_id}/error-preview")
+def get_error_preview(
+    job_id: str,
+    page: int = Query(1, ge=1),
+    download: bool = Query(False),
+    db: Session = Depends(get_db)
+):
+    """
+    Serve high-resolution visual error and discrepancy overlay image
+    showing all P1/P2 hazards, missing IO items, signal mismatches, and missing components
+    highlighted directly on top of the original P&ID blueprint.
+    """
+    settings = get_settings()
+    job_dir = os.path.join(settings.DATA_DIR, job_id)
+    overlay_path = os.path.join(job_dir, f"error_overlay_page_{page}.png")
+
+    if not os.path.exists(overlay_path):
+        # Fallback to page 1 overlay if exists
+        fallback_path = os.path.join(job_dir, "error_overlay_page_1.png")
+        if os.path.exists(fallback_path):
+            overlay_path = fallback_path
+        else:
+            # Dynamically render error overlay from report.json, perception.json and PDF
+            job = db.query(JobModel).filter(JobModel.id == job_id).first()
+            report_path = os.path.join(job_dir, "report.json")
+            perc_path = os.path.join(job_dir, "perception.json")
+            res_path = os.path.join(job_dir, "resolved_items.json")
+
+            report_data = {}
+            if os.path.exists(report_path):
+                try:
+                    with open(report_path, "r", encoding="utf-8") as f:
+                        report_data = json.load(f)
+                except Exception:
+                    pass
+
+            perc_data = {}
+            if os.path.exists(perc_path):
+                try:
+                    with open(perc_path, "r", encoding="utf-8") as f:
+                        perc_data = json.load(f)
+                except Exception:
+                    pass
+
+            resolved_tags = []
+            if os.path.exists(res_path):
+                try:
+                    with open(res_path, "r", encoding="utf-8") as f:
+                        rdata = json.load(f)
+                        resolved_tags = rdata.get("items", []) if isinstance(rdata, dict) else rdata
+                except Exception:
+                    pass
+
+            if job and os.path.exists(job.pdf_path):
+                try:
+                    from services.api.app.engine.error_visualizer import generate_error_overlay
+                    doc = fitz.open(job.pdf_path)
+                    pdf_page = doc[max(0, min(page - 1, len(doc) - 1))]
+                    pix = pdf_page.get_pixmap(dpi=150)
+                    bg_img = cv2.imdecode(np.frombuffer(pix.tobytes("png"), dtype=np.uint8), cv2.IMREAD_COLOR)
+                    generate_error_overlay(
+                        bg_img=bg_img,
+                        page_number=page,
+                        report_data=report_data,
+                        perception_dict=perc_data,
+                        resolved_tags=resolved_tags,
+                        out_path=overlay_path
+                    )
+                except Exception as e:
+                    logger.warning(f"Could not dynamically render error overlay: {e}")
+
+    if not os.path.exists(overlay_path):
+        # Fallback to debug overlay if error overlay could not be rendered
+        debug_overlay = os.path.join(job_dir, f"debug_overlay_page_{page}.png")
+        if os.path.exists(debug_overlay):
+            overlay_path = debug_overlay
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail={"code": "ERROR_PREVIEW_NOT_FOUND", "message": f"Error preview image for page {page} not found."}
+            )
+
+    with open(overlay_path, "rb") as f:
+        content = f.read()
+
+    headers = {}
+    if download:
+        headers["Content-Disposition"] = f"attachment; filename=error_preview_{job_id[:8]}_p{page}.png"
+
+    return Response(content=content, media_type="image/png", headers=headers)
+
+
 @router.get("/{job_id}/original-page")
 def get_original_page(
     job_id: str,
@@ -709,6 +803,92 @@ def get_detection_previews_info(job_id: str, db: Session = Depends(get_db)):
     return {
         "job_id": job_id,
         "total_pages": len(pages_info),
+        "pages": pages_info
+    }
+
+
+@router.get("/{job_id}/error-previews")
+def get_error_previews_info(job_id: str, db: Session = Depends(get_db)):
+    """
+    Get summary list of available error preview pages with counts of P1, P2,
+    missing in drawing, missing in IO list, and detailed error hotspots with coordinates.
+    """
+    settings = get_settings()
+    job_dir = os.path.join(settings.DATA_DIR, job_id)
+    report_path = os.path.join(job_dir, "report.json")
+    perc_path = os.path.join(job_dir, "perception.json")
+    res_path = os.path.join(job_dir, "resolved_items.json")
+
+    report_data = {}
+    if os.path.exists(report_path):
+        try:
+            with open(report_path, "r", encoding="utf-8") as f:
+                report_data = json.load(f)
+        except Exception:
+            pass
+
+    perc_data = {}
+    if os.path.exists(perc_path):
+        try:
+            with open(perc_path, "r", encoding="utf-8") as f:
+                perc_data = json.load(f)
+        except Exception:
+            pass
+
+    resolved_tags = []
+    if os.path.exists(res_path):
+        try:
+            with open(res_path, "r", encoding="utf-8") as f:
+                rdata = json.load(f)
+                resolved_tags = rdata.get("items", []) if isinstance(rdata, dict) else rdata
+        except Exception:
+            pass
+
+    from services.api.app.engine.error_visualizer import extract_error_hotspots
+
+    conn_val = report_data.get("connection_validation", {})
+    p1_count = conn_val.get("p1_critical_count", 0)
+    p2_count = conn_val.get("p2_high_count", 0)
+    missing_draw = report_data.get("missing_in_drawing", [])
+    missing_io = report_data.get("missing_in_io_list", [])
+    type_mismatches = report_data.get("type_mismatches", [])
+
+    pages_info = []
+    total_pages = len(perc_data.get("pages", [])) or 1
+
+    for p_num in range(1, total_pages + 1):
+        page_perc = next((p for p in perc_data.get("pages", []) if p.get("page_number") == p_num), {})
+        w = page_perc.get("width", 2000)
+        h = page_perc.get("height", 1400)
+        hotspots = extract_error_hotspots(
+            page_number=p_num,
+            report_data=report_data,
+            perception_dict=perc_data,
+            resolved_tags=resolved_tags,
+            src_w=float(w),
+            src_h=float(h)
+        )
+        pages_info.append({
+            "page": p_num,
+            "error_preview_url": f"/api/v1/jobs/{job_id}/error-preview?page={p_num}",
+            "detection_preview_url": f"/api/v1/jobs/{job_id}/detection-preview?page={p_num}",
+            "original_url": f"/api/v1/jobs/{job_id}/original-page?page={p_num}",
+            "hotspots_count": len(hotspots),
+            "hotspots": hotspots,
+            "missing_in_drawing": missing_draw if p_num == 1 else [],
+            "width": w,
+            "height": h
+        })
+
+    return {
+        "job_id": job_id,
+        "total_pages": len(pages_info),
+        "total_hotspots": sum(p["hotspots_count"] for p in pages_info),
+        "p1_critical_count": p1_count,
+        "p2_high_count": p2_count,
+        "missing_in_drawing_count": len(missing_draw),
+        "missing_in_io_count": len(missing_io),
+        "type_mismatch_count": len(type_mismatches),
         "pages": pages_info
     }
 

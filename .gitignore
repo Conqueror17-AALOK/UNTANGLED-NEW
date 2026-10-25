@@ -95,3 +95,8 @@ data/florence_dataset/
 extra datasets/
 new dataset/
 *.zip
+
+# Local Conversation Backups & Agent Logs (NEVER COMMIT)
+conversation_backups/
+conversation_backups
+

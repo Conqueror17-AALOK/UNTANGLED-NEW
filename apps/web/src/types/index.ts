@@ -185,6 +185,42 @@ export interface VerificationReportData {
   io_verification: IoVerificationData;
 }
 
+export interface ErrorHotspot {
+  id: string;
+  tag: string;
+  type: 'P1_CRITICAL' | 'P2_WARNING' | 'P3_AUDIT' | 'MISSING_IN_IO' | 'SIGNAL_MISMATCH' | 'MISSING_IN_DRAWING';
+  priority: 'P1' | 'P2' | 'P3' | 'P4';
+  priority_label?: string;
+  rule: string;
+  message: string;
+  recommendation?: string;
+  bbox: [number, number, number, number];
+  normalized_bbox: [number, number, number, number];
+  page: number;
+}
+
+export interface ErrorPreviewsInfo {
+  job_id: string;
+  total_pages: number;
+  total_hotspots: number;
+  p1_critical_count: number;
+  p2_high_count: number;
+  missing_in_drawing_count: number;
+  missing_in_io_count: number;
+  type_mismatch_count: number;
+  pages: Array<{
+    page: number;
+    error_preview_url: string;
+    detection_preview_url: string;
+    original_url: string;
+    hotspots_count: number;
+    hotspots: ErrorHotspot[];
+    missing_in_drawing: MissingInDrawing[];
+    width: number;
+    height: number;
+  }>;
+}
+
 export interface ReportData {
   summary: ReportSummary;
   missing_in_drawing: MissingInDrawing[];

@@ -19,9 +19,11 @@ import {
   Sparkles,
   Layers,
   X,
+  AlertOctagon,
+  Crosshair,
 } from 'lucide-react';
 import { apiClient } from '../api/client';
-import { ReportData } from '../types';
+import { ErrorHotspot, ErrorPreviewsInfo, ReportData } from '../types';
 
 export const ReportPage: React.FC = () => {
   const { jobId = 'demo-job-1' } = useParams();
@@ -33,6 +35,15 @@ export const ReportPage: React.FC = () => {
   const [previewMode, setPreviewMode] = useState<'overlay' | 'original'>('overlay');
   const [previewPage, setPreviewPage] = useState<number>(1);
   const [previewZoom, setPreviewZoom] = useState<number>(1.0);
+
+  // Visual Error & Discrepancy Highlight States
+  const [errorPreviewMode, setErrorPreviewMode] = useState<'error_overlay' | 'detection' | 'original'>('error_overlay');
+  const [errorPreviewPage, setErrorPreviewPage] = useState<number>(1);
+  const [errorPreviewZoom, setErrorPreviewZoom] = useState<number>(1.0);
+  const [errorFilter, setErrorFilter] = useState<'ALL' | 'P1' | 'P2' | 'MISSING_IO' | 'MISSING_DRAWING'>('ALL');
+  const [hoveredHotspot, setHoveredHotspot] = useState<ErrorHotspot | null>(null);
+  const [selectedHotspot, setSelectedHotspot] = useState<ErrorHotspot | null>(null);
+  const [errorPreviewsInfo, setErrorPreviewsInfo] = useState<ErrorPreviewsInfo | null>(null);
 
   // Priority Connection Filter & CAD Snippet Inspection States
   const [priorityFilter, setPriorityFilter] = useState<'ALL' | 'P1' | 'P2' | 'P3' | 'P4'>('ALL');
@@ -71,7 +82,11 @@ export const ReportPage: React.FC = () => {
 
     apiClient.getDetectionPreviewsInfo(jobId)
       .then(setPreviewsInfo)
-      .catch((err) => console.warn('Could not load previews info:', err));
+      .catch((err) => console.warn('Could not load detection previews info:', err));
+
+    apiClient.getErrorPreviewsInfo(jobId)
+      .then(setErrorPreviewsInfo)
+      .catch((err) => console.warn('Could not load error previews info:', err));
   }, [jobId, lang]);
 
   if (isLoading || !report) {
@@ -85,6 +100,24 @@ export const ReportPage: React.FC = () => {
 
   const { summary } = report;
   const labels = report.i18n_labels || {};
+
+  const currentErrorPage = errorPreviewsInfo?.pages.find((p) => p.page === errorPreviewPage) || errorPreviewsInfo?.pages[0];
+  const allPageHotspots = currentErrorPage?.hotspots || [];
+
+  const filteredHotspots = allPageHotspots.filter((h) => {
+    if (errorFilter === 'ALL') return true;
+    if (errorFilter === 'P1') return h.priority === 'P1';
+    if (errorFilter === 'P2') return h.priority === 'P2';
+    if (errorFilter === 'MISSING_IO') return h.type === 'MISSING_IN_IO';
+    if (errorFilter === 'MISSING_DRAWING') return h.type === 'MISSING_IN_DRAWING';
+    return true;
+  });
+
+  const p1Count = errorPreviewsInfo?.p1_critical_count ?? report.connection_validation?.p1_critical_count ?? 0;
+  const p2Count = errorPreviewsInfo?.p2_high_count ?? report.connection_validation?.p2_high_count ?? 0;
+  const missingDrawingCount = errorPreviewsInfo?.missing_in_drawing_count ?? report.missing_in_drawing.length;
+  const missingIoCount = errorPreviewsInfo?.missing_in_io_count ?? report.missing_in_io_list.length;
+  const totalHotspotIssues = (errorPreviewsInfo?.total_hotspots ?? allPageHotspots.length) + missingDrawingCount;
 
   const handleExportJSON = () => {
     const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(report, null, 2));
@@ -566,6 +599,430 @@ export const ReportPage: React.FC = () => {
             <span className="text-cyan-400 font-semibold">{previewMode === 'overlay' ? 'Detection Overlay View' : 'Original Raw Blueprint'}</span>
           </div>
         </div>
+      </div>
+
+      {/* SECTION: Visual Error & Missing Component Highlights */}
+      <div className="adobe-card p-4 sm:p-5 space-y-3.5 border border-red-500/20 bg-gradient-to-b from-[#2a1c22]/30 to-[#1f2229]">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#434856]">
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 rounded-lg bg-red-500/20 text-red-400 border border-red-500/30">
+              <AlertOctagon size={18} />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <h2 className="text-sm font-semibold text-slate-100 tracking-tight">
+                  {labels.visual_error_title || 'Visual Error & Missing Component Highlights'}
+                </h2>
+                <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-red-500/15 text-red-400 border border-red-500/30 animate-pulse">
+                  Action Required
+                </span>
+                <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                  {totalHotspotIssues} Issues Highlighted
+                </span>
+              </div>
+              <p className="text-xs text-slate-400 font-normal">
+                {labels.visual_error_desc || 'Direct spatial localization of safety hazards, topology breaks, missing IO registers, and drawing discrepancies directly on the input P&ID diagram'}
+              </p>
+            </div>
+          </div>
+
+          {/* Error Inspection Controls */}
+          <div className="flex flex-wrap items-center gap-2 text-xs">
+            {/* View Mode Switcher */}
+            <div className="flex items-center bg-[#24272f] p-1 rounded-lg border border-[#434856]">
+              <button
+                type="button"
+                onClick={() => setErrorPreviewMode('error_overlay')}
+                className={`px-2.5 py-1 rounded text-xs font-medium flex items-center gap-1.5 transition-all ${
+                  errorPreviewMode === 'error_overlay'
+                    ? 'bg-red-500/25 text-red-300 font-medium border border-red-500/40 shadow-sm'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <Crosshair size={12} className={errorPreviewMode === 'error_overlay' ? 'text-red-400' : 'text-slate-400'} />
+                <span>Error Overlay</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setErrorPreviewMode('detection')}
+                className={`px-2.5 py-1 rounded text-xs font-medium flex items-center gap-1.5 transition-all ${
+                  errorPreviewMode === 'detection'
+                    ? 'bg-[#3f4554] text-white font-medium shadow-sm'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <Sparkles size={12} className={errorPreviewMode === 'detection' ? 'text-blue-400' : 'text-slate-400'} />
+                <span>AI Detections</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setErrorPreviewMode('original')}
+                className={`px-2.5 py-1 rounded text-xs font-medium flex items-center gap-1.5 transition-all ${
+                  errorPreviewMode === 'original'
+                    ? 'bg-[#3f4554] text-white font-medium shadow-sm'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <Layers size={12} className={errorPreviewMode === 'original' ? 'text-slate-100' : 'text-slate-400'} />
+                <span>Original Drawing</span>
+              </button>
+            </div>
+
+            {/* Zoom Controls */}
+            <div className="flex items-center bg-[#24272f] px-1.5 py-1 rounded-lg border border-[#434856] gap-1">
+              <button
+                type="button"
+                title="Zoom Out"
+                onClick={() => setErrorPreviewZoom((z) => Math.max(0.6, z - 0.2))}
+                className="p-1 rounded text-slate-400 hover:text-white hover:bg-white/[0.05] transition-colors"
+              >
+                <ZoomOut size={13} />
+              </button>
+              <span className="text-[11px] text-slate-200 w-9 text-center font-mono">
+                {Math.round(errorPreviewZoom * 100)}%
+              </span>
+              <button
+                type="button"
+                title="Zoom In"
+                onClick={() => setErrorPreviewZoom((z) => Math.min(2.5, z + 0.2))}
+                className="p-1 rounded text-slate-400 hover:text-white hover:bg-white/[0.05] transition-colors"
+              >
+                <ZoomIn size={13} />
+              </button>
+              <button
+                type="button"
+                title="Reset Zoom"
+                onClick={() => setErrorPreviewZoom(1.0)}
+                className="p-1 rounded text-slate-400 hover:text-white hover:bg-white/[0.05] transition-colors"
+              >
+                <RotateCcw size={12} />
+              </button>
+            </div>
+
+            {/* Multi-sheet Selector if > 1 page */}
+            {errorPreviewsInfo && errorPreviewsInfo.total_pages > 1 && (
+              <div className="flex items-center gap-1 bg-[#24272f] p-1 rounded-lg border border-[#434856]">
+                {errorPreviewsInfo.pages.map((p) => (
+                  <button
+                    key={p.page}
+                    type="button"
+                    onClick={() => setErrorPreviewPage(p.page)}
+                    className={`px-2 py-0.5 rounded text-[11px] font-medium ${
+                      errorPreviewPage === p.page
+                        ? 'bg-red-500/25 text-red-300 border border-red-500/40 shadow-sm'
+                        : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    Sheet {p.page}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Direct Download High-Res Error PNG */}
+            <a
+              href={`/api/v1/jobs/${jobId}/error-preview?page=${errorPreviewPage}&download=true`}
+              download={`error_preview_${jobId.slice(0, 8)}_p${errorPreviewPage}.png`}
+            >
+              <button
+                className="h-8 px-3 rounded-lg border border-red-500/30 bg-[#2b1f24] text-red-200 hover:text-white hover:bg-red-900/40 flex items-center gap-1.5 transition-all text-xs font-medium"
+              >
+                <Download size={12} />
+                <span>Download Error Diagram</span>
+              </button>
+            </a>
+          </div>
+        </div>
+
+        {/* Severity Metrics & Interactive Filter Strip */}
+        <div className="flex flex-wrap items-center justify-between gap-3 text-xs py-1 border-b border-[#434856]/60">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-slate-400 text-xs mr-1 font-medium">Filter Errors:</span>
+            <button
+              onClick={() => setErrorFilter('ALL')}
+              className={`px-2.5 py-1 rounded text-xs font-medium transition-colors ${
+                errorFilter === 'ALL'
+                  ? 'bg-[#3f4554] text-white font-semibold'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              All ({allPageHotspots.length + (missingDrawingCount > 0 ? 1 : 0)})
+            </button>
+            <button
+              onClick={() => setErrorFilter('P1')}
+              className={`px-2.5 py-1 rounded text-xs font-medium flex items-center gap-1.5 transition-colors ${
+                errorFilter === 'P1'
+                  ? 'bg-red-500/25 text-red-300 border border-red-500/40 font-semibold'
+                  : 'text-slate-400 hover:text-red-300'
+              }`}
+            >
+              <span className="w-2 h-2 rounded-full bg-red-500" />
+              <span>P1 Critical ({p1Count})</span>
+            </button>
+            <button
+              onClick={() => setErrorFilter('P2')}
+              className={`px-2.5 py-1 rounded text-xs font-medium flex items-center gap-1.5 transition-colors ${
+                errorFilter === 'P2'
+                  ? 'bg-amber-500/25 text-amber-300 border border-amber-500/40 font-semibold'
+                  : 'text-slate-400 hover:text-amber-300'
+              }`}
+            >
+              <span className="w-2 h-2 rounded-full bg-amber-400" />
+              <span>P2 Warnings ({p2Count})</span>
+            </button>
+            <button
+              onClick={() => setErrorFilter('MISSING_IO')}
+              className={`px-2.5 py-1 rounded text-xs font-medium flex items-center gap-1.5 transition-colors ${
+                errorFilter === 'MISSING_IO'
+                  ? 'bg-orange-500/25 text-orange-300 border border-orange-500/40 font-semibold'
+                  : 'text-slate-400 hover:text-orange-300'
+              }`}
+            >
+              <span className="w-2 h-2 rounded-full bg-orange-400" />
+              <span>Missing in IO ({missingIoCount})</span>
+            </button>
+            {missingDrawingCount > 0 && (
+              <button
+                onClick={() => setErrorFilter('MISSING_DRAWING')}
+                className={`px-2.5 py-1 rounded text-xs font-medium flex items-center gap-1.5 transition-colors ${
+                  errorFilter === 'MISSING_DRAWING'
+                    ? 'bg-rose-500/25 text-rose-300 border border-rose-500/40 font-semibold'
+                    : 'text-slate-400 hover:text-rose-300'
+                }`}
+              >
+                <span className="w-2 h-2 rounded-full bg-rose-500" />
+                <span>Missing in Drawing ({missingDrawingCount})</span>
+              </button>
+            )}
+          </div>
+
+          <div className="flex items-center gap-3 text-[11px] text-slate-400">
+            <span className="flex items-center gap-1 text-slate-300">
+              <span className="w-2 h-2 rounded-sm bg-red-500" />
+              <span>P1 Critical</span>
+            </span>
+            <span className="flex items-center gap-1 text-slate-300">
+              <span className="w-2 h-2 rounded-sm bg-amber-400" />
+              <span>P2 Operational</span>
+            </span>
+            <span className="flex items-center gap-1 text-slate-300">
+              <span className="w-2 h-2 rounded-sm bg-orange-400" />
+              <span>Missing in IO</span>
+            </span>
+            <span className="flex items-center gap-1 text-slate-300">
+              <span className="w-2 h-2 rounded-sm bg-purple-400" />
+              <span>Signal Mismatch</span>
+            </span>
+            <span className="flex items-center gap-1 text-slate-300">
+              <span className="w-2 h-2 rounded-sm border border-rose-400 bg-rose-500/30" />
+              <span>Missing in Blueprint</span>
+            </span>
+          </div>
+        </div>
+
+        {/* Floating Missing Components in Drawing Alert Card */}
+        {report.missing_in_drawing.length > 0 && (errorFilter === 'ALL' || errorFilter === 'MISSING_DRAWING') && (
+          <div className="p-3.5 rounded-xl bg-gradient-to-r from-red-950/70 via-[#26151c]/80 to-[#1f2229] border border-red-500/40 text-xs space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
+                <span className="font-semibold text-red-200 uppercase tracking-wider text-[11px]">
+                  DCS Registered I/O Points Missing from P&ID Blueprint
+                </span>
+                <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-red-500/20 text-red-300 border border-red-500/30">
+                  {report.missing_in_drawing.length} Missing
+                </span>
+              </div>
+              <span className="text-[11px] text-slate-400 font-normal">
+                ISA-5.1 Consistency Check Failure
+              </span>
+            </div>
+            <p className="text-slate-300 text-xs">
+              The following signals are actively configured in the DCS I/O database but lack physical instrument or valve bubbles on this P&ID drawing. Verify whether field components were omitted during CAD drafting or are obsolete:
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 pt-1">
+              {report.missing_in_drawing.map((item) => (
+                <div
+                  key={item.io_tag}
+                  className="p-2.5 rounded-lg bg-[#18121a] border border-red-500/30 flex items-start gap-2 text-xs"
+                >
+                  <XCircle size={15} className="text-red-400 shrink-0 mt-0.5" />
+                  <div className="min-w-0">
+                    <span className="font-mono font-bold text-red-300 block">{item.io_tag}</span>
+                    <p className="text-[11px] text-slate-400 truncate">{item.description}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* High-Resolution Error Canvas Viewport */}
+        <div className="relative w-full rounded-xl overflow-hidden border border-[#434856] bg-[#1a1d24]">
+          <div className="max-h-[640px] overflow-auto p-2 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+            <div
+              style={{
+                transform: `scale(${errorPreviewZoom})`,
+                transformOrigin: 'top left',
+                transition: 'transform 0.15s ease',
+              }}
+              className="relative inline-block min-w-full"
+            >
+              {/* Rendered P&ID Diagram with Highlights */}
+              <img
+                src={
+                  errorPreviewMode === 'error_overlay'
+                    ? apiClient.getErrorPreviewUrl(jobId, errorPreviewPage)
+                    : errorPreviewMode === 'detection'
+                    ? apiClient.getDetectionPreviewUrl(jobId, errorPreviewPage)
+                    : apiClient.getOriginalPageUrl(jobId, errorPreviewPage)
+                }
+                alt="P&ID Error Highlight Diagram"
+                className="w-full h-auto rounded shadow-2xl block object-contain"
+                loading="eager"
+              />
+
+              {/* Interactive Clickable Hotspot Pins / Reticles */}
+              {errorPreviewMode === 'error_overlay' && filteredHotspots.map((h) => {
+                const [x1_pct, y1_pct, x2_pct, y2_pct] = h.normalized_bbox;
+                const isP1 = h.priority === 'P1';
+                const isSelected = selectedHotspot?.id === h.id;
+                const isHovered = hoveredHotspot?.id === h.id;
+
+                const borderColor = isP1
+                  ? 'border-red-500'
+                  : h.type === 'MISSING_IN_IO'
+                  ? 'border-orange-500'
+                  : h.type === 'SIGNAL_MISMATCH'
+                  ? 'border-purple-500'
+                  : 'border-amber-400';
+
+                const bgGlow = isP1
+                  ? 'bg-red-500/25 hover:bg-red-500/40 shadow-[0_0_15px_rgba(239,68,68,0.5)]'
+                  : h.type === 'MISSING_IN_IO'
+                  ? 'bg-orange-500/25 hover:bg-orange-500/40 shadow-[0_0_12px_rgba(249,115,22,0.4)]'
+                  : h.type === 'SIGNAL_MISMATCH'
+                  ? 'bg-purple-500/25 hover:bg-purple-500/40 shadow-[0_0_12px_rgba(168,85,247,0.4)]'
+                  : 'bg-amber-400/25 hover:bg-amber-400/40 shadow-[0_0_12px_rgba(245,158,11,0.4)]';
+
+                return (
+                  <div
+                    key={h.id}
+                    onClick={() => {
+                      setSelectedHotspot(h);
+                      if (h.bbox) {
+                        setInspectSnippet({
+                          bbox: h.bbox,
+                          page: h.page,
+                          tag: h.tag,
+                          action: h.recommendation || h.message,
+                          priority: h.priority,
+                          rule: h.rule,
+                        });
+                      }
+                    }}
+                    onMouseEnter={() => setHoveredHotspot(h)}
+                    onMouseLeave={() => setHoveredHotspot(null)}
+                    style={{
+                      left: `${x1_pct * 100}%`,
+                      top: `${y1_pct * 100}%`,
+                      width: `${Math.max(3.0, (x2_pct - x1_pct) * 100)}%`,
+                      height: `${Math.max(3.0, (y2_pct - y1_pct) * 100)}%`,
+                    }}
+                    className={`absolute cursor-pointer transition-all z-20 rounded border-2 ${borderColor} ${bgGlow} ${
+                      isSelected || isHovered ? 'ring-4 ring-white z-30 scale-105' : ''
+                    }`}
+                    title={`${h.priority_label || h.priority}: ${h.tag} - ${h.rule}`}
+                  >
+                    {/* Floating Pill Label */}
+                    <div className="absolute -top-6 left-0 whitespace-nowrap px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-[#141822]/90 text-white border border-white/20 shadow flex items-center gap-1 pointer-events-none">
+                      <span className={`w-1.5 h-1.5 rounded-full ${isP1 ? 'bg-red-500 animate-ping' : 'bg-amber-400'}`} />
+                      <span>{h.tag}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Floating Watermark & Badge */}
+          <div className="absolute bottom-3 right-3 bg-industrial-950/90 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/10 text-[10px] font-mono flex items-center gap-2 text-slate-300 shadow-lg">
+            <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+            <span>Visual Error Tracing Active</span>
+            <span className="text-slate-500">•</span>
+            <span className="text-red-400 font-semibold">
+              {errorPreviewMode === 'error_overlay'
+                ? 'Error Highlight Overlay'
+                : errorPreviewMode === 'detection'
+                ? 'Symbol Detections View'
+                : 'Original Blueprint'}
+            </span>
+          </div>
+        </div>
+
+        {/* Selected / Hovered Hotspot Quick Action Banner */}
+        {(selectedHotspot || hoveredHotspot) && (
+          <div className="p-3.5 rounded-xl bg-[#24272f] border border-[#434856] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs animate-fade-in">
+            <div className="flex items-start gap-2.5">
+              <div className={`p-1.5 rounded-lg mt-0.5 ${
+                (selectedHotspot || hoveredHotspot)?.priority === 'P1'
+                  ? 'bg-red-500/20 text-red-400'
+                  : 'bg-amber-500/20 text-amber-400'
+              }`}>
+                <Crosshair size={16} />
+              </div>
+              <div className="space-y-0.5">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-mono font-bold text-white text-sm">
+                    {(selectedHotspot || hoveredHotspot)?.tag}
+                  </span>
+                  <span className={`text-[10px] px-2 py-0.5 rounded font-semibold ${
+                    (selectedHotspot || hoveredHotspot)?.priority === 'P1'
+                      ? 'bg-red-500/20 text-red-300 border border-red-500/30'
+                      : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                  }`}>
+                    {(selectedHotspot || hoveredHotspot)?.priority_label || (selectedHotspot || hoveredHotspot)?.priority}
+                  </span>
+                  <span className="text-slate-400 text-xs">
+                    {(selectedHotspot || hoveredHotspot)?.rule}
+                  </span>
+                </div>
+                <p className="text-slate-200">
+                  {(selectedHotspot || hoveredHotspot)?.message}
+                </p>
+                {(selectedHotspot || hoveredHotspot)?.recommendation && (
+                  <p className="text-blue-400 text-[11px]">
+                    <strong className="text-slate-400 mr-1">Direct Recommendation:</strong>
+                    {(selectedHotspot || hoveredHotspot)?.recommendation}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {(selectedHotspot || hoveredHotspot)?.bbox && (
+              <button
+                type="button"
+                onClick={() => {
+                  const target = selectedHotspot || hoveredHotspot;
+                  if (target && target.bbox) {
+                    setInspectSnippet({
+                      bbox: target.bbox,
+                      page: target.page,
+                      tag: target.tag,
+                      action: target.recommendation || target.message,
+                      priority: target.priority,
+                      rule: target.rule,
+                    });
+                  }
+                }}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-200 hover:text-white border border-red-500/30 font-medium text-xs shrink-0 transition-all self-start sm:self-center"
+              >
+                <Eye size={13} />
+                <span>Inspect CAD Snippet</span>
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Discrepancy Breakdown Sections */}

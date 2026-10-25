@@ -7,8 +7,11 @@ Processes high-resolution engineering blueprints and legend sheets from data/rea
 - Extracts authentic symbol templates for OpenCV template matcher
 """
 
+import glob
+import json
 import os
 import random
+import shutil
 from typing import Dict, List, Tuple
 import cv2
 import fitz
@@ -238,15 +241,16 @@ def ingest_real_dataset(
     """
     Render PDF sheets, extract symbol coordinates, generate 640x640 tiles,
     and merge directly into YOLO training dataset.
+    Processes all pages of all real drawings in data_dir.
     """
     total_train = 0
     total_val = 0
 
     pdf_files = [
-        ("1_ Main Input_P&ID_Sanitized.pdf", 12),  # First 12 sheets of Unit 14
-        ("2_P&ID Legends_Sanitized.pdf", 5),       # All 5 legend sheets
-        ("AUX/Common_PID_Legends_SealPlan_Sanitized_v4.pdf", 8),
-        ("AUX/Aux_PIDs_CD_OW_PW_UW_Sanitized_v4.pdf", 5),
+        ("1_ Main Input_P&ID_Sanitized.pdf", None),                   # All 29 sheets of Unit 14
+        ("2_P&ID Legends_Sanitized.pdf", None),                        # All 5 legend sheets
+        ("AUX/Common_PID_Legends_SealPlan_Sanitized_v4.pdf", None),   # All 10 sheets
+        ("AUX/Aux_PIDs_CD_OW_PW_UW_Sanitized_v4.pdf", None),          # All 10 sheets
     ]
 
     for rel_path, max_pages in pdf_files:
@@ -256,9 +260,16 @@ def ingest_real_dataset(
 
         doc = fitz.open(full_path)
         base_name = os.path.splitext(os.path.basename(rel_path))[0].replace(" ", "_")
-        print(f"Processing {base_name} ({min(max_pages, len(doc))} sheets)...")
+        total_sheets = len(doc) if max_pages is None else min(max_pages, len(doc))
+        print(f"Processing {base_name} ({total_sheets} sheets)...")
 
-        for page_idx in range(min(max_pages, len(doc))):
+        for page_idx in range(total_sheets):
+            page_id = f"{base_name}_p{page_idx+1}"
+            existing = glob.glob(os.path.join(output_dir, "images", "*", f"real_{page_id}_tile_*.jpg"))
+            if existing:
+                print(f"  {page_id}: already ingested ({len(existing)} tiles). Skipping.")
+                continue
+
             page = doc[page_idx]
             pix = page.get_pixmap(dpi=dpi)
             scale = pix.width / page.rect.width
@@ -268,7 +279,6 @@ def ingest_real_dataset(
             if not symbols:
                 continue
 
-            page_id = f"{base_name}_p{page_idx+1}"
             train_added, val_added = generate_tiles_for_page(
                 img, symbols, page_id, target_dir=output_dir, val_split_prob=0.20
             )
@@ -280,5 +290,95 @@ def ingest_real_dataset(
     return {"train_tiles": total_train, "val_tiles": total_val}
 
 
-if __name__ == "__main__":
+def ingest_florence_dataset(
+    florence_dir: str = "data/florence_dataset",
+    output_dir: str = "data/yolo_dataset",
+    val_split_prob: float = 0.20,
+) -> Tuple[int, int]:
+    """
+    Convert Florence-2 ground truth annotations to YOLO format and ingest into yolo_dataset.
+    """
+    json_path = os.path.join(florence_dir, "dataset.json")
+    imgs_dir = os.path.join(florence_dir, "images")
+    if not os.path.exists(json_path) or not os.path.exists(imgs_dir):
+        print(f"Florence dataset not found in {florence_dir}. Skipping.")
+        return 0, 0
+
+    with open(json_path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    train_count = 0
+    val_count = 0
+
+    for item in data:
+        img_name = item.get("image")
+        src_img = os.path.join(imgs_dir, img_name)
+        if not os.path.exists(src_img):
+            continue
+
+        base_id = f"florence_{os.path.splitext(img_name)[0]}"
+        # Check if already ingested
+        if glob.glob(os.path.join(output_dir, "images", "*", f"{base_id}.*")):
+            continue
+
+        w = float(item.get("width", 640))
+        h = float(item.get("height", 640))
+        annotations = item.get("annotations", [])
+        if not annotations:
+            continue
+
+        yolo_lines = []
+        for ann in annotations:
+            cls_name = ann.get("class_name")
+            if cls_name not in CLASS_TO_ID:
+                continue
+            cls_id = CLASS_TO_ID[cls_name]
+            bx1, by1, bx2, by2 = ann.get("bbox", [0, 0, 0, 0])
+            cx = ((bx1 + bx2) / 2.0) / w
+            cy = ((by1 + by2) / 2.0) / h
+            bw = (bx2 - bx1) / w
+            bh = (by2 - by1) / h
+
+            cx = max(0.001, min(0.999, cx))
+            cy = max(0.001, min(0.999, cy))
+            bw = max(0.005, min(0.999, bw))
+            bh = max(0.005, min(0.999, bh))
+            yolo_lines.append(f"{cls_id} {cx:.6f} {cy:.6f} {bw:.6f} {bh:.6f}\n")
+
+        if not yolo_lines:
+            continue
+
+        is_val = random.random() < val_split_prob
+        split_name = "val" if is_val else "train"
+        dest_img_dir = os.path.join(output_dir, "images", split_name)
+        dest_lbl_dir = os.path.join(output_dir, "labels", split_name)
+        os.makedirs(dest_img_dir, exist_ok=True)
+        os.makedirs(dest_lbl_dir, exist_ok=True)
+
+        dest_img_path = os.path.join(dest_img_dir, f"{base_id}.png")
+        dest_lbl_path = os.path.join(dest_lbl_dir, f"{base_id}.txt")
+
+        shutil.copy2(src_img, dest_img_path)
+        with open(dest_lbl_path, "w", encoding="utf-8") as f_out:
+            f_out.writelines(yolo_lines)
+
+        if is_val:
+            val_count += 1
+        else:
+            train_count += 1
+
+    print(f"Florence dataset ingested: +{train_count} train, +{val_count} val images.")
+    return train_count, val_count
+
+
+def ingest_all_remaining() -> None:
+    print("=" * 65)
+    print("Ingesting All Remaining Datasets into YOLO Dataset")
+    print("=" * 65)
     ingest_real_dataset()
+    ingest_florence_dataset()
+    print("=" * 65)
+
+
+if __name__ == "__main__":
+    ingest_all_remaining()

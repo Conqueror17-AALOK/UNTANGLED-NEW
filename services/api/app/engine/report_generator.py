@@ -34,6 +34,8 @@ TRANSLATIONS = {
         "audit_stamp": "प्रमाणित ऑपरेटर ऑडिट रिपोर्ट - ISA-5.1 अनुरूप",
         "visual_audit_title": "दृश्य स्थानिक ऑडिट और AI पहचान ओवरले",
         "visual_audit_desc": "ब्लूप्रिंट पर पहचाने गए सभी टैग, उपकरण और पाइपिंग जंक्शनों का दृश्य सत्यापन।",
+        "visual_error_title": "दृश्य त्रुटि और विसंगति ब्लूप्रिंट ओवरले",
+        "visual_error_desc": "भौतिक ब्लूप्रिंट पर सुरक्षा खतरों और अनुपस्थित IO घटकों की प्रत्यक्ष दृश्य पहचान।",
     },
     "mr": {
         "report_title": "P&ID रेखाचित्र विरुद्ध DCS IO सूची पडताळणी अहवाल",
@@ -57,6 +59,8 @@ TRANSLATIONS = {
         "audit_stamp": "प्रमाणित ऑपरेटर ऑडिट अहवाल - ISA-5.1 अनुरूप",
         "visual_audit_title": "दृश्य स्थानिक ऑडिट आणि AI शोध आच्छादन",
         "visual_audit_desc": "रेखाचित्रावर शोधलेले सर्व टॅग्ज आणि उपकरणांची दृश्य पडताळणी.",
+        "visual_error_title": "दृश्य त्रुटी आणि विसंगती रेखाचित्र आच्छादन",
+        "visual_error_desc": "रेखाचित्रावर सुरक्षा धोके आणि गहाळ IO घटकांची थेट दृश्य पडताळणी.",
     },
     "en": {
         "report_title": "P&ID Drawing vs DCS IO List Cross-Validation Report",
@@ -80,6 +84,8 @@ TRANSLATIONS = {
         "audit_stamp": "Certified Engineering Audit Report - ISA-5.1 Standard Compliant",
         "visual_audit_title": "Visual Spatial Audit & AI Detection Overlay",
         "visual_audit_desc": "Complete spatial verification of all detected tags, instruments, valves, and equipment.",
+        "visual_error_title": "Visual Error & Discrepancy Blueprint Overlay",
+        "visual_error_desc": "Spatial localization of critical hazards (P1), operational warnings (P2), and missing field devices directly on the input P&ID blueprint.",
     }
 }
 
@@ -200,7 +206,8 @@ def generate_pdf_report(
     lang: str = "en",
     overlay_image_path: Optional[str] = None,
     graph_data: Optional[Dict[str, Any]] = None,
-    source_pdf_path: Optional[str] = None
+    source_pdf_path: Optional[str] = None,
+    error_overlay_image_path: Optional[str] = None
 ) -> bytes:
     """
     Generate an enhanced, vector-first engineering cross-validation audit PDF report.
@@ -209,6 +216,7 @@ def generate_pdf_report(
       Page 2: Smart Vector Process & Instrumentation Diagram (P&ID) with Vector Priority Highlights.
       Page 3: Optimized Resolution: High-Resolution Original Blueprint Crops with Direct Actions.
       Page 4: Visual Spatial Audit: Full AI Detection Overlay.
+      Page 5: Visual Error & Discrepancy Blueprint Overlay: Direct Error & Missing Component Highlights.
     """
     selected_lang = lang if lang in TRANSLATIONS else "en"
     labels = TRANSLATIONS[selected_lang]
@@ -230,12 +238,18 @@ def generate_pdf_report(
         if os.path.exists(default_overlay):
             overlay_image_path = default_overlay
 
+    if not error_overlay_image_path and os.path.exists(job_dir):
+        default_error_overlay = os.path.join(job_dir, "error_overlay_page_1.png")
+        if os.path.exists(default_error_overlay):
+            error_overlay_image_path = default_error_overlay
+
     if not source_pdf_path and os.path.exists(job_dir):
         for fname in sorted(os.listdir(job_dir)):
             if (fname.endswith((".pdf", ".png", ".jpg", ".jpeg")) and
                 fname != "simplified_diagram.pdf" and
                 not fname.startswith("untangle_audit_report") and
-                not fname.startswith("debug_overlay")):
+                not fname.startswith("debug_overlay") and
+                not fname.startswith("error_overlay")):
                 source_pdf_path = os.path.join(job_dir, fname)
                 break
 
@@ -576,6 +590,82 @@ def generate_pdf_report(
         # Footer Page 4
         page4.draw_line(fitz.Point(36, 755), fitz.Point(576, 755), color=(0.8, 0.85, 0.9), width=0.5)
         page4.insert_text(fitz.Point(36, 768), "UNTANGLE Visual Traceability Audit - High-Resolution Spatial Model Predictions", fontsize=7, color=(0.5, 0.55, 0.6), fontname="helv")
+
+    # =========================================================================
+    # PAGE 5: VISUAL ERROR & ANOMALY HIGHLIGHTS: BLUEPRINT DISCREPANCY OVERLAY
+    # =========================================================================
+    if not error_overlay_image_path and source_pdf_path and os.path.exists(source_pdf_path):
+        try:
+            import cv2
+            import numpy as np
+            from services.api.app.engine.error_visualizer import generate_error_overlay
+            doc_src = fitz.open(source_pdf_path)
+            pdf_page = doc_src[0]
+            pix = pdf_page.get_pixmap(dpi=150)
+            bg_img = cv2.imdecode(np.frombuffer(pix.tobytes("png"), dtype=np.uint8), cv2.IMREAD_COLOR)
+            doc_src.close()
+            perc_data = {}
+            if os.path.exists(job_dir):
+                ppath = os.path.join(job_dir, "perception.json")
+                if os.path.exists(ppath):
+                    with open(ppath, "r", encoding="utf-8") as pf:
+                        perc_data = json.load(pf)
+            res_tags = []
+            if os.path.exists(job_dir):
+                rpath = os.path.join(job_dir, "resolved_items.json")
+                if os.path.exists(rpath):
+                    with open(rpath, "r", encoding="utf-8") as rf:
+                        rd = json.load(rf)
+                        res_tags = rd.get("items", []) if isinstance(rd, dict) else rd
+            auto_err_path = os.path.join(job_dir, "error_overlay_page_1.png") if os.path.exists(job_dir) else None
+            generate_error_overlay(
+                bg_img=bg_img,
+                page_number=1,
+                report_data=report_data,
+                perception_dict=perc_data,
+                resolved_tags=res_tags,
+                out_path=auto_err_path
+            )
+            if auto_err_path and os.path.exists(auto_err_path):
+                error_overlay_image_path = auto_err_path
+        except Exception:
+            pass
+
+    if error_overlay_image_path and os.path.exists(error_overlay_image_path):
+        page5 = doc.new_page(width=612, height=792)
+
+        # Header Banner (Dark Maroon/Navy)
+        page5.draw_rect(fitz.Rect(0, 0, 612, 60), color=None, fill=(0.11, 0.07, 0.12))
+        page5.insert_text(fitz.Point(36, 30), "UNTANGLED", fontsize=15, color=(1.0, 0.35, 0.4), fontname="helv")
+        page5.insert_text(fitz.Point(140, 30), f"|  {labels.get('visual_error_title', 'Visual Error & Discrepancy Blueprint Overlay')}", fontsize=11, color=(0.95, 0.9, 0.95), fontname="helv")
+        page5.insert_text(fitz.Point(36, 48), labels.get("visual_error_desc", "Spatial localization of critical hazards (P1), operational warnings (P2), and missing field devices."), fontsize=8, color=(0.8, 0.55, 0.6), fontname="helv")
+        page5.insert_text(fitz.Point(460, 48), f"JOB: {job_id[:12]}", fontsize=8, color=(0.65, 0.55, 0.65), fontname="helv")
+
+        # Color-Coded Error Legend Bar
+        leg_y = 68
+        page5.draw_rect(fitz.Rect(36, leg_y, 576, leg_y + 26), color=(0.88, 0.82, 0.85), fill=(0.98, 0.95, 0.96))
+
+        err_legend_items = [
+            ("Red", (0.92, 0.2, 0.2), "P1 Critical Safety"),
+            ("Amber", (0.95, 0.62, 0.05), "P2 Operational"),
+            ("Orange", (0.95, 0.4, 0.1), "Missing in IO"),
+            ("Magenta", (0.8, 0.2, 0.8), "Signal Mismatch"),
+            ("Ruby", (0.85, 0.1, 0.3), "Missing in Blueprint")
+        ]
+        cur_lx = 42
+        for name, col, lbl in err_legend_items:
+            page5.draw_rect(fitz.Rect(cur_lx, leg_y + 8, cur_lx + 9, leg_y + 18), color=col, fill=col)
+            page5.insert_text(fitz.Point(cur_lx + 13, leg_y + 16), lbl, fontsize=7.5, color=(0.3, 0.2, 0.25), fontname="helv")
+            cur_lx += 105
+
+        # Embed High-Resolution Error Overlay Image
+        err_img_rect = fitz.Rect(36, 102, 576, 740)
+        page5.draw_rect(err_img_rect, color=(0.85, 0.8, 0.85), fill=None, width=0.8)
+        page5.insert_image(err_img_rect, filename=error_overlay_image_path, keep_proportion=True)
+
+        # Footer Page 5
+        page5.draw_line(fitz.Point(36, 755), fitz.Point(576, 755), color=(0.85, 0.8, 0.85), width=0.5)
+        page5.insert_text(fitz.Point(36, 768), "UNTANGLE Visual Error Traceability - High-Resolution Blueprint Anomaly Highlights", fontsize=7, color=(0.6, 0.5, 0.55), fontname="helv")
 
     # Final Pass: Number all standard pages
     total_pages = len(doc)

@@ -351,6 +351,30 @@ async def execute_untangle_pipeline(job_id: str, db: Session):
         with open(os.path.join(job_dir, "report.json"), "w") as f:
             json.dump(report_dict, f, indent=2)
 
+        # Pre-render visual error highlight overlay images
+        try:
+            from services.api.app.engine.error_visualizer import generate_error_overlay
+            if os.path.exists(job.pdf_path):
+                import cv2
+                import numpy as np
+                doc = fitz.open(job.pdf_path)
+                for p_idx in range(len(doc)):
+                    p_num = p_idx + 1
+                    pdf_page = doc[p_idx]
+                    pix = pdf_page.get_pixmap(dpi=150)
+                    bg_img = cv2.imdecode(np.frombuffer(pix.tobytes("png"), dtype=np.uint8), cv2.IMREAD_COLOR)
+                    err_overlay_path = os.path.join(job_dir, f"error_overlay_page_{p_num}.png")
+                    generate_error_overlay(
+                        bg_img=bg_img,
+                        page_number=p_num,
+                        report_data=report_dict,
+                        perception_dict=perception_dict,
+                        resolved_tags=resolved_tags_list,
+                        out_path=err_overlay_path
+                    )
+        except Exception as err_ex:
+            logger.warning(f"Could not pre-render error overlay in pipeline: {err_ex}")
+
         # Compute and persist revision difference if this job is an update
         if baseline_job_id:
             try:
@@ -491,6 +515,30 @@ async def rebuild_graph_and_artifacts(job_id: str, db: Session):
     report_dict = report_schema.model_dump()
     with open(os.path.join(job_dir, "report.json"), "w") as f:
         json.dump(report_dict, f, indent=2)
+
+    # Re-render visual error overlay images
+    try:
+        from services.api.app.engine.error_visualizer import generate_error_overlay
+        if os.path.exists(job.pdf_path):
+            import cv2
+            import numpy as np
+            doc = fitz.open(job.pdf_path)
+            for p_idx in range(len(doc)):
+                p_num = p_idx + 1
+                pdf_page = doc[p_idx]
+                pix = pdf_page.get_pixmap(dpi=150)
+                bg_img = cv2.imdecode(np.frombuffer(pix.tobytes("png"), dtype=np.uint8), cv2.IMREAD_COLOR)
+                err_overlay_path = os.path.join(job_dir, f"error_overlay_page_{p_num}.png")
+                generate_error_overlay(
+                    bg_img=bg_img,
+                    page_number=p_num,
+                    report_data=report_dict,
+                    perception_dict=perception_dict,
+                    resolved_tags=resolved_tags_list,
+                    out_path=err_overlay_path
+                )
+    except Exception as err_ex:
+        logger.warning(f"Could not re-render error overlay in rebuild: {err_ex}")
 
     # Summary
     res_cnt = sum(1 for t in resolved_tags_list if t["status"] == "resolved")

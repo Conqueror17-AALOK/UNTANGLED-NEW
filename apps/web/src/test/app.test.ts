@@ -23,4 +23,16 @@ describe('Frontend API and Pipeline Stages', () => {
     expect(updated.confidence).toBe(1.0);
     expect(updated.source).toBe('human');
   });
+
+  it('should generate error preview URL and fetch error previews info', async () => {
+    const url = apiClient.getErrorPreviewUrl('demo-job-1', 1);
+    expect(url).toContain('/jobs/demo-job-1/error-preview?page=1');
+
+    const errorInfo = await apiClient.getErrorPreviewsInfo('demo-job-1');
+    expect(errorInfo).toBeDefined();
+    expect(errorInfo.p1_critical_count).toBeGreaterThanOrEqual(1);
+    expect(errorInfo.pages).toHaveLength(1);
+    expect(errorInfo.pages[0].hotspots.length).toBeGreaterThanOrEqual(1);
+    expect(errorInfo.pages[0].hotspots[0].normalized_bbox).toHaveLength(4);
+  });
 });
