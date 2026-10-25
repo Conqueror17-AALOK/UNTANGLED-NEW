@@ -56,6 +56,9 @@ export const UploadPage: React.FC = () => {
     setIsSubmitting(true);
     try {
       const res = await apiClient.loadSampleJob();
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('untangled_active_job_id', res.job_id);
+      }
       navigate(`/jobs/${res.job_id}`);
     } catch (err: unknown) {
       const error = err as { message?: string };
@@ -74,6 +77,9 @@ export const UploadPage: React.FC = () => {
     setIsSubmitting(true);
     try {
       const res = await apiClient.createJob(pdfFile, xlsxFile);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('untangled_active_job_id', res.job_id);
+      }
       navigate(`/jobs/${res.job_id}`);
     } catch (err: unknown) {
       const error = err as { message?: string };

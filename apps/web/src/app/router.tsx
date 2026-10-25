@@ -10,7 +10,8 @@ import { Sidebar } from '../components/layout/Sidebar';
 export const AppRouter: React.FC = () => {
   const location = useLocation();
   const match = location.pathname.match(/\/(jobs|workspace|review|report)\/([^/]+)/);
-  const currentJobId = match ? match[2] : 'demo-job-1';
+  const storedJobId = typeof window !== 'undefined' ? localStorage.getItem('untangled_active_job_id') : null;
+  const currentJobId = match ? match[2] : (storedJobId || 'demo-job-1');
 
   return (
     <div className="relative h-screen w-screen overflow-hidden flex bg-[#282b33] text-[#e2e8f0] antialiased selection:bg-blue-500/30 selection:text-white font-normal">
@@ -33,9 +34,13 @@ export const AppRouter: React.FC = () => {
         <main className="flex-1 h-full min-h-0 overflow-y-auto flex flex-col">
           <Routes>
             <Route path="/" element={<UploadPage />} />
+            <Route path="/jobs" element={<JobPage />} />
             <Route path="/jobs/:jobId" element={<JobPage />} />
+            <Route path="/workspace" element={<WorkspacePage />} />
             <Route path="/workspace/:jobId" element={<WorkspacePage />} />
+            <Route path="/review" element={<ReviewPage />} />
             <Route path="/review/:jobId" element={<ReviewPage />} />
+            <Route path="/report" element={<ReportPage />} />
             <Route path="/report/:jobId" element={<ReportPage />} />
           </Routes>
         </main>

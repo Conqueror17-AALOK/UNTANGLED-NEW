@@ -118,12 +118,20 @@ export const apiClient = {
       return mockTags.filter((t) => t.status === status);
     }
 
-    const url = new URL(`${window.location.origin}${API_BASE}/jobs/${jobId}/tags`);
+    const base = API_BASE.startsWith('http://') || API_BASE.startsWith('https://')
+      ? `${API_BASE}/jobs/${jobId}/tags`
+      : `${window.location.origin}${API_BASE.startsWith('/') ? API_BASE : `/${API_BASE}`}/jobs/${jobId}/tags`;
+    const url = new URL(base);
     if (status) url.searchParams.set('status', status);
 
     const res = await fetch(url.toString());
     if (!res.ok) throw new ApiError('Failed to fetch tags', 'TAG_NOT_FOUND');
     return await res.json();
+  },
+
+  getSourceCropUrl(jobId: string, page: number, bbox: number[]): string {
+    const coords = (bbox || [0, 0, 100, 100]).slice(0, 4).join(',');
+    return `${API_BASE}/jobs/${jobId}/source/${page || 1}/crop?bbox=${coords}`;
   },
 
   async updateTag(jobId: string, tagId: string, normalizedTag: string, type?: string): Promise<Tag> {
