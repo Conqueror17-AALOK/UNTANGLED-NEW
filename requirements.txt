@@ -1,0 +1,8 @@
+# ==========================================
+# UNTANGLED Monorepo Python Dependencies
+# ==========================================
+# To install all dependencies (API + Perception + Neural Models):
+#   pip install -r requirements.txt
+#
+-r services/perception/requirements.txt
+-r services/api/requirements.txt

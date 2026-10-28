@@ -31,8 +31,10 @@ RUN useradd -m -u 1000 appuser && \
 
 # Install Python requirements
 COPY services/perception/requirements.txt /app/services/perception/requirements.txt
+COPY services/api/requirements.txt /app/services/api/requirements.txt
 RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r /app/services/perception/requirements.txt
+    pip install --no-cache-dir -r /app/services/perception/requirements.txt -r /app/services/api/requirements.txt
+
 
 # Copy source trees
 COPY contracts /app/contracts

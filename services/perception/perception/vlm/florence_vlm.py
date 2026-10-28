@@ -57,16 +57,22 @@ class Florence2VLM:
         if self.model is not None:
             return
 
+        import os
         import torch
         from transformers import AutoModelForCausalLM, AutoProcessor
 
-        self.processor = AutoProcessor.from_pretrained(self.model_dir, trust_remote_code=True)
+        target_model = self.model_dir if os.path.exists(self.model_dir) else "microsoft/Florence-2-base"
+        if not os.path.exists(self.model_dir):
+            print(f"[Florence2 VLM] Local directory '{self.model_dir}' not found. Loading from HuggingFace Hub: '{target_model}'.")
+
+        self.processor = AutoProcessor.from_pretrained(target_model, trust_remote_code=True)
         self.model = AutoModelForCausalLM.from_pretrained(
-            self.model_dir,
+            target_model,
             torch_dtype=torch.float32,
             trust_remote_code=True,
         ).to(self.device)
         self.model.eval()
+
 
     def _prepare_image(self, image: np.ndarray) -> Image.Image:
         """Convert numpy array (BGR/Gray) to PIL RGB image."""

@@ -3,6 +3,7 @@ YOLO11 P&ID Symbol and Tiny-Part Detector.
 Performs high-speed, high-accuracy inference on engineering blueprint tiles.
 """
 
+import os
 from dataclasses import dataclass
 from typing import List, Optional, Tuple
 
@@ -38,7 +39,13 @@ class YOLOSymbolDetector:
     def load_model(self):
         """Lazy load YOLO model to optimize startup time."""
         from ultralytics import YOLO
-        self.model = YOLO(self.model_path)
+
+        if os.path.exists(self.model_path):
+            self.model = YOLO(self.model_path)
+        else:
+            print(f"[YOLO Detector] Note: Custom weights '{self.model_path}' not found on disk. Falling back to base 'yolo11n.pt'.")
+            self.model = YOLO("yolo11n.pt")
+
 
     def detect(self, image: np.ndarray) -> List[DetectedSymbol]:
         """

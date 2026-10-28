@@ -212,8 +212,91 @@ UNTANGLED-NEW/
 │   ├── Dockerfile.api                      # API container specification
 │   ├── Dockerfile.web                      # Frontend container specification
 │   ├── docker-compose.yml                  # Local container orchestration
-│   └── scripts/                            # Smoke test & validation utilities
-└── pyproject.toml                          # Python configuration & dependencies
+│   └── scripts/
+│       ├── download_models.py              # Automated model weight downloader & storage manager
+│       ├── train_yolo11_real.py            # YOLO11 fine-tuning pipeline on real P&ID drawings
+│       ├── generate_sample_pids.py         # Synthetic blueprint generator
+│       └── smoke.sh                        # End-to-end integration smoke test
+├── requirements.txt                        # Monorepo unified Python dependencies
+└── pyproject.toml                          # Python configuration & test settings
+```
+
+---
+
+## 🤖 Machine Learning Models, Dependencies & Storage Management
+
+UNTANGLED integrates specialized computer vision and vision-language models for ultra-high accuracy P&ID parsing:
+1. **YOLO11 P&ID Symbol Detector** (`models/yolo11_pid.pt` - 5.3 MB): Fine-tuned across 17 ISA-5.1 classes on 2,711 tiles.
+2. **Florence-2 Vision-Language Grounding Engine** (`models/florence2` - ~450 MB): Microsoft Florence-2 Base model fine-tuned for coordinate-level text and tag grounding.
+
+### 📦 Model & Pipeline Dependencies
+
+All machine learning and core perception libraries are fully specified in [`requirements.txt`](file:///Users/aalokaage/UNTANGLED%20VIT%20/requirements.txt) and [`services/perception/requirements.txt`](file:///Users/aalokaage/UNTANGLED%20VIT%20/services/perception/requirements.txt):
+
+| Dependency | Purpose | Minimum Version |
+| :--- | :--- | :---: |
+| **`torch`** & **`torchvision`** | Deep learning framework & Apple Silicon MPS / CUDA execution | `>=2.1.0` |
+| **`ultralytics`** | YOLO11 architecture, training, and inference | `>=8.3.0` |
+| **`transformers`** | Hugging Face Florence-2 VLM processor and causal language model | `>=4.40.0` |
+| **`accelerate`** | Multi-device training & inference orchestration | `>=0.28.0` |
+| **`timm`** & **`einops`** | Vision transformer backbone & tensor reshape operations | `>=0.9.0` / `>=0.7.0` |
+| **`opencv-python-headless`** | Geometric tracing, morphological filtering & template matching | `>=4.8.0` |
+| **`PyMuPDF`** (`fitz`) | Vector graphics stream extraction & rasterization | `>=1.23.0` |
+| **`pytesseract`** | Optical character recognition & OCR voting | `>=0.3.10` |
+| **`pyyaml`** & **`scipy`** | Dataset specifications & spatial coordinate metrics | `>=6.0` / `>=1.11.0` |
+
+---
+
+### 💾 Safe Local Storage Cleanup (Reclaim ~3.2 GB)
+
+When developing locally or deploying to storage-constrained environments, you can safely remove large local checkpoints, datasets, and caches:
+
+```bash
+# Safely reclaim ~3.2+ GB of local disk storage:
+rm -rf models/florence2 models/florence2_finetuned data runs
+```
+
+* **Why is this safe?**
+  * `models/yolo11_pid.pt` is only **5.3 MB** and is tracked directly in the Git repository.
+  * The dataset generators can synthesize full P&ID corpora on demand.
+  * The Florence-2 model weights are hosted on the Hugging Face Hub (`microsoft/Florence-2-base`) and will download automatically whenever needed.
+
+---
+
+### 🔄 Restoring or Downloading Models Afterwards
+
+Whenever you want to restore or set up the models on a fresh machine or after cleaning up local storage, run the built-in downloader script:
+
+```bash
+# 1. Check current status of local models and storage
+python infra/scripts/download_models.py --status
+
+# 2. Download and setup all models (YOLO11 + Florence-2)
+python infra/scripts/download_models.py --all
+
+# Or download individual models:
+python infra/scripts/download_models.py --yolo       # Restores YOLO11 weights (5.3 MB)
+python infra/scripts/download_models.py --florence   # Downloads Florence-2 VLM from Hugging Face (~450 MB)
+```
+
+> [!TIP]
+> **Built-in Resilient Fallback**: If `models/florence2` is not found locally, the VLM runtime automatically pulls `"microsoft/Florence-2-base"` directly from the Hugging Face Hub on first run. If `models/yolo11_pid.pt` is absent, the perception pipeline seamlessly falls back to OpenCV multi-scale geometric template matching.
+
+---
+
+### 🏋️ Retraining & Fine-Tuning Pipelines
+
+You can retrain both models locally with Apple Silicon Metal (`MPS`) or NVIDIA CUDA acceleration:
+
+```bash
+# Retrain YOLO11 on real industrial P&ID corpus (15 epochs, batch size 16):
+python infra/scripts/train_yolo11_real.py
+
+# Fine-tune Florence-2 VLM on diagram grounding tasks:
+python -m services.perception.perception.vlm.train_florence 3
+
+# Regenerate synthetic P&ID training datasets:
+python -m services.perception.perception.yolo.dataset_generator
 ```
 
 ---
@@ -234,20 +317,22 @@ UNTANGLED-NEW/
 git clone https://github.com/Conqueror17-AALOK/UNTANGLED-NEW.git
 cd UNTANGLED-NEW
 
-# 2. Setup Python environment
+# 2. Setup Python environment and install all dependencies
 python3 -m venv .venv
 source .venv/bin/activate
 pip install --upgrade pip
-pip install -r services/perception/requirements.txt
-pip install -r services/api/requirements.txt
+pip install -r requirements.txt
 
-# 3. Start the FastAPI backend server (Port 8000)
+# 3. Verify or download model weights
+python infra/scripts/download_models.py --all
+
+# 4. Start the FastAPI backend server (Port 8000)
 .venv/bin/python -m uvicorn services.api.app.main:app --host 127.0.0.1 --port 8000 --reload
 ```
 
 In a second terminal window:
 ```bash
-# 4. Start the React frontend application (Port 3000)
+# 5. Start the React frontend application (Port 3000)
 cd apps/web
 npm install
 npm run dev -- --host 127.0.0.1 --port 3000
